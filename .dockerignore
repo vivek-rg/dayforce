@@ -1,0 +1,19 @@
+# Never send secrets, local data or heavy submission assets into the image build.
+.env
+.env.*
+.git
+.venv
+.runtime
+**/node_modules
+frontend/dist
+**/__pycache__
+.pytest_cache
+.ruff_cache
+docs
+evals
+ppt
+resume
+video
+*.pdf
+*.db
+*.sqlite*

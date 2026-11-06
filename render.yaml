@@ -1,0 +1,28 @@
+# Render Blueprint. One instance only: SQLite and uploaded documents live on the attached disk.
+services:
+  - type: web
+    name: dayforce
+    runtime: docker
+    plan: starter
+    region: singapore
+    healthCheckPath: /api/health
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_PATH
+        value: /data/dayone.db
+      - key: LLM_PROVIDER
+        value: hosted
+      - key: LLM_MODEL
+        value: openai/gpt-oss-20b
+      - key: LLM_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: WORKER_ENABLED
+        value: "1"
+      # Secrets: Render asks for these when the Blueprint is created. Never commit them.
+      - key: LLM_API_KEY
+        sync: false
+      - key: DEMO_PASSWORD
+        sync: false

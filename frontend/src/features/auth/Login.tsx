@@ -5,6 +5,8 @@ import { useSession } from "../../shared/session-context";
 import { ActionError, Notice } from "../../shared/ui";
 import { LoginArt } from "./LoginArt";
 
+declare const __DEMO_PASSWORD__: string;
+
 const MIN_PASSWORD = 12;
 const SLIDE_MS = 8000;
 
@@ -261,7 +263,10 @@ function SignInForm({ onMode }: { onMode: (mode: Mode) => void }) {
               <button
                 type="button"
                 className="auth-demo-user"
-                onClick={() => setEmail(address)}
+                onClick={() => {
+                  setEmail(address);
+                  if (__DEMO_PASSWORD__) setPassword(__DEMO_PASSWORD__);
+                }}
               >
                 {role}
                 <small>{address}</small>
