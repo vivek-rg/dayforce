@@ -1,10 +1,21 @@
+import http.client
+
 import pytest
+from app.main import app
 from app.shared import contracts
 
 from scripts.export_contracts import example, generate
 
 
 def test_generated_contract_files_are_current():
+    for path, expected in generate().items():
+        assert path.read_text(encoding="utf-8") == expected, str(path)
+
+
+@pytest.mark.parametrize("reason_phrase", ["Unprocessable Entity", "Unprocessable Content"])
+def test_contract_export_is_independent_of_python_422_reason(monkeypatch, reason_phrase):
+    monkeypatch.setitem(http.client.responses, 422, reason_phrase)
+    monkeypatch.setattr(app, "openapi_schema", None)
     for path, expected in generate().items():
         assert path.read_text(encoding="utf-8") == expected, str(path)
 

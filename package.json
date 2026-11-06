@@ -18,8 +18,9 @@
     "format:check": "node scripts/python.mjs -m ruff format --check backend scripts && prettier --check frontend scripts/*.mjs package.json .github/workflows/ci.yml",
     "contracts": "node scripts/python.mjs scripts/export_contracts.py",
     "contracts:check": "node scripts/python.mjs scripts/export_contracts.py --check",
+    "lockfile:check": "node scripts/check-lockfile.mjs",
     "smoke": "node scripts/smoke.mjs",
-    "check": "npm run lint && npm run format:check && npm test && npm run build && npm run contracts:check"
+    "check": "npm run lockfile:check && npm run lint && npm run format:check && npm test && npm run build && npm run contracts:check"
   },
   "devDependencies": {
     "prettier": "3.6.2"
