@@ -8,6 +8,8 @@ import {
 } from "react";
 import { type Route, parseHash } from "./routes";
 
+const AUTO_REFRESH_MS = 15000;
+
 export function asError(reason: unknown): Error {
   return reason instanceof Error ? reason : new Error("Something went wrong.");
 }
@@ -66,6 +68,21 @@ export function useResource<T>(
   }, [key, nonce]);
 
   const reload = useCallback(() => setNonce((value) => value + 1), []);
+
+  // Work arrives from other people, so an open screen refreshes itself quietly.
+  useEffect(() => {
+    if (key === null) return;
+    const refresh = () => {
+      if (document.visibilityState === "visible") reload();
+    };
+    const timer = window.setInterval(refresh, AUTO_REFRESH_MS);
+    window.addEventListener("focus", refresh);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [key, reload]);
+
   const current = settled?.key === key ? settled : null;
   return {
     data: current?.data,

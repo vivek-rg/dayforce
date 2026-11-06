@@ -20,6 +20,7 @@ import {
   Tabs,
 } from "../../shared/ui";
 import { DocumentsTab } from "./DocumentsTab";
+import { EditHire } from "./EditHire";
 import { EvidenceTab } from "./EvidenceTab";
 import { HistoryTab } from "./HistoryTab";
 import { InvestigationTab } from "./InvestigationTab";
@@ -86,6 +87,7 @@ export function HireWorkspacePage({
     api.plan(hireId, signal),
   );
   const [proposing, setProposing] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   function reloadAll() {
     hire.reload();
@@ -108,17 +110,37 @@ export function HireWorkspacePage({
             }
             actions={
               user.role === "HR" && (
-                <button
-                  type="button"
-                  className="btn"
-                  aria-expanded={proposing}
-                  onClick={() => setProposing((value) => !value)}
-                >
-                  Propose location change
-                </button>
+                <>
+                  <button
+                    type="button"
+                    className="btn"
+                    aria-expanded={editing}
+                    onClick={() => setEditing((value) => !value)}
+                  >
+                    Edit details
+                  </button>
+                  <button
+                    type="button"
+                    className="btn"
+                    aria-expanded={proposing}
+                    onClick={() => setProposing((value) => !value)}
+                  >
+                    Propose location change
+                  </button>
+                </>
               )
             }
           />
+          {editing && (
+            <EditHire
+              key={data.profile_version}
+              hire={data}
+              onSaved={() => {
+                setEditing(false);
+                reloadAll();
+              }}
+            />
+          )}
           {proposing && (
             <LocationChange
               hire={data}
@@ -138,7 +160,7 @@ export function HireWorkspacePage({
           <div className="tab-panel" role="tabpanel" aria-label="Selected tab">
             {tab === "plan" && <PlanTab plan={plan} onChanged={reloadAll} />}
             {tab === "timeline" && <TimelineTab plan={plan} hire={data} />}
-            {tab === "evidence" && <EvidenceTab plan={plan} />}
+            {tab === "evidence" && <EvidenceTab hireId={hireId} plan={plan} />}
             {tab === "documents" && <DocumentsTab hireId={hireId} />}
             {tab === "investigation" && (
               <InvestigationTab hireId={hireId} onChanged={reloadAll} />

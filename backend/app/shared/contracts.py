@@ -110,7 +110,8 @@ class Bootstrap(Contract):
 
 
 class LoginRequest(Contract):
-    user_id: Id
+    # An email address or a user ID. Either identifies the same account.
+    user_id: Annotated[str, Field(min_length=1, max_length=200)]
     password: Annotated[str, Field(min_length=12, max_length=128)]
 
 
@@ -295,6 +296,7 @@ class AcceptedWork(Contract):
 class Question(Contract):
     id: Id
     case_id: Id
+    hire_name: str | None = None
     recipient_user_id: Id
     text: Annotated[str, Field(min_length=1, max_length=1000)]
     state: Literal["PENDING", "ANSWERED", "CANCELLED"]

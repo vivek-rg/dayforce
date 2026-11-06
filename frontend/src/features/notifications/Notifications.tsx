@@ -92,7 +92,8 @@ export function NotificationsPage() {
                 <li key={question.id} className="question">
                   <p className="question-text">{question.text}</p>
                   <p className="muted small">
-                    Case <span className="mono">{question.case_id}</span>
+                    {question.hire_name ? `${question.hire_name} · ` : ""}Case{" "}
+                    <span className="mono">{question.case_id}</span>
                   </p>
                   <AnswerForm
                     questionId={question.id}

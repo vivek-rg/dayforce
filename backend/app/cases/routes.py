@@ -29,6 +29,7 @@ def _to_question(row) -> Question:
     return Question(
         id=row["id"],
         case_id=row["case_id"],
+        hire_name=row["hire_name"] if "hire_name" in row.keys() else None,
         recipient_user_id=row["recipient_user_id"],
         text=row["text"],
         state=row["state"],
@@ -160,7 +161,9 @@ def get_case(case_id: str, user: User = Depends(require_user)):
 def my_questions(user: User = Depends(require_user)):
     with connect() as connection:
         rows = connection.execute(
-            "SELECT * FROM questions WHERE recipient_user_id=? AND state='PENDING' ORDER BY rowid",
+            "SELECT q.*, h.display_name AS hire_name FROM questions q "
+            "JOIN cases c ON c.id=q.case_id JOIN hires h ON h.id=c.hire_id "
+            "WHERE q.recipient_user_id=? AND q.state='PENDING' ORDER BY q.rowid",
             (user.id,),
         ).fetchall()
     return QuestionList(items=[_to_question(row) for row in rows])

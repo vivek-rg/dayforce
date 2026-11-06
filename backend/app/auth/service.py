@@ -60,6 +60,10 @@ def login(user_id: str, password: str) -> Session:
     invalid = "Those credentials were not recognised."
     now = datetime.now(UTC)
     with connect() as connection:
+        account = connection.execute(
+            "SELECT id FROM users WHERE id=? OR email=? COLLATE NOCASE", (user_id, user_id)
+        ).fetchone()
+        user_id = account["id"] if account else user_id
         attempt = connection.execute(
             "SELECT failures, locked_until FROM login_attempts WHERE user_id=?", (user_id,)
         ).fetchone()

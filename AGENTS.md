@@ -17,13 +17,13 @@ Demo: Priya's offer/profile location conflict + completed equipment task without
 
 ## Build status
 
-The OnboardIQ end-to-end build (revision R06 in PHASES.md) implements auth, plans, evidence, documents, knowledge, cases, actions, notifications, analytics and the UI. All are covered by automated tests using scripted replies or the labelled offline rules. **No real model has been validated.** See docs/EVALUATION.md. It still needs integrator review, because it changes shared contracts.
+The OnboardIQ end-to-end build (revision R06 in PHASES.md) implements auth, plans, evidence, documents, knowledge, cases, actions, notifications, analytics and the UI. All are covered by automated tests using scripted replies or the labelled offline rules. One live model, `openai/gpt-oss-20b` on Groq, has been evaluated; see docs/EVALUATION.md. It still needs integrator review, because it changes shared contracts.
 
 ## Stack and structure
 
 - Frontend: React + TypeScript + Vite; browser calls relative `/api` only.
 - Backend: Python + FastAPI + Pydantic; standard-library SQLite, parameterized SQL, per-operation connections, short transactions. The user confirmed a local demo: keep the working database, give all eight teammates the same setup/fixture revision and use independent local files. Cloud PostgreSQL is conditional future work, not a completed migration; see docs/DATABASE_DECISION.md.
-- Agent: one bounded loop whose state lives in application tables, so LangGraph's checkpointer was not needed (R06). Explicitly selected Ollama or one OpenAI-compatible hosted API, through the shared harness in `backend/app/ai/`. Discovery and the selector (P16, P23, P24) are deferred; neither transport has been run against a live model.
+- Agent: one bounded loop whose state lives in application tables, so LangGraph's checkpointer was not needed (R06). Explicitly selected Ollama or one OpenAI-compatible hosted API, through the shared harness in `backend/app/ai/`. Discovery and the selector (P16, P23, P24) are deferred; the hosted transport has been run live on Groq, and Ollama has not.
 - Tests: pytest/FastAPI TestClient, Vitest, manual browser acceptance, CI; no external keys needed for foundation checks.
 
 | Folder | Owner / role |

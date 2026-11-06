@@ -84,15 +84,16 @@ The working directory is initialized as a Git repository on `feature/p01-foundat
 
 ## End-to-end build R06 (2026-11-06)
 
-Run on macOS with Python 3.12 and Node from this machine. Not rerun on Windows, Linux or hosted CI yet.
+Run on macOS with Python 3.12, Node 26 for the browser driver, and Chrome. Not rerun on Windows or Linux.
 
 | Check | Result |
 |---|---|
 | `npm run check` (lint, format, tests, build, contract drift) | Passed |
-| Backend tests | 126 passed, using scripted model replies and labelled offline rules |
+| Backend tests | 130 passed, using scripted model replies and labelled offline rules |
 | Frontend tests | 35 passed |
-| `npm run smoke` against the dev server | Passed |
-| Browser, by hand: wizard, Priya's portal and upload, extraction mismatch, human verify, investigation question and answer, location approval, IT reservation showing "LAPTOP_22 reserved; collection pending.", assistant citation and refusal | Passed, offline rules |
-| Evaluation | See docs/EVALUATION.md |
+| Scripted real-Chrome run against the production build, offline rules | 48 of 48 checks passed, no page errors, no server errors, on a fresh clone |
+| Live model | One evaluation run on Groq; see docs/EVALUATION.md |
 
-**Not verified:** any real AI model, the Docker files (not built here), PDF and JPEG uploads in the browser, the document download button in the browser, a full keyboard or screen-reader pass, teammates' machines.
+The browser script is not in the repository, because it would add a dependency. It signs in as each role, drives every screen with real clicks including uploads and downloads, and walks every sidebar link at 1440 px and 390 px.
+
+**Not verified:** the Docker files (Docker was not running), hosting on a real server, a full keyboard or screen-reader pass, other browsers, Windows or Linux, and live-model answers through the browser UI.

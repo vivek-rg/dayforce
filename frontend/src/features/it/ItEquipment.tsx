@@ -226,6 +226,99 @@ function RequestForm({
   );
 }
 
+const ACCESS_OPTIONS = [
+  "CORPORATE_EMAIL",
+  "VPN",
+  "APPLICATION_ACCESS",
+  "REQUIRED_SOFTWARE",
+] as const;
+
+function AccessRequestForm({
+  hires,
+  onChanged,
+}: {
+  hires: Hire[];
+  onChanged: () => void;
+}) {
+  const [hireId, setHireId] = useState("");
+  const [item, setItem] = useState<(typeof ACCESS_OPTIONS)[number]>("VPN");
+  const [detail, setDetail] = useState("");
+  const [done, setDone] = useState(false);
+  const action = useAction();
+
+  async function submit() {
+    setDone(false);
+    const result = await action.run(() =>
+      api.accessRequest(hireId, { item, detail }),
+    );
+    if (result.ok) {
+      setDone(true);
+      setDetail("");
+      onChanged();
+    }
+  }
+
+  return (
+    <section className="form-panel" aria-label="Request access">
+      <h2 className="panel-title">Request access (simulated)</h2>
+      <p className="muted small">
+        This records a request. No real account or system is touched.
+      </p>
+      <div className="form-grid">
+        <Field label="Employee">
+          <select
+            className="input"
+            value={hireId}
+            onChange={(event) => setHireId(event.target.value)}
+          >
+            <option value="">Choose an employee</option>
+            {hires.map((hire) => (
+              <option key={hire.id} value={hire.id}>
+                {hire.display_name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Access">
+          <select
+            className="input"
+            value={item}
+            onChange={(event) =>
+              setItem(event.target.value as (typeof ACCESS_OPTIONS)[number])
+            }
+          >
+            {ACCESS_OPTIONS.map((option) => (
+              <option key={option} value={option}>
+                {accessItemLabel(option)}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Detail (optional)">
+          <input
+            className="input"
+            maxLength={200}
+            value={detail}
+            onChange={(event) => setDetail(event.target.value)}
+          />
+        </Field>
+      </div>
+      <ActionError error={action.error} onReload={onChanged} />
+      {done && <Notice tone="info" title="Access request recorded." />}
+      <div className="form-actions">
+        <button
+          type="button"
+          className="btn btn-primary"
+          disabled={!hireId || action.pending}
+          onClick={() => void submit()}
+        >
+          {action.pending ? "Requesting" : "Request access"}
+        </button>
+      </div>
+    </section>
+  );
+}
+
 export function ItEquipmentPage() {
   const user = useUser();
   const isIt = user.role === "IT";
@@ -402,6 +495,9 @@ export function ItEquipmentPage() {
             />
           )}
         </DataState>
+      )}
+      {isIt && hires.data && (
+        <AccessRequestForm hires={hires.data.items} onChanged={access.reload} />
       )}
     </>
   );

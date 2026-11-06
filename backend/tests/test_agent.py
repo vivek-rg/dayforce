@@ -276,6 +276,70 @@ def test_transports_parse_a_good_reply(monkeypatch):
     assert captured["url"].endswith("/chat/completions")
 
 
+def test_rate_limit_waits_once_for_a_short_delay_then_gives_up(monkeypatch):
+    class Limited:
+        status_code = 429
+        headers = {"retry-after": "3"}
+
+    class Good:
+        status_code = 200
+        headers = {}
+
+        def json(self):
+            return {"choices": [{"message": {"content": "{}"}}], "usage": {}}
+
+    waits = []
+    monkeypatch.setattr(providers.time, "sleep", waits.append)
+    replies = [Limited(), Good()]
+    monkeypatch.setattr(providers.httpx, "post", lambda *a, **k: replies.pop(0))
+    provider = HostedProvider("m", "https://example.invalid/v1", "KEY")
+    messages = [{"role": "system", "content": "s"}]
+    assert provider.generate("x", messages, {}, 1, 10).text == "{}"
+    assert waits == [3.0]
+
+    replies = [Limited(), Limited()]
+    try:
+        provider.generate("x", messages, {}, 1, 10)
+        raise AssertionError("expected failure")
+    except ProviderError as exc:
+        assert str(exc) == "MODEL_RATE_LIMITED"
+
+    class LongWait(Limited):
+        headers = {"retry-after": "3600"}
+
+    replies = [LongWait()]
+    waits.clear()
+    try:
+        provider.generate("x", messages, {}, 1, 10)
+        raise AssertionError("expected failure")
+    except ProviderError:
+        assert waits == []
+
+
+def test_malformed_json_reported_as_400_goes_to_repair(monkeypatch):
+    class Invalid:
+        status_code = 400
+        headers = {}
+
+        def json(self):
+            return {"error": {"code": "json_validate_failed", "failed_generation": "{oops"}}
+
+    class OtherError(Invalid):
+        def json(self):
+            return {"error": {"code": "invalid_api_key"}}
+
+    provider = HostedProvider("m", "https://example.invalid/v1", "KEY")
+    messages = [{"role": "system", "content": "s"}]
+    monkeypatch.setattr(providers.httpx, "post", lambda *a, **k: Invalid())
+    assert provider.generate("x", messages, {}, 1, 10).text == "{oops"
+    monkeypatch.setattr(providers.httpx, "post", lambda *a, **k: OtherError())
+    try:
+        provider.generate("x", messages, {}, 1, 10)
+        raise AssertionError("expected failure")
+    except ProviderError as exc:
+        assert str(exc) == "MODEL_HTTP_400"
+
+
 def test_insecure_hosted_url_disables_ai(monkeypatch):
     set_provider_for_tests(None)
     monkeypatch.setenv("LLM_PROVIDER", "hosted")

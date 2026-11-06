@@ -79,8 +79,8 @@ def seed_reference(connection, password: str) -> None:
     password_hash = hash_password(password)
     for user_id, name, role in USERS:
         connection.execute(
-            "INSERT INTO users (id, display_name, role, password_hash) VALUES (?,?,?,?)",
-            (user_id, name, role, password_hash),
+            "INSERT INTO users (id, display_name, email, role, password_hash) VALUES (?,?,?,?,?)",
+            (user_id, name, f"{name.split()[0].lower()}@northstar.example", role, password_hash),
         )
     connection.executemany("INSERT INTO departments VALUES (?,?)", DEPARTMENTS)
     pack = json.loads((FIXTURES / "policy_pack.json").read_text(encoding="utf-8"))

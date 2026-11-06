@@ -1130,6 +1130,7 @@ List a hire's cases
         {
           "id": "sample_value",
           "case_id": "sample_value",
+          "hire_name": "sample_value",
           "recipient_user_id": "sample_value",
           "text": "sample_value",
           "state": "PENDING",
@@ -1239,6 +1240,7 @@ Read scoped case and sanitized timeline
     {
       "id": "sample_value",
       "case_id": "sample_value",
+      "hire_name": "sample_value",
       "recipient_user_id": "sample_value",
       "text": "sample_value",
       "state": "PENDING",
@@ -1338,6 +1340,7 @@ List questions waiting for me
     {
       "id": "sample_value",
       "case_id": "sample_value",
+      "hire_name": "sample_value",
       "recipient_user_id": "sample_value",
       "text": "sample_value",
       "state": "PENDING",
@@ -5480,9 +5483,8 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
   "properties": {
     "user_id": {
       "type": "string",
-      "maxLength": 80,
+      "maxLength": 200,
       "minLength": 1,
-      "pattern": "^[A-Za-z0-9_-]+$",
       "title": "User Id"
     },
     "password": {
@@ -6426,6 +6428,17 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
       "minLength": 1,
       "pattern": "^[A-Za-z0-9_-]+$",
       "title": "Case Id"
+    },
+    "hire_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Hire Name"
     },
     "recipient_user_id": {
       "type": "string",

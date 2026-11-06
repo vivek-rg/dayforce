@@ -2780,9 +2780,8 @@
             "type": "string"
           },
           "user_id": {
-            "maxLength": 80,
+            "maxLength": 200,
             "minLength": 1,
-            "pattern": "^[A-Za-z0-9_-]+$",
             "title": "User Id",
             "type": "string"
           }
@@ -3641,6 +3640,17 @@
             "pattern": "^[A-Za-z0-9_-]+$",
             "title": "Case Id",
             "type": "string"
+          },
+          "hire_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hire Name"
           },
           "id": {
             "maxLength": 80,

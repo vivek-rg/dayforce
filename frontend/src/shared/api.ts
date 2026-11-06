@@ -19,7 +19,10 @@ import type {
   Escalation,
   EscalationList,
   Hire,
+  AccessRequest,
+  EvidenceList,
   HireCreate,
+  HirePatch,
   HireList,
   InsightMetrics,
   InsightSummary,
@@ -115,7 +118,11 @@ function get<T>(path: string, signal?: AbortSignal) {
   return request<T>(path, { signal });
 }
 
-function send<T>(method: "POST" | "PUT", path: string, body?: unknown) {
+function send<T>(
+  method: "POST" | "PUT" | "PATCH",
+  path: string,
+  body?: unknown,
+) {
   return request<T>(path, {
     method,
     headers: { "Content-Type": "application/json" },
@@ -157,6 +164,16 @@ export const api = {
   hire: (hireId: string, signal?: AbortSignal) =>
     get<Hire>(`/hires/${id(hireId)}`, signal),
   createHire: (body: HireCreate) => send<Hire>("POST", "/hires", body),
+  patchHire: (hireId: string, body: HirePatch) =>
+    send<Hire>("PATCH", `/hires/${encodeURIComponent(hireId)}`, body),
+  runChecks: (hireId: string) =>
+    send<EvidenceList>("POST", `/hires/${encodeURIComponent(hireId)}/checks`),
+  accessRequest: (hireId: string, body: AccessRequest) =>
+    send<SourceRecord>(
+      "POST",
+      `/hires/${encodeURIComponent(hireId)}/access-requests`,
+      body,
+    ),
   plan: (hireId: string, signal?: AbortSignal) =>
     get<Plan>(`/hires/${id(hireId)}/plan`, signal),
   history: (hireId: string, signal?: AbortSignal) =>

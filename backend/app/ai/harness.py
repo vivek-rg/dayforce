@@ -54,7 +54,7 @@ OPERATIONS = {
         Operation("assistant.answer", 1, AssistantOutput, 900, 20),
         Operation("document.extract", 1, DocumentExtractionOutput, 900, 30),
         Operation("insights.summarize", 1, InsightOutput, 700, 30),
-        Operation("agent.next_step", 1, NextStep, 500, int_setting("MODEL_TIMEOUT_SECONDS", 30)),
+        Operation("agent.next_step", 2, NextStep, 500, int_setting("MODEL_TIMEOUT_SECONDS", 30)),
     )
 }
 

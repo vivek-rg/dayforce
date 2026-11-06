@@ -21,7 +21,7 @@ from app.shared.contracts import (
     VersionRequest,
 )
 from app.shared.db import connect
-from app.shared.errors import stale
+from app.shared.errors import fail, stale
 from app.shared.util import audit
 
 router = APIRouter(tags=["planning"])
@@ -83,6 +83,13 @@ def patch_hire(hire_id: str, body: HirePatch, user: User = Depends(require_user)
     require(user.role, "hire.edit")
     changes = body.model_dump(exclude_unset=True, exclude={"expected_profile_version"})
     with connect() as connection:
+        if (
+            "department_id" in changes
+            and not connection.execute(
+                "SELECT 1 FROM departments WHERE id=?", (changes["department_id"],)
+            ).fetchone()
+        ):
+            fail(422, "VALIDATION_ERROR", "Unknown department.")
         if changes:
             assignments = ", ".join(f"{column}=?" for column in changes)
             cursor = connection.execute(

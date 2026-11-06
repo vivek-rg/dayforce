@@ -7,6 +7,7 @@ be described as validated: see docs/EVALUATION.md.
 
 import json
 import os
+import time
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -14,6 +15,16 @@ import httpx
 
 from app.ai.stub import StubProvider
 from app.shared.config import llm_model, llm_provider
+
+MAX_RATE_LIMIT_WAIT_SECONDS = 20
+RATE_LIMIT_WAITS = {"agent.next_step": 3}
+
+
+def _retry_after(response) -> float | None:
+    try:
+        return max(0.0, float(response.headers.get("retry-after", "")))
+    except (TypeError, ValueError):
+        return None
 
 
 class ProviderError(Exception):
@@ -85,18 +96,14 @@ class HostedProvider:
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
 
-    def generate(self, operation, messages, schema, timeout, max_tokens) -> Reply:
-        guided = [dict(message) for message in messages]
-        guided[0]["content"] += "\n\nReturn one JSON object matching this schema:\n" + json.dumps(
-            schema
-        )
+    def _post(self, messages, timeout, max_tokens):
         try:
-            response = httpx.post(
+            return httpx.post(
                 f"{self.base_url}/chat/completions",
                 headers={"Authorization": f"Bearer {self.api_key}"},
                 json={
                     "model": self.model,
-                    "messages": guided,
+                    "messages": messages,
                     "temperature": 0,
                     "max_tokens": max_tokens,
                     "response_format": {"type": "json_object"},
@@ -108,8 +115,34 @@ class HostedProvider:
             raise ProviderError("MODEL_TIMEOUT") from exc
         except httpx.HTTPError as exc:
             raise ProviderError("MODEL_UNREACHABLE") from exc
+
+    def generate(self, operation, messages, schema, timeout, max_tokens) -> Reply:
+        guided = [dict(message) for message in messages]
+        guided[0]["content"] += "\n\nReturn one JSON object matching this schema:\n" + json.dumps(
+            schema
+        )
+        response = self._post(guided, timeout, max_tokens)
+        # A rate-limited call ran no inference. Wait if the provider gives a short delay. The
+        # background agent can wait longer than a person watching an assistant answer.
+        waits = RATE_LIMIT_WAITS.get(operation, 1)
+        while response.status_code == 429 and waits > 0:
+            delay = _retry_after(response)
+            if delay is None or delay > MAX_RATE_LIMIT_WAIT_SECONDS:
+                break
+            waits -= 1
+            time.sleep(delay)
+            response = self._post(guided, timeout, max_tokens)
         if response.status_code == 429:
             raise ProviderError("MODEL_RATE_LIMITED")
+        if response.status_code == 400:
+            # Groq reports malformed JSON from the model as a 400. That is bad output, not an
+            # outage, so it goes through normal validation and the single repair attempt.
+            try:
+                error = response.json().get("error", {})
+            except ValueError:
+                error = {}
+            if error.get("code") == "json_validate_failed":
+                return Reply(text=str(error.get("failed_generation") or ""))
         if response.status_code != 200:
             raise ProviderError(f"MODEL_HTTP_{response.status_code}")
         body = response.json()

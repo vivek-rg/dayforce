@@ -34,6 +34,73 @@ import {
 } from "../../shared/ui";
 import { TaskRow } from "../my-work/TaskRow";
 
+function BenefitsChoice({ hireId }: { hireId: string }) {
+  const records = useResource("sources:benefits", (signal) =>
+    api.sources("benefits", signal),
+  );
+  const [confirming, setConfirming] = useState(false);
+  const action = useAction();
+  const record = records.data?.find((item) => item.hire_id === hireId);
+  if (!record) return null;
+  const { state } = record.payload;
+  const open = state === "NOT_INVITED" || state === "INVITED";
+
+  async function decline() {
+    if (!record) return;
+    const result = await action.run(() =>
+      api.writeSource(hireId, record.id, {
+        expected_version: record.version,
+        payload: { ...record.payload, state: "DECLINED" },
+      }),
+    );
+    setConfirming(false);
+    if (result.ok) records.reload();
+  }
+
+  return (
+    <Section
+      title="Your benefits"
+      description="The benefits team records enrolment. You can decline here."
+    >
+      <div className="row-action">
+        <Badge tone={state === "ENROLLED" ? "ok" : open ? "warn" : "muted"}>
+          {humanize(state)}
+        </Badge>
+        {open && !confirming && (
+          <button
+            type="button"
+            className="btn btn-sm"
+            onClick={() => setConfirming(true)}
+          >
+            Decline benefits
+          </button>
+        )}
+        {open && confirming && (
+          <>
+            <span className="small">Decline company benefits?</span>
+            <button
+              type="button"
+              className="btn btn-sm btn-primary"
+              disabled={action.pending}
+              onClick={() => void decline()}
+            >
+              Confirm decline
+            </button>
+            <button
+              type="button"
+              className="btn btn-sm"
+              onClick={() => setConfirming(false)}
+            >
+              Cancel
+            </button>
+          </>
+        )}
+      </div>
+      <ActionError error={action.error} onReload={records.reload} />
+    </Section>
+  );
+}
+
 function NextAction({
   plan,
   documents,
@@ -276,6 +343,7 @@ function PortalBody({ hire }: { hire: Hire }) {
           </DataState>
         </Section>
       </div>
+      <BenefitsChoice hireId={hire.id} />
       <Section
         title="Your checklist"
         description="Completing a task records your claim. Proof comes from evidence."

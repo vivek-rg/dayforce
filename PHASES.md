@@ -147,7 +147,7 @@ Implement P03 only in backend/app/planning/, backend/app/evidence/, fixtures/ an
 - **Must NOT touch:** auth/planning/evidence/actions implementations, shared types/schema, frontend, eval answer keys, locks.
 - **Expected outcome:** cases/questions/work queue, LangGraph persistence and scoped allowlisted reads using the P16 provider seam; model cannot approve/execute. One validated P17–P22 adapter is required for the live gate; P23 verifies its cost/eligibility controls.
 - **Done when:** `node scripts/python.mjs -m pytest backend/tests/test_agent.py backend/tests/test_cases.py -q`; two-process waiting-case restart test passes; real selected-provider smoke is recorded separately, missing provider is not passed; `npm run check`.
-- **Status:** implemented, verification pending: stub-transport tests pass; no live model run yet (R06). LangGraph replaced by application-table state. **Owner name:** kruhi7533 with Claude Code.
+- **Status:** implemented, verification pending: stub-transport tests pass and one full live run on Groq resolved; no measured success rate yet (R06). LangGraph replaced by application-table state. **Owner name:** kruhi7533 with Claude Code.
 
 **Prompt:**
 ```text
@@ -267,7 +267,7 @@ Implement P07 only in frontend/src/features/my-work/ and frontend/src/features/r
 - **Must NOT touch:** runtime fixtures/feature source/shared schema/prompts, other owners' tests, CI/locks.
 - **Expected outcome:** independent scenarios/answer keys, provider-labeled runner/results and rubric-based acceptance assertions.
 - **Done when:** `node scripts/python.mjs -m pytest backend/tests/test_acceptance.py -q`; `node scripts/python.mjs evals/run.py --provider ollama` or hosted records actual measured results; missing model is not scored passed; `npm run check`.
-- **Status:** implemented, verification pending: runner and results exist; real model not run, and scenarios are not independently held out (R06). **Owner name:** kruhi7533 with Claude Code.
+- **Status:** implemented, verification pending: runner and live Groq results exist; scenarios are not independently held out (R06). **Owner name:** kruhi7533 with Claude Code.
 
 **Prompt:**
 ```text
@@ -292,7 +292,7 @@ Implement P08 only in evals/, backend/tests/test_acceptance.py and docs/EVALUATI
 - **Must NOT touch:** another track's feature internals/tests without a specifically extended written boundary; private data/assets; no broad refactor.
 - **Expected outcome:** wired session/navigation, worker lifecycle, real six-category journey, secure failure states and a recorded merge commit/result.
 - **Done when:** `npm run check`; `node scripts/python.mjs -m pytest backend/tests/test_integration.py -q`; `npm run dev` + `npm run smoke`; manual full HR/employee/IT journey including restart/stale/duplicate checks.
-- **Status:** implemented, verification pending: journey test passes with offline rules; live model not run (R06). **Owner name:** kruhi7533 with Claude Code.
+- **Status:** implemented, verification pending: API and browser journeys pass with offline rules; live model covers the investigation path through the API, not the browser (R06). **Owner name:** kruhi7533 with Claude Code.
 
 **Prompt:**
 ```text
@@ -536,7 +536,7 @@ hardware and privacy limits instead of claiming the whole system is private.
 - **May touch:** backend/app/agent/providers/compatible.py, backend/app/agent/providers/groq.py, backend/tests/test_provider_groq.py.
 - **Must NOT touch:** registry/contracts, auth, other adapters, locks, billing/account settings.
 - **Expected outcome:** one small shared wire transport and Groq catalog/inference adapter with honest free-plan/unknown entitlement labels.
-- **Status:** implemented, verification pending: OpenAI-compatible transport has mock tests only; no live run (R06). **Owner name:** kruhi7533 with Claude Code.
+- **Status:** implemented, verification pending: Groq live run passed through the OpenAI-compatible transport; other hosts untested (R06). **Owner name:** kruhi7533 with Claude Code.
 
 **Tasks and done checklist:**
 - [ ] Discover active Groq models using its documented endpoint; filter non-chat models via reviewed capabilities, not size/name alone.

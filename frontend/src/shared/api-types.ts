@@ -595,6 +595,7 @@ export type ProposeStep = {
 export type Question = {
   "id": string;
   "case_id": string;
+  "hire_name"?: string | null;
   "recipient_user_id": string;
   "text": string;
   "state": "PENDING" | "ANSWERED" | "CANCELLED";

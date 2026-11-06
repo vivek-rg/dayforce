@@ -65,6 +65,12 @@ def initialize(path: Path | None = None) -> None:
     with connect(target) as connection:
         _migrate_v1(connection)
         connection.executescript(Path(__file__).with_name("schema.sql").read_text(encoding="utf-8"))
+        columns = {row["name"] for row in connection.execute("PRAGMA table_info(users)")}
+        if "email" not in columns:
+            connection.execute("ALTER TABLE users ADD COLUMN email TEXT")
+        connection.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS users_by_email ON users(email COLLATE NOCASE)"
+        )
         connection.execute(
             "INSERT OR IGNORE INTO app_info (id, project_name, schema_version) VALUES (1, ?, ?)",
             (PROJECT_NAME, SCHEMA_VERSION),

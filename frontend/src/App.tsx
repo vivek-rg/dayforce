@@ -34,7 +34,6 @@ import { DeniedState, EmptyState } from "./shared/ui";
 export default function App() {
   return (
     <SessionProvider>
-      <div className="demo-strip">Synthetic demo data</div>
       <Root />
     </SessionProvider>
   );
@@ -43,7 +42,14 @@ export default function App() {
 function Root() {
   const { user } = useSession();
   // Keyed by user, so no screen state survives a change of account.
-  return user ? <Shell key={user.id} /> : <LoginPage />;
+  return user ? (
+    <>
+      <div className="demo-strip">Synthetic demo data</div>
+      <Shell key={user.id} />
+    </>
+  ) : (
+    <LoginPage />
+  );
 }
 
 function AiBanner({ health }: { health: AiHealth | null }) {

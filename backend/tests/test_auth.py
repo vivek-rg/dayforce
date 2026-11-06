@@ -14,6 +14,15 @@ def test_login_me_logout_and_revocation(world):
     assert world.client.get("/api/me", headers=headers).status_code == 401
 
 
+def test_sign_in_works_with_email_in_any_case(world):
+    for identifier in ("hema@northstar.example", "HEMA@Northstar.Example", "U_HR"):
+        response = world.client.post(
+            "/api/sessions", json={"user_id": identifier, "password": PASSWORD}
+        )
+        assert response.status_code == 200, response.text
+        assert response.json()["user"]["id"] == "U_HR"
+
+
 def test_missing_and_invalid_tokens_are_401(world):
     assert world.client.get("/api/hires").status_code == 401
     bad = {"Authorization": "Bearer not-a-token"}
@@ -34,6 +43,15 @@ def test_wrong_password_never_reveals_which_part_failed(world):
 def test_repeated_failures_lock_the_account_briefly(world):
     for _ in range(5):
         world.client.post("/api/sessions", json={"user_id": "U_IT", "password": "wrong-password-1"})
+    locked = world.client.post("/api/sessions", json={"user_id": "U_IT", "password": PASSWORD})
+    assert locked.status_code == 429
+
+
+def test_lockout_counts_email_and_id_as_one_account(world):
+    for identifier in ["imran@northstar.example", "U_IT"] * 2 + ["imran@northstar.example"]:
+        world.client.post(
+            "/api/sessions", json={"user_id": identifier, "password": "wrong-password-1"}
+        )
     locked = world.client.post("/api/sessions", json={"user_id": "U_IT", "password": PASSWORD})
     assert locked.status_code == 429
 

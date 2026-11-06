@@ -7,7 +7,8 @@ AI reads permitted records and approved policies, then explains, cites and propo
 **What works now:** sign-in and role permissions, rule-based plans, human document review, equipment approval with read-back, a cited knowledge assistant, a bounded investigation agent, notifications and escalation, dashboards, and audit records. All of it is covered by automated tests.
 
 **Known limits:**
-- **No real AI model has been tested yet.** The tests use scripted replies and a labelled offline-rules mode (`LLM_PROVIDER=stub`), which is not AI. See [evaluation results](docs/EVALUATION.md).
+- **Tested on one real model:** `openai/gpt-oss-20b` on Groq's free plan, whose rate limit can interrupt AI features under heavy use. Automated tests use scripted replies, or a labelled offline-rules mode (`LLM_PROVIDER=stub`) that is not AI. See [evaluation results](docs/EVALUATION.md).
+- **The assistant misses many reworded questions.** It offers HR instead of guessing.
 - All data is synthetic, and IT, payroll and equipment systems are simulated.
 - No OCR, encryption at rest, single sign-on or production hardening. SQLite on one machine, for a local demo.
 
@@ -20,7 +21,18 @@ node scripts/python.mjs fixtures/seed.py
 npm run dev
 ```
 
-Open http://127.0.0.1:5173. Sign-in IDs include `U_HR`, `U_IT`, `U_MANAGER`, `U_PAYROLL`, `U_BENEFITS`, `U_TRAINING` and `U_PRIYA`. The story is in [the demo plan](docs/DEMO_PLAN.md).
+Open http://127.0.0.1:5173 and sign in with `hema@northstar.example` (HR), or open **Demo accounts** on the sign-in page for the other roles. All accounts use your `DEMO_PASSWORD`. The story is in [the demo plan](docs/DEMO_PLAN.md).
+
+Google and Microsoft sign-in, password reset and self sign-up are not connected. Those buttons say so when clicked.
+
+## Deploying
+
+This has been run locally, not on a server. For a hosted demo:
+
+1. Use one instance with persistent disk, because SQLite and uploaded files live in `.runtime/`. Back up both together.
+2. Put HTTPS in front of it. The app binds to `127.0.0.1` by default, so a reverse proxy must run on the same machine. The optional `docker-compose.yml` publishes on loopback too.
+3. Set a strong private `DEMO_PASSWORD` before seeding, and set `LLM_API_KEY` only on the server.
+4. Use synthetic data only. There is no encryption at rest, single sign-on, malware scanning or backup in this build.
 
 ## First things to read
 

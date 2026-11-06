@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS app_info (
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     display_name TEXT NOT NULL,
+    email TEXT,
     role TEXT NOT NULL CHECK (role IN ('HR','IT','PAYROLL','BENEFITS','TRAINING','MANAGER','EMPLOYEE')),
     password_hash TEXT NOT NULL,
     active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0,1))
