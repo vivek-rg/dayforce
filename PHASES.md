@@ -1,8 +1,8 @@
-# DayOne Proof — 28-phase build and verification board
+# OnboardIQ (DayOne Proof foundation) — 28-phase build and verification board
 
 ## Read this before copying a prompt
 
-**Working now:** P01 foundation only. **Planned:** P02–P28. Phase count means smaller accountable work packages, not extra services or a claim that all of this fits one sitting. Keep P01–P13 IDs so existing source TODOs/handoffs still make sense; P14–P28 extend the original plan. Follow dependencies, **not numeric order**.
+**Working now:** see revision R06 below. **Remaining:** see each phase status. Phase count means smaller accountable work packages, not extra services or a claim that all of this fits one sitting. Keep P01–P13 IDs so existing source TODOs/handoffs still make sense; P14–P28 extend the original plan. Follow dependencies, **not numeric order**.
 
 For each phase: understand its problem → claim owner → follow the task list → copy its prompt → run checks → attach sanitized proof → update checklist/status. Use [TEAM_WORKFLOW.md](docs/TEAM_WORKFLOW.md) for commands, SQLite, screenshots/PR evidence and the common prompt wrapper. Any valid branch name is allowed. No agent/tool is exempt from the same tests.
 
@@ -17,6 +17,8 @@ For each phase: understand its problem → claim owner → follow the task list 
 **Foundation CI fix R04:** [x] reproduced and fixed Python 3.12/3.13 HTTP 422 description drift; regression failed before the fix and all 16 backend tests pass on both interpreters afterward. Full npm check passes; hosted CI rerun is still required. Write boundary: backend/app/main.py (shared response description only), backend/tests/test_contracts.py, PHASES.md, CHANGES.md and docs/VERIFICATION.md; generated docs/API_SPEC.md, docs/openapi.json and frontend/src/shared/api-types.ts only via the existing exporter if regeneration actually changes them. Regeneration produced no file changes. No business behavior, dependency, schema, auth or provider changes.
 
 **Foundation CI fix R05:** [x] repaired npm-generated Rollup/esbuild platform metadata without upgrading existing package versions; regression guard failed on the old lockfile and now passes. Full check and clean Windows frontend lint/tests/build passed; a Linux-targeted clean install contains the required GNU binaries, but hosted Ubuntu execution still needs rerunning. Write boundary: package-lock.json (npm-generated), package.json (lockfile check wiring only), scripts/check-lockfile.mjs, PHASES.md, CHANGES.md and docs/VERIFICATION.md. Remain on fix/portable-openapi-snapshot; no further branches. No runtime/business/API/schema/dependency-version changes.
+
+**End-to-end build R06:** one branch, `feature/onboardiq-end-to-end`, implemented by Claude Code for kruhi7533 at the user's request. It deliberately crosses track boundaries and changes shared contracts, so **it needs integrator review before merge**. Added beyond the original scope: documents with advisory extraction, knowledge assistant with FTS5, AI harness, notifications, analytics, insights, `it_access` category, schema v2, self sign-up and HR-issued password resets. Deferred: provider discovery and selector (P16, P23, P24), adapters beyond Ollama and OpenAI-compatible hosted, embeddings. Replaced: LangGraph checkpointer, with application-table state. Results and limits are in CHANGES.md and docs/EVALUATION.md.
 
 ## Dependency lanes and ownership
 
@@ -95,7 +97,7 @@ Build/recheck P01 foundation only, using Topic_3_Final_Guide.md and the local ch
 - **Must NOT touch:** shared contracts/schema, main.py, frontend, fixtures seed, other backend modules, locks/specs.
 - **Expected outcome:** hashed-password login, eight-hour hashed bearer sessions, logout/me, require_user and require_hire_scope seams; no default credentials.
 - **Done when:** `node scripts/python.mjs -m pytest backend/tests/test_auth.py -q` covers invalid/expired/revoked/inactive sessions, missing token 401, cross-hire 404, wrong operation 403; `npm run check` stays green.
-- **Status:** [ ] not started. **Owner name:** unclaimed.
+- **Status:** [x] done (test_auth.py, test_acceptance.py; R06). **Owner name:** kruhi7533 with Claude Code.
 
 **Prompt:**
 ```text
@@ -120,7 +122,7 @@ Implement P02 only in backend/app/auth/ and backend/tests/test_auth.py. Follow d
 - **Must NOT touch:** shared schema/types, auth/actions/agent modules, frontend, generated specs/locks.
 - **Expected outcome:** safe synthetic seed, six-category approved plan, source updates and exact evidence semantics, pure location-diff seam.
 - **Done when:** `node scripts/python.mjs -m pytest backend/tests/test_planning.py backend/tests/test_evidence.py -q`; `node scripts/python.mjs fixtures/seed.py` succeeds on a dedicated empty demo DB and a second run refuses to overwrite; `npm run check`.
-- **Status:** [ ] not started. **Owner name:** unclaimed.
+- **Status:** [x] done (test_planning.py, test_documents.py, test_integration.py; R06; evidence tests are in those files rather than test_evidence.py). **Owner name:** kruhi7533 with Claude Code.
 
 **Prompt:**
 ```text
@@ -145,7 +147,7 @@ Implement P03 only in backend/app/planning/, backend/app/evidence/, fixtures/ an
 - **Must NOT touch:** auth/planning/evidence/actions implementations, shared types/schema, frontend, eval answer keys, locks.
 - **Expected outcome:** cases/questions/work queue, LangGraph persistence and scoped allowlisted reads using the P16 provider seam; model cannot approve/execute. One validated P17–P22 adapter is required for the live gate; P23 verifies its cost/eligibility controls.
 - **Done when:** `node scripts/python.mjs -m pytest backend/tests/test_agent.py backend/tests/test_cases.py -q`; two-process waiting-case restart test passes; real selected-provider smoke is recorded separately, missing provider is not passed; `npm run check`.
-- **Status:** [ ] not started. **Owner name:** unclaimed.
+- **Status:** implemented, verification pending: stub-transport tests pass and one full live run on Groq resolved; no measured success rate yet (R06). LangGraph replaced by application-table state. **Owner name:** kruhi7533 with Claude Code.
 
 **Prompt:**
 ```text
@@ -190,7 +192,7 @@ from Track 1. Run checks, record live availability separately, update P04/log.
 - **Must NOT touch:** agent/worker, auth/planning/evidence internals, shared schema/contracts, UI, locks/specs.
 - **Expected outcome:** immutable proposal/decision, HR/IT-specific review, conditional execution/deduplication and read-back audit.
 - **Done when:** `node scripts/python.mjs -m pytest backend/tests/test_actions.py -q` proves wrong-role, cross-hire, stale/expired proposal, inventory race, duplicate/restart protection; `npm run check`.
-- **Status:** [ ] not started. **Owner name:** unclaimed.
+- **Status:** [x] done (test_actions.py; R06). **Owner name:** kruhi7533 with Claude Code.
 
 **Prompt:**
 ```text
@@ -215,7 +217,7 @@ Implement P05 only in backend/app/actions/ and backend/tests/test_actions.py. Us
 - **Must NOT touch:** App.tsx, main.tsx, global styles, shared client/generated types, other feature folders, package locks.
 - **Expected outcome:** exported Overview and HireWorkspace components consuming frozen types, clear task/evidence/current-owner states.
 - **Done when:** `npm run test --workspace frontend` and `npm run build`; visible authenticated hire creation/list/plan/case workflow after integrator wires modules; no fake success for 501.
-- **Status:** [ ] not started. **Owner name:** unclaimed.
+- **Status:** implemented, verification pending: see CHANGES.md for browser results (R06). **Owner name:** kruhi7533 with Claude Code.
 
 **Prompt:**
 ```text
@@ -240,7 +242,7 @@ Implement P06 only in frontend/src/features/overview/ and frontend/src/features/
 - **Must NOT touch:** other feature modules, App/main/global styles/shared types/client, backend, lockfiles.
 - **Expected outcome:** exported MyWork/ReviewInbox components and demo login form, clear waiting/denied/stale/rejected/pending-action UX.
 - **Done when:** `npm run test --workspace frontend` and `npm run build`; HR and IT see distinct scoped reviews in integrated app, answer is never mistaken for approval.
-- **Status:** [ ] not started. **Owner name:** unclaimed.
+- **Status:** implemented, verification pending: see CHANGES.md for browser results (R06). **Owner name:** kruhi7533 with Claude Code.
 
 **Prompt:**
 ```text
@@ -265,7 +267,7 @@ Implement P07 only in frontend/src/features/my-work/ and frontend/src/features/r
 - **Must NOT touch:** runtime fixtures/feature source/shared schema/prompts, other owners' tests, CI/locks.
 - **Expected outcome:** independent scenarios/answer keys, provider-labeled runner/results and rubric-based acceptance assertions.
 - **Done when:** `node scripts/python.mjs -m pytest backend/tests/test_acceptance.py -q`; `node scripts/python.mjs evals/run.py --provider ollama` or hosted records actual measured results; missing model is not scored passed; `npm run check`.
-- **Status:** [ ] not started. **Owner name:** unclaimed.
+- **Status:** implemented, verification pending: runner and live Groq results exist; scenarios are not independently held out (R06). **Owner name:** kruhi7533 with Claude Code.
 
 **Prompt:**
 ```text
@@ -290,7 +292,7 @@ Implement P08 only in evals/, backend/tests/test_acceptance.py and docs/EVALUATI
 - **Must NOT touch:** another track's feature internals/tests without a specifically extended written boundary; private data/assets; no broad refactor.
 - **Expected outcome:** wired session/navigation, worker lifecycle, real six-category journey, secure failure states and a recorded merge commit/result.
 - **Done when:** `npm run check`; `node scripts/python.mjs -m pytest backend/tests/test_integration.py -q`; `npm run dev` + `npm run smoke`; manual full HR/employee/IT journey including restart/stale/duplicate checks.
-- **Status:** [ ] not started. **Owner name:** unclaimed.
+- **Status:** implemented, verification pending: API and browser journeys pass with offline rules; live model covers the investigation path through the API, not the browser (R06). **Owner name:** kruhi7533 with Claude Code.
 
 **Prompt:**
 ```text
@@ -402,7 +404,7 @@ Complete P13 only in resume/, video/, ppt/, docs/SUBMISSION_CHECKLIST.md and roo
 - **May touch:** fixtures/README.md, fixtures/seed.py, backend/tests/test_seed.py (Track 4); docs/TEAM_WORKFLOW.md (Track 8). Coordinate with P03 before editing seed.
 - **Must NOT touch:** existing databases, `.env`, shared schema/config, other feature tests; no reset command.
 - **Expected outcome:** safe seed and beginner steps producing equivalent fixture versions on independent databases, preserving existing business work.
-- **Status:** [ ] not started. **Owner name:** unclaimed.
+- **Status:** implemented, verification pending: `fixtures/seed.py` is safe and refuses a used database; teammate replay not done (R06). **Owner name:** kruhi7533 with Claude Code.
 
 **Tasks and done checklist:**
 - [ ] Document which app/checkpoint paths to use and how to avoid cloud-sync folders.
@@ -467,7 +469,7 @@ Do not claim the future endpoints/adapters work from schema presence alone.
 - **May touch:** backend/app/agent/model_client.py, backend/app/agent/providers/__init__.py, backend/app/agent/providers/registry.py, backend/app/agent/providers/catalog.py, backend/app/agent/providers/router.py, backend/tests/test_provider_catalog.py. These are proposed new paths reserved by P15, not existing implemented modules.
 - **Must NOT touch:** provider-specific adapters/tests, shared contracts/config, root router wiring, cases/graph/worker logic, frontend.
 - **Expected outcome:** one reusable catalog/test/selection/dispatch seam with per-provider results, timestamps and fail-closed eligibility, ready for adapters.
-- **Status:** [ ] not started. **Owner name:** unclaimed.
+- **Status:** not started; recommended deferral to future work, pending team agreement (R06). **Owner name:** unclaimed.
 
 **Tasks and done checklist:**
 - [ ] Validate registry provider IDs and fixed origins; never use browser/model-supplied URLs or follow untrusted redirects.
@@ -503,7 +505,7 @@ attach mock/negative evidence and update P16/log; live adapter status stays sepa
 - **May touch:** backend/app/agent/providers/ollama.py, backend/tests/test_provider_ollama.py. Document live evidence in PR/CHANGES; shared provider prose changes handed to P12.
 - **Must NOT touch:** registry/dispatcher after P16 without explicit extension, keys/config/schema, model downloads, other adapters.
 - **Expected outcome:** installed local eligible models automatically listed and explicitly selected; real local schema-validated inference when hardware/model is supplied.
-- **Status:** [ ] not started. **Owner name:** unclaimed.
+- **Status:** implemented, verification pending: Ollama transport has mock tests only; no live run (R06). **Owner name:** kruhi7533 with Claude Code.
 
 **Tasks and done checklist:**
 - [ ] Read `/api/tags` and needed local metadata; handle Ollama offline/empty/model removed states.
@@ -534,7 +536,7 @@ hardware and privacy limits instead of claiming the whole system is private.
 - **May touch:** backend/app/agent/providers/compatible.py, backend/app/agent/providers/groq.py, backend/tests/test_provider_groq.py.
 - **Must NOT touch:** registry/contracts, auth, other adapters, locks, billing/account settings.
 - **Expected outcome:** one small shared wire transport and Groq catalog/inference adapter with honest free-plan/unknown entitlement labels.
-- **Status:** [ ] not started. **Owner name:** unclaimed.
+- **Status:** implemented, verification pending: Groq live run passed through the OpenAI-compatible transport; other hosts untested (R06). **Owner name:** kruhi7533 with Claude Code.
 
 **Tasks and done checklist:**
 - [ ] Discover active Groq models using its documented endpoint; filter non-chat models via reviewed capabilities, not size/name alone.
@@ -564,7 +566,7 @@ record real smoke separately or say not run, then update P18/log.
 - **May touch:** backend/app/agent/providers/cerebras.py, backend/tests/test_provider_cerebras.py.
 - **Must NOT touch:** common transport/registry/config without an extended boundary, provider accounts/payment methods, other adapters.
 - **Expected outcome:** discovered Cerebras text models with correct trial/paid/unknown access, validated generation and safe expiry/quota errors.
-- **Status:** [ ] not started. **Owner name:** unclaimed.
+- **Status:** not started; recommended deferral to future work, pending team agreement (R06). **Owner name:** unclaimed.
 
 **Tasks and done checklist:**
 - [ ] Use authenticated model list; optionally merge official public capability/pricing metadata without equating it to account access.
@@ -593,7 +595,7 @@ record available real smoke honestly and update only P19/log.
 - **May touch:** backend/app/agent/providers/mistral.py, backend/tests/test_provider_mistral.py.
 - **Must NOT touch:** registry/config/shared transport, OCR/audio workflows, dependencies, other providers.
 - **Expected outcome:** live account catalog with completion-chat/capability filtering and tested structured generation; no invented free entitlement.
-- **Status:** [ ] not started. **Owner name:** unclaimed.
+- **Status:** not started; recommended deferral to future work, pending team agreement (R06). **Owner name:** unclaimed.
 
 **Tasks and done checklist:**
 - [ ] Parse model cards, archived status and completion-chat capabilities; preserve exact IDs/aliases safely.
@@ -621,7 +623,7 @@ Run tests/full checks, record live smoke or not-run reason, update P20/log.
 - **May touch:** backend/app/agent/providers/gemini.py, backend/tests/test_provider_gemini.py.
 - **Must NOT touch:** common registry/types, browser keys, Google project/billing, model tool execution.
 - **Expected outcome:** paged eligible Gemini catalog and bounded native text generation translated to existing NextStep with explicit free-tier/data-use disclosure.
-- **Status:** [ ] not started. **Owner name:** unclaimed.
+- **Status:** not started; recommended deferral to future work, pending team agreement (R06). **Owner name:** unclaimed.
 
 **Tasks and done checklist:**
 - [ ] List all bounded pages and filter `generateContent`; do not mistake embeddings/live/audio support for this agent's capabilities.
@@ -652,7 +654,7 @@ Run checks, record real smoke if available and update P21/log.
 - **May touch:** backend/app/agent/providers/openrouter.py, backend/tests/test_provider_openrouter.py.
 - **Must NOT touch:** account billing/credits, common transport/config, random model router defaults, other providers.
 - **Expected outcome:** current eligible free models automatically visible with exact IDs, price evidence, limitations and reproducible explicit selection.
-- **Status:** [ ] not started. **Owner name:** unclaimed.
+- **Status:** not started; recommended deferral to future work, pending team agreement (R06). **Owner name:** unclaimed.
 
 **Tasks and done checklist:**
 - [ ] Read bounded current catalog and exact free variant metadata; never append `:free` to models that do not list it.
@@ -683,7 +685,7 @@ live smoke or not-run reason and update P22/log.
 - **May touch:** backend/app/agent/providers/catalog.py, backend/tests/test_provider_eligibility.py. Reuse the existing P16 decision path; no second eligibility framework or private contract.
 - **Must NOT touch:** billing/accounts, provider-specific adapter files, root config/shared types, dispatcher signature, frontend; send adapter defects to their owner.
 - **Expected outcome:** one tested, fail-closed eligibility decision for local compute, verified free-tier/zero-price, trial, paid and unknown states; no extra provider added.
-- **Status:** [ ] not started. **Owner name:** unclaimed.
+- **Status:** not started; recommended deferral to future work, pending team agreement (R06). **Owner name:** unclaimed.
 
 **Tasks and done checklist:**
 - [ ] Reuse P15 types and P16 account/capability/cost decisions; show complete eligible candidate lists rather than arbitrary three-model limits.
@@ -715,7 +717,7 @@ attach real evidence or not-run reasons and update only P23/log.
 - **May touch:** frontend/src/features/model-settings/ (components, scoped CSS, co-located tests). Track 1 separately may touch App.tsx, frontend/src/shared/api.ts and backend integration tests solely for reviewed selector wiring; claim those files before editing.
 - **Must NOT touch:** existing feature internals/global styles, generated types by hand, keys/.env, backend provider code, locks.
 - **Expected outcome:** authorized operator can refresh catalog, inspect price/compatibility/locality, explicitly test a synthetic example and select a model for new runs; ordinary users cannot change global selection.
-- **Status:** [ ] not started. **Owner name:** unclaimed.
+- **Status:** not started; recommended deferral to future work, pending team agreement (R06). **Owner name:** unclaimed.
 
 **Tasks and done checklist:**
 - [ ] Build provider/model dropdowns from generated API types, not hard-coded model IDs or provider count limits.
@@ -749,7 +751,7 @@ tests/build/full checks, attach sanitized screenshots and update P24/log.
 - **May touch:** evals/ (runner/scenarios/answer keys/results), backend/tests/test_provider_acceptance.py, docs/EVALUATION.md.
 - **Must NOT touch:** runtime prompts/fixtures/adapter logic, shared contracts, keys, another owner's tests. Send discovered bugs to their owner.
 - **Expected outcome:** reproducible control and real-model matrix for all six paths with explicit pass/fail/not-run, quality/cost/latency limits and tested selected default.
-- **Status:** [ ] not started. **Owner name:** unclaimed.
+- **Status:** not started; recommended deferral to future work, pending team agreement (R06). **Owner name:** unclaimed.
 
 **Tasks and done checklist:**
 - [ ] Reuse P08 held-out scenarios and rules-only baseline; keep answer keys out of model/runtime input.
@@ -782,7 +784,7 @@ brand/size. Run checks, attach genuine results and update P25/log.
 - **May touch:** backend/app/shared/schema.sql, backend/app/shared/db.py, reviewed numbered migrations under backend/app/shared/, backend/app/shared/contracts.py and scripts/export_contracts.py only if schema-version contract requires it, scripts/migrate_db.py if needed, backend/tests/test_migrations.py, docs/DATA_MODEL.md, docs/TEAM_WORKFLOW.md; generated files only via exporter. Scope does not authorize unrelated schema redesign.
 - **Must NOT touch:** real DB files, business history/fixtures destructively, feature internals without separate boundary; no automatic delete/reset on version mismatch.
 - **Expected outcome:** smallest reviewed persistence/version strategy, safe backup/upgrade/restore instructions and tested new-case provider snapshot. If existing storage is demonstrably sufficient, record no migration needed rather than inventing one.
-- **Status:** [ ] not started. **Owner name:** unclaimed.
+- **Status:** implemented, verification pending: v1 empty-database rebuild is tested; no general migration runner yet (R06). **Owner name:** kruhi7533 with Claude Code.
 
 **Tasks and done checklist:**
 - [ ] Inventory actual persistence required by P15, including application-owned model/config snapshots and default selection; approve only necessary additions.

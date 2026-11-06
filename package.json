@@ -13,7 +13,7 @@
     "start": "node scripts/dev.mjs --built",
     "build": "npm run build --workspace frontend",
     "test": "node scripts/python.mjs -m pytest backend/tests -q && npm run test --workspace frontend",
-    "lint": "node scripts/python.mjs -m ruff check backend scripts && npm run lint --workspace frontend",
+    "lint": "node scripts/python.mjs -m ruff check backend scripts evals fixtures && npm run lint --workspace frontend",
     "format": "node scripts/python.mjs -m ruff format backend scripts && prettier --write frontend scripts/*.mjs package.json .github/workflows/ci.yml",
     "format:check": "node scripts/python.mjs -m ruff format --check backend scripts && prettier --check frontend scripts/*.mjs package.json .github/workflows/ci.yml",
     "contracts": "node scripts/python.mjs scripts/export_contracts.py",

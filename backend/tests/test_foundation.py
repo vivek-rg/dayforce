@@ -19,9 +19,9 @@ def test_health_and_db_bootstrap(client):
     assert client.get("/api/health").json() == {
         "status": "ok",
         "database": "ok",
-        "schema_version": 1,
+        "schema_version": 2,
     }
-    assert client.get("/api/bootstrap").json()["project_name"] == "DayOne Proof"
+    assert client.get("/api/bootstrap").json()["project_name"] == "OnboardIQ"
     with connect() as connection:
         connection.execute("UPDATE app_info SET project_name=? WHERE id=1", ("Database proof",))
     assert client.get("/api/bootstrap").json()["project_name"] == "Database proof"

@@ -89,3 +89,27 @@ Commit/PR: actual reference when created, otherwise state not committed
 - **Branch handling:** user requested no additional branches; returned to the existing branch and removed only the empty extra branch created during this task. No other work/history discarded; no further branch creation.
 - **Limits / handoff:** push the reviewed fix and rerun the actual hosted Ubuntu/Node 22 workflow. The local Linux-targeted installation is not hosted CI success. Business/model features and the previously documented development-tool audit caveat remain unchanged.
 - **Commit/PR:** not staged, committed or pushed.
+
+## 2026-11-06 — OnboardIQ end-to-end build (R06)
+
+- **Author:** kruhi7533 with Claude Code; branch feature/onboardiq-end-to-end.
+- **Needs integrator review:** this crosses every track boundary and changes shared contracts (schema v2, `contracts.py`, generated specs). It was requested as one piece by the user, against the normal small-PR rule. No teammate has reviewed it.
+- **Added:** auth and RBAC; rule-based plans, dependencies, computed statuses, overdue escalation; evidence checks; documents with private storage, upload checks and human-only verification; advisory AI extraction; knowledge base with SQLite FTS5, citations, abstention and HR escalation; AI harness (operation registry, prompt versions, validators, run records, budgets); bounded investigation agent; exact approvals with conditional execution and read-back; notifications; analytics, insights and reliability metrics; 18 frontend screens; evaluation runner; synthetic fixtures; 
+- **Changed from the plan:** LangGraph checkpointer replaced by application-table state (the dependency is still installed but unused). Provider discovery, selector and adapters beyond Ollama and one OpenAI-compatible API are deferred. New dependencies: pypdf and python-multipart.
+- **Verification:** see docs/VERIFICATION.md and docs/EVALUATION.md.
+- **Known limits:** search found the right policy for only 5 of 11 untuned reworded questions, and embeddings are not built. Evaluation questions share one author. Docker files were not built here. Known API gaps: `Case` lacks the model that ran it, and a stale proposal stays in the inbox until someone rejects it.
+
+## 2026-11-06 — Audit, sign-in redesign and live model run (R06 continued)
+
+- **Author:** kruhi7533 with Claude Code; same branch.
+- **Added:** sign-in page from the user's supplied design, purple theme, sign-in by email (`users.email`), edit employee details, run checks now, IT access requests, employee benefits decline, hire name on questions, proposal failure reasons, automatic refresh of open screens every 15 seconds and on window focus.
+- **Fixed:** Groq's malformed-JSON 400 now goes to the repair path instead of looking like an outage; rate limits wait when the provider gives a short delay; a false-positive leak check in the evaluation runner matched random IDs; agent prompt is now version 2 with an explicit order of work; dashboard and insights now use one definition of "without proof".
+- **Not connected:** Google and Microsoft sign-in, password reset and self sign-up. Their buttons tell the person so. This is deliberate: they need accounts and credentials that do not exist here.
+- **Verification:** see docs/VERIFICATION.md and docs/EVALUATION.md.
+
+## 2026-11-06 — Handover changes requested by the user (R06 continued)
+
+- **Author:** kruhi7533 with Claude Code; same branch.
+- **Removed:** Google and Microsoft sign-in buttons, and the Docker files.
+- **Added:** self sign-up as an employee with no access until HR links a plan; forgot password through an HR-issued temporary password shown once; Groq key changes take effect from `.env` without a restart, and `.env.example` is preconfigured for Groq so only the key is needed.
+- **Changed, against earlier team rules, at the user's request:** the token moves from memory to `sessionStorage` so that a refresh stays signed in, because the brief does not require signing out; public registration now exists, but it can only create an employee with no access until HR links a plan. Team should review both.

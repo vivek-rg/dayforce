@@ -4,12 +4,12 @@
 
 ## Implementation status
 
-Only `GET /api/health` and `GET /api/bootstrap` work. Every business route is a typed **501 FEATURE_NOT_IMPLEMENTED** stub. Success examples below are the frozen target contract, not completed features. OpenAPI in `docs/openapi.json` is the handoff snapshot. Runtime `/openapi.json` exposes FastAPI contracts; this snapshot adds target security metadata and the internal agent protocol.
+All routes below are implemented and covered by tests in `backend/tests`. OpenAPI in `docs/openapi.json` is the generated snapshot. Runtime `/openapi.json` exposes FastAPI contracts; this snapshot adds security metadata and the internal agent protocol.
 
 ## Global rules
 
 - All paths below include `/api`. JSON only; reject extra input fields. IDs are opaque strings, never array indexes. Never infer permission from a supplied ID.
-- After P02: `Authorization: Bearer <token>` for all business endpoints except login. No cookie sessions, browser role header, public registration, or arbitrary tool endpoint. Eight-hour server expiry; logout revokes token. Store hashes, not raw tokens/passwords.
+- `Authorization: Bearer <token>` for all business endpoints except login. No cookie sessions, browser role header, or arbitrary tool endpoint. Eight-hour server expiry; logout revokes token. Store hashes, not raw tokens/passwords.
 - ISO date-only joining/deadline dates; UTC timestamps. Lists are `{items: [...]}`; empty is `[]`. Local fixture size is at most six hires; pagination is deferred. A case response returns at most the 100 newest timeline items chronologically; history remains in storage. Never silently truncate decision evidence.
 - Unknown resource: 404. Existing out-of-scope resource: indistinguishable 404. Known in-scope record but wrong operation/role: 403. Missing/expired token: 401. Invalid shape: 422; stale version/state/policy or unsupported pack: 409. Unexpected server failures must be sanitized 500, never traceback/secret data.
 - Duplicate same question answer or decision returns its existing accepted result. Different answer after ANSWERED or different decision after recorded decision: 409. Approval queues work, not execution success. Recheck inputs at execution.
@@ -27,7 +27,7 @@ Only `GET /api/health` and `GET /api/bootstrap` work. Every business route is a 
 }
 ```
 
-Stable codes: FEATURE_NOT_IMPLEMENTED (501), UNAUTHENTICATED (401), FORBIDDEN (403), NOT_FOUND (404), STALE_VERSION / INVALID_STATE / POLICY_REVIEW_REQUIRED (409), VALIDATION_ERROR (422), DATABASE_UNAVAILABLE (503), INTERNAL_ERROR (500). Token/credential input is never echoed in error details.
+Stable codes: UNAUTHENTICATED (401), FORBIDDEN (403), AI_UNAVAILABLE (503), NOT_FOUND (404), STALE_VERSION / INVALID_STATE / POLICY_REVIEW_REQUIRED (409), VALIDATION_ERROR (422), DATABASE_UNAVAILABLE (503), INTERNAL_ERROR (500). Token/credential input is never echoed in error details.
 
 ## Source-record authority and semantics
 
@@ -60,7 +60,7 @@ Read database-backed readiness
 {
   "status": "ok",
   "database": "ok",
-  "schema_version": 1
+  "schema_version": 2
 }
 ```
 
@@ -68,9 +68,9 @@ Read database-backed readiness
 
 ### `GET /api/bootstrap`
 
-Read hello-world value stored in SQLite
+Read the product name stored in SQLite
 
-**Authority:** Public foundation message only; no hire or identity data.
+**Authority:** Public product name and connection message only; no hire or identity data.
 
 **Parameters:** none.
 
@@ -82,7 +82,7 @@ Read hello-world value stored in SQLite
 {
   "project_name": "sample_value",
   "message": "sample_value",
-  "foundation_only": true
+  "foundation_only": false
 }
 ```
 
@@ -123,7 +123,7 @@ Create a local demo bearer session
 }
 ```
 
-**Errors:** 401, 403, 404, 409, 422, 501; global meanings above.
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
 
 ### `DELETE /api/sessions/current`
 
@@ -137,7 +137,7 @@ Revoke current bearer session
 
 **Success 204:** no body
 
-**Errors:** 401, 403, 404, 409, 422, 501; global meanings above.
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
 
 ### `GET /api/me`
 
@@ -162,7 +162,156 @@ Read authenticated identity and hire scopes
 }
 ```
 
-**Errors:** 401, 403, 404, 409, 422, 501; global meanings above.
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/accounts`
+
+Create a new employee account
+
+**Authority:** Public. Always creates an EMPLOYEE with no hire scope until HR links them.
+
+**Parameters:** none.
+
+**Request body:** AccountCreate
+
+```json
+{
+  "display_name": "sample_value",
+  "email": "sample_value",
+  "password": "sample_value"
+}
+```
+
+**Success 201:** Session
+
+```json
+{
+  "access_token": "sample_value",
+  "token_type": "bearer",
+  "expires_at": "2026-11-06T10:00:00Z",
+  "user": {
+    "id": "sample_value",
+    "display_name": "sample_value",
+    "role": "HR",
+    "hire_ids": [
+      "sample_value"
+    ]
+  }
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/password-resets`
+
+List open reset requests
+
+**Authority:** HR only.
+
+**Parameters:** none.
+
+**Request body:** none.
+
+**Success 200:** PasswordResetList
+
+```json
+{
+  "items": [
+    {
+      "id": "sample_value",
+      "display_name": "sample_value",
+      "email": "sample_value",
+      "role": "sample_value",
+      "created_at": "2026-11-06T10:00:00Z"
+    }
+  ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/password-resets`
+
+Ask HR for a password reset
+
+**Authority:** Public. Same reply whether or not the account exists.
+
+**Parameters:** none.
+
+**Request body:** PasswordResetCreate
+
+```json
+{
+  "email": "sample_value"
+}
+```
+
+**Success 202:** unknown
+
+```json
+"sample_value"
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/password-resets/{reset_id}/temporary-password`
+
+Issue a temporary password, shown once
+
+**Authority:** HR only. The password is returned once and stored only as a hash.
+
+**Parameters:** `reset_id` (path, string, required).
+
+**Request body:** none.
+
+**Success 200:** TemporaryPassword
+
+```json
+{
+  "display_name": "sample_value",
+  "temporary_password": "sample_value"
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/reference`
+
+Read form options for staff screens
+
+**Authority:** HR, MANAGER or IT. Form options only.
+
+**Parameters:** none.
+
+**Request body:** none.
+
+**Success 200:** Reference
+
+```json
+{
+  "departments": [
+    {
+      "id": "sample_value",
+      "name": "sample_value"
+    }
+  ],
+  "locations": [
+    "HYD-DEMO"
+  ],
+  "users": [
+    {
+      "id": "sample_value",
+      "display_name": "sample_value",
+      "role": "HR"
+    }
+  ],
+  "available_employee_user_ids": [
+    "sample_value"
+  ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
 
 ### `GET /api/hires`
 
@@ -188,7 +337,20 @@ List authorized hires
       "start_date": "2026-11-16",
       "manager_user_id": "sample_value",
       "employee_user_id": "sample_value",
+      "department_id": "sample_value",
+      "designation": "sample_value",
+      "work_email": "sample_value",
+      "personal_email": "sample_value",
+      "phone": "sample_value",
       "id": "sample_value",
+      "employee_code": "sample_value",
+      "employment_status": "PRE_JOINING",
+      "onboarding_status": "NOT_STARTED",
+      "tasks_completed": 0.0,
+      "tasks_total": 0.0,
+      "tasks_overdue": 0.0,
+      "created_at": "2026-11-06T10:00:00Z",
+      "completed_at": "2026-11-06T10:00:00Z",
       "profile_version": 1.0,
       "plan_version": 1.0
     }
@@ -196,7 +358,7 @@ List authorized hires
 }
 ```
 
-**Errors:** 401, 403, 404, 409, 422, 501; global meanings above.
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
 
 ### `POST /api/hires`
 
@@ -217,7 +379,12 @@ Create hire and approved plan
   "work_mode": "office",
   "start_date": "2026-11-16",
   "manager_user_id": "sample_value",
-  "employee_user_id": "sample_value"
+  "employee_user_id": "sample_value",
+  "department_id": "sample_value",
+  "designation": "sample_value",
+  "work_email": "sample_value",
+  "personal_email": "sample_value",
+  "phone": "sample_value"
 }
 ```
 
@@ -233,13 +400,26 @@ Create hire and approved plan
   "start_date": "2026-11-16",
   "manager_user_id": "sample_value",
   "employee_user_id": "sample_value",
+  "department_id": "sample_value",
+  "designation": "sample_value",
+  "work_email": "sample_value",
+  "personal_email": "sample_value",
+  "phone": "sample_value",
   "id": "sample_value",
+  "employee_code": "sample_value",
+  "employment_status": "PRE_JOINING",
+  "onboarding_status": "NOT_STARTED",
+  "tasks_completed": 0.0,
+  "tasks_total": 0.0,
+  "tasks_overdue": 0.0,
+  "created_at": "2026-11-06T10:00:00Z",
+  "completed_at": "2026-11-06T10:00:00Z",
   "profile_version": 1.0,
   "plan_version": 1.0
 }
 ```
 
-**Errors:** 401, 403, 404, 409, 422, 501; global meanings above.
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
 
 ### `GET /api/hires/{hire_id}`
 
@@ -263,13 +443,110 @@ Read authorized hire profile
   "start_date": "2026-11-16",
   "manager_user_id": "sample_value",
   "employee_user_id": "sample_value",
+  "department_id": "sample_value",
+  "designation": "sample_value",
+  "work_email": "sample_value",
+  "personal_email": "sample_value",
+  "phone": "sample_value",
   "id": "sample_value",
+  "employee_code": "sample_value",
+  "employment_status": "PRE_JOINING",
+  "onboarding_status": "NOT_STARTED",
+  "tasks_completed": 0.0,
+  "tasks_total": 0.0,
+  "tasks_overdue": 0.0,
+  "created_at": "2026-11-06T10:00:00Z",
+  "completed_at": "2026-11-06T10:00:00Z",
   "profile_version": 1.0,
   "plan_version": 1.0
 }
 ```
 
-**Errors:** 401, 403, 404, 409, 422, 501; global meanings above.
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `PATCH /api/hires/{hire_id}`
+
+Edit profile fields
+
+**Authority:** HR + hire scope; expected_profile_version required.
+
+**Parameters:** `hire_id` (path, string, required).
+
+**Request body:** HirePatch
+
+```json
+{
+  "expected_profile_version": 1.0,
+  "designation": "sample_value",
+  "work_email": "sample_value",
+  "personal_email": "sample_value",
+  "phone": "sample_value",
+  "department_id": "sample_value",
+  "employment_status": "PRE_JOINING"
+}
+```
+
+**Success 200:** Hire
+
+```json
+{
+  "display_name": "sample_value",
+  "worker_type": "employee",
+  "role": "engineer",
+  "location_id": "HYD-DEMO",
+  "work_mode": "office",
+  "start_date": "2026-11-16",
+  "manager_user_id": "sample_value",
+  "employee_user_id": "sample_value",
+  "department_id": "sample_value",
+  "designation": "sample_value",
+  "work_email": "sample_value",
+  "personal_email": "sample_value",
+  "phone": "sample_value",
+  "id": "sample_value",
+  "employee_code": "sample_value",
+  "employment_status": "PRE_JOINING",
+  "onboarding_status": "NOT_STARTED",
+  "tasks_completed": 0.0,
+  "tasks_total": 0.0,
+  "tasks_overdue": 0.0,
+  "created_at": "2026-11-06T10:00:00Z",
+  "completed_at": "2026-11-06T10:00:00Z",
+  "profile_version": 1.0,
+  "plan_version": 1.0
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/hires/{hire_id}/history`
+
+Read a hire's audit history
+
+**Authority:** Hire scope. Sanitized audit events.
+
+**Parameters:** `hire_id` (path, string, required).
+
+**Request body:** none.
+
+**Success 200:** AuditEventList
+
+```json
+{
+  "items": [
+    {
+      "id": "sample_value",
+      "hire_id": "sample_value",
+      "actor_user_id": "sample_value",
+      "event_type": "sample_value",
+      "summary": "sample_value",
+      "created_at": "2026-11-06T10:00:00Z"
+    }
+  ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
 
 ### `GET /api/hires/{hire_id}/plan`
 
@@ -291,12 +568,20 @@ Read tasks and current evidence
     {
       "id": "sample_value",
       "hire_id": "sample_value",
+      "hire_name": "sample_value",
       "category": "documents",
       "title": "sample_value",
+      "description": "sample_value",
       "owner_user_id": "sample_value",
+      "owner_name": "sample_value",
       "due_date": "2026-11-16",
+      "priority": "LOW",
       "critical": true,
       "work_state": "PENDING",
+      "display_status": "NOT_STARTED",
+      "check_type": "sample_value",
+      "evidence_result": "VERIFIED",
+      "completed_at": "2026-11-06T10:00:00Z",
       "version": 1.0,
       "depends_on": [
         "sample_value"
@@ -324,7 +609,7 @@ Read tasks and current evidence
 }
 ```
 
-**Errors:** 401, 403, 404, 409, 422, 501; global meanings above.
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
 
 ### `GET /api/my-work`
 
@@ -344,12 +629,20 @@ List current user-owned tasks
     {
       "id": "sample_value",
       "hire_id": "sample_value",
+      "hire_name": "sample_value",
       "category": "documents",
       "title": "sample_value",
+      "description": "sample_value",
       "owner_user_id": "sample_value",
+      "owner_name": "sample_value",
       "due_date": "2026-11-16",
+      "priority": "LOW",
       "critical": true,
       "work_state": "PENDING",
+      "display_status": "NOT_STARTED",
+      "check_type": "sample_value",
+      "evidence_result": "VERIFIED",
+      "completed_at": "2026-11-06T10:00:00Z",
       "version": 1.0,
       "depends_on": [
         "sample_value"
@@ -359,7 +652,52 @@ List current user-owned tasks
 }
 ```
 
-**Errors:** 401, 403, 404, 409, 422, 501; global meanings above.
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/tasks/{task_id}/start`
+
+Start an owned task
+
+**Authority:** Current task owner + hire scope; compare expected_version.
+
+**Parameters:** `task_id` (path, string, required).
+
+**Request body:** VersionRequest
+
+```json
+{
+  "expected_version": 1.0
+}
+```
+
+**Success 200:** Task
+
+```json
+{
+  "id": "sample_value",
+  "hire_id": "sample_value",
+  "hire_name": "sample_value",
+  "category": "documents",
+  "title": "sample_value",
+  "description": "sample_value",
+  "owner_user_id": "sample_value",
+  "owner_name": "sample_value",
+  "due_date": "2026-11-16",
+  "priority": "LOW",
+  "critical": true,
+  "work_state": "PENDING",
+  "display_status": "NOT_STARTED",
+  "check_type": "sample_value",
+  "evidence_result": "VERIFIED",
+  "completed_at": "2026-11-06T10:00:00Z",
+  "version": 1.0,
+  "depends_on": [
+    "sample_value"
+  ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
 
 ### `POST /api/tasks/{task_id}/complete`
 
@@ -383,12 +721,20 @@ Record task completion claim
 {
   "id": "sample_value",
   "hire_id": "sample_value",
+  "hire_name": "sample_value",
   "category": "documents",
   "title": "sample_value",
+  "description": "sample_value",
   "owner_user_id": "sample_value",
+  "owner_name": "sample_value",
   "due_date": "2026-11-16",
+  "priority": "LOW",
   "critical": true,
   "work_state": "PENDING",
+  "display_status": "NOT_STARTED",
+  "check_type": "sample_value",
+  "evidence_result": "VERIFIED",
+  "completed_at": "2026-11-06T10:00:00Z",
   "version": 1.0,
   "depends_on": [
     "sample_value"
@@ -396,7 +742,53 @@ Record task completion claim
 }
 ```
 
-**Errors:** 401, 403, 404, 409, 422, 501; global meanings above.
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/tasks/{task_id}/reassign`
+
+Reassign a task
+
+**Authority:** HR + hire scope.
+
+**Parameters:** `task_id` (path, string, required).
+
+**Request body:** TaskReassign
+
+```json
+{
+  "expected_version": 1.0,
+  "owner_user_id": "sample_value"
+}
+```
+
+**Success 200:** Task
+
+```json
+{
+  "id": "sample_value",
+  "hire_id": "sample_value",
+  "hire_name": "sample_value",
+  "category": "documents",
+  "title": "sample_value",
+  "description": "sample_value",
+  "owner_user_id": "sample_value",
+  "owner_name": "sample_value",
+  "due_date": "2026-11-16",
+  "priority": "LOW",
+  "critical": true,
+  "work_state": "PENDING",
+  "display_status": "NOT_STARTED",
+  "check_type": "sample_value",
+  "evidence_result": "VERIFIED",
+  "completed_at": "2026-11-06T10:00:00Z",
+  "version": 1.0,
+  "depends_on": [
+    "sample_value"
+  ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
 
 ### `POST /api/hires/{hire_id}/checks`
 
@@ -433,7 +825,41 @@ Run deterministic checks
 }
 ```
 
-**Errors:** 401, 403, 404, 409, 422, 501; global meanings above.
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/sources`
+
+List simulated-system records
+
+**Authority:** Role-limited categories; rows limited to the caller's hire scope.
+
+**Parameters:** `category` (query, Category, required).
+
+**Request body:** none.
+
+**Success 200:** SourceRecordList
+
+```json
+{
+  "items": [
+    {
+      "id": "sample_value",
+      "hire_id": "sample_value",
+      "hire_name": "sample_value",
+      "version": 1.0,
+      "source_system": "demo",
+      "observed_at": "2026-11-06T10:00:00Z",
+      "payload": {
+        "category": "documents",
+        "text": "sample_value",
+        "review_state": "SUBMITTED"
+      }
+    }
+  ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
 
 ### `PUT /api/hires/{hire_id}/sources/{source_id}`
 
@@ -462,6 +888,7 @@ Record a typed simulated-system observation
 {
   "id": "sample_value",
   "hire_id": "sample_value",
+  "hire_name": "sample_value",
   "version": 1.0,
   "source_system": "demo",
   "observed_at": "2026-11-06T10:00:00Z",
@@ -473,7 +900,291 @@ Record a typed simulated-system observation
 }
 ```
 
-**Errors:** 401, 403, 404, 409, 422, 501; global meanings above.
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/hires/{hire_id}/documents`
+
+Upload a document
+
+**Authority:** HR, or the hire's own EMPLOYEE. Type, content and size checks.
+
+**Parameters:** `hire_id` (path, string, required).
+
+**Request body:** none.
+
+**Success 201:** Document
+
+```json
+{
+  "id": "sample_value",
+  "hire_id": "sample_value",
+  "hire_name": "sample_value",
+  "category": "government_id",
+  "state": "SUBMITTED",
+  "original_name": "sample_value",
+  "mime_type": "sample_value",
+  "size_bytes": 1.0,
+  "text_available": true,
+  "declared_location_id": "HYD-DEMO",
+  "version": 1.0,
+  "created_at": "2026-11-06T10:00:00Z",
+  "reviews": [
+    {
+      "id": "sample_value",
+      "reviewer_user_id": "sample_value",
+      "decision": "VERIFY",
+      "reason": "sample_value",
+      "created_at": "2026-11-06T10:00:00Z"
+    }
+  ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/hires/{hire_id}/documents`
+
+List documents
+
+**Authority:** HR, or the hire's own EMPLOYEE.
+
+**Parameters:** `hire_id` (path, string, required).
+
+**Request body:** none.
+
+**Success 200:** DocumentList
+
+```json
+{
+  "items": [
+    {
+      "id": "sample_value",
+      "hire_id": "sample_value",
+      "hire_name": "sample_value",
+      "category": "government_id",
+      "state": "SUBMITTED",
+      "original_name": "sample_value",
+      "mime_type": "sample_value",
+      "size_bytes": 1.0,
+      "text_available": true,
+      "declared_location_id": "HYD-DEMO",
+      "version": 1.0,
+      "created_at": "2026-11-06T10:00:00Z",
+      "reviews": [
+        {
+          "id": "sample_value",
+          "reviewer_user_id": "sample_value",
+          "decision": "VERIFY",
+          "reason": "sample_value",
+          "created_at": "2026-11-06T10:00:00Z"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/documents/queue`
+
+List documents to review
+
+**Authority:** HR, limited to hire scope.
+
+**Parameters:** none.
+
+**Request body:** none.
+
+**Success 200:** DocumentList
+
+```json
+{
+  "items": [
+    {
+      "id": "sample_value",
+      "hire_id": "sample_value",
+      "hire_name": "sample_value",
+      "category": "government_id",
+      "state": "SUBMITTED",
+      "original_name": "sample_value",
+      "mime_type": "sample_value",
+      "size_bytes": 1.0,
+      "text_available": true,
+      "declared_location_id": "HYD-DEMO",
+      "version": 1.0,
+      "created_at": "2026-11-06T10:00:00Z",
+      "reviews": [
+        {
+          "id": "sample_value",
+          "reviewer_user_id": "sample_value",
+          "decision": "VERIFY",
+          "reason": "sample_value",
+          "created_at": "2026-11-06T10:00:00Z"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/documents/{document_id}/content`
+
+Stream a document to an authorized user
+
+**Authority:** HR, or the hire's own EMPLOYEE. Streamed as an attachment, no public URL.
+
+**Parameters:** `document_id` (path, string, required).
+
+**Request body:** none.
+
+**Success 200:** unknown
+
+```json
+"sample_value"
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/documents/{document_id}/extractions`
+
+Run advisory AI extraction
+
+**Authority:** HR + hire scope. Advisory only; sensitive categories never go to a hosted model.
+
+**Parameters:** `document_id` (path, string, required).
+
+**Request body:** none.
+
+**Success 201:** DocumentExtraction
+
+```json
+{
+  "id": "sample_value",
+  "document_id": "sample_value",
+  "suggested_category": "government_id",
+  "fields": [
+    {
+      "name": "sample_value",
+      "value": "sample_value",
+      "quote": "sample_value"
+    }
+  ],
+  "missing": [
+    "sample_value"
+  ],
+  "mismatches": [
+    {
+      "field": "sample_value",
+      "document_value": "sample_value",
+      "profile_value": "sample_value"
+    }
+  ],
+  "summary": "sample_value",
+  "advisory": true,
+  "ai_run_id": "sample_value",
+  "model": "sample_value",
+  "is_stub": true,
+  "created_at": "2026-11-06T10:00:00Z"
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/documents/{document_id}/extractions/latest`
+
+Read the latest advisory extraction
+
+**Authority:** HR + hire scope.
+
+**Parameters:** `document_id` (path, string, required).
+
+**Request body:** none.
+
+**Success 200:** DocumentExtraction
+
+```json
+{
+  "id": "sample_value",
+  "document_id": "sample_value",
+  "suggested_category": "government_id",
+  "fields": [
+    {
+      "name": "sample_value",
+      "value": "sample_value",
+      "quote": "sample_value"
+    }
+  ],
+  "missing": [
+    "sample_value"
+  ],
+  "mismatches": [
+    {
+      "field": "sample_value",
+      "document_value": "sample_value",
+      "profile_value": "sample_value"
+    }
+  ],
+  "summary": "sample_value",
+  "advisory": true,
+  "ai_run_id": "sample_value",
+  "model": "sample_value",
+  "is_stub": true,
+  "created_at": "2026-11-06T10:00:00Z"
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/documents/{document_id}/reviews`
+
+Verify, reject or request resubmission (human only)
+
+**Authority:** HR + hire scope. The only path to VERIFIED. No AI caller exists.
+
+**Parameters:** `document_id` (path, string, required).
+
+**Request body:** DocumentReviewRequest
+
+```json
+{
+  "decision": "VERIFY",
+  "reason": "",
+  "expected_version": 1.0
+}
+```
+
+**Success 200:** Document
+
+```json
+{
+  "id": "sample_value",
+  "hire_id": "sample_value",
+  "hire_name": "sample_value",
+  "category": "government_id",
+  "state": "SUBMITTED",
+  "original_name": "sample_value",
+  "mime_type": "sample_value",
+  "size_bytes": 1.0,
+  "text_available": true,
+  "declared_location_id": "HYD-DEMO",
+  "version": 1.0,
+  "created_at": "2026-11-06T10:00:00Z",
+  "reviews": [
+    {
+      "id": "sample_value",
+      "reviewer_user_id": "sample_value",
+      "decision": "VERIFY",
+      "reason": "sample_value",
+      "created_at": "2026-11-06T10:00:00Z"
+    }
+  ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
 
 ### `POST /api/hires/{hire_id}/cases`
 
@@ -500,7 +1211,119 @@ Open or link investigation and queue work
 }
 ```
 
-**Errors:** 401, 403, 404, 409, 422, 501; global meanings above.
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/hires/{hire_id}/cases`
+
+List a hire's cases
+
+**Authority:** HR or MANAGER + hire scope.
+
+**Parameters:** `hire_id` (path, string, required).
+
+**Request body:** none.
+
+**Success 200:** CaseList
+
+```json
+{
+  "items": [
+    {
+      "id": "sample_value",
+      "hire_id": "sample_value",
+      "state": "OPEN",
+      "kind": "INVESTIGATION",
+      "message": "sample_value",
+      "version": 1.0,
+      "model_calls": 0.0,
+      "tool_calls": 0.0,
+      "questions": [
+        {
+          "id": "sample_value",
+          "case_id": "sample_value",
+          "hire_name": "sample_value",
+          "recipient_user_id": "sample_value",
+          "text": "sample_value",
+          "state": "PENDING",
+          "answer": "sample_value"
+        }
+      ],
+      "proposals": [
+        {
+          "id": "sample_value",
+          "case_id": "sample_value",
+          "hire_id": "sample_value",
+          "hire_name": "sample_value",
+          "payload": {
+            "action_type": "CHANGE_WORK_LOCATION",
+            "location_id": "HYD-DEMO"
+          },
+          "evidence_ids": [
+            "sample_value"
+          ],
+          "expected_versions": {
+            "profile_version": 1.0,
+            "plan_version": 1.0,
+            "policy_id": "sample_value",
+            "policy_version": 1.0,
+            "source_record_id": "sample_value",
+            "source_version": 1.0
+          },
+          "reviewer_role": "HR",
+          "expires_at": "2026-11-06T10:00:00Z",
+          "plan_diff": {
+            "create": [
+              "sample_value"
+            ],
+            "cancel": [
+              "sample_value"
+            ],
+            "preserve": [
+              "sample_value"
+            ],
+            "invalidate_checks": [
+              "sample_value"
+            ]
+          },
+          "decision": "APPROVE",
+          "action_state": "PENDING",
+          "outcome": "sample_value"
+        }
+      ],
+      "evidence": [
+        {
+          "id": "sample_value",
+          "hire_id": "sample_value",
+          "case_id": null,
+          "check_type": "sample_value",
+          "source_record_id": null,
+          "source_version": null,
+          "profile_version": 1,
+          "policy_id": "sample_value",
+          "policy_version": 1,
+          "checked_at": "2026-11-06T10:00:00Z",
+          "expires_at": null,
+          "result": "VERIFIED",
+          "reason_code": "sample_value",
+          "observed": {}
+        }
+      ],
+      "timeline": [
+        {
+          "id": "sample_value",
+          "hire_id": "sample_value",
+          "actor_user_id": "sample_value",
+          "event_type": "sample_value",
+          "summary": "sample_value",
+          "created_at": "2026-11-06T10:00:00Z"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
 
 ### `GET /api/cases/{case_id}`
 
@@ -519,6 +1342,8 @@ Read scoped case and sanitized timeline
   "id": "sample_value",
   "hire_id": "sample_value",
   "state": "OPEN",
+  "kind": "INVESTIGATION",
+  "message": "sample_value",
   "version": 1.0,
   "model_calls": 0.0,
   "tool_calls": 0.0,
@@ -526,6 +1351,7 @@ Read scoped case and sanitized timeline
     {
       "id": "sample_value",
       "case_id": "sample_value",
+      "hire_name": "sample_value",
       "recipient_user_id": "sample_value",
       "text": "sample_value",
       "state": "PENDING",
@@ -536,6 +1362,8 @@ Read scoped case and sanitized timeline
     {
       "id": "sample_value",
       "case_id": "sample_value",
+      "hire_id": "sample_value",
+      "hire_name": "sample_value",
       "payload": {
         "action_type": "CHANGE_WORK_LOCATION",
         "location_id": "HYD-DEMO"
@@ -566,7 +1394,10 @@ Read scoped case and sanitized timeline
         "invalidate_checks": [
           "sample_value"
         ]
-      }
+      },
+      "decision": "APPROVE",
+      "action_state": "PENDING",
+      "outcome": "sample_value"
     }
   ],
   "evidence": [
@@ -590,6 +1421,8 @@ Read scoped case and sanitized timeline
   "timeline": [
     {
       "id": "sample_value",
+      "hire_id": "sample_value",
+      "actor_user_id": "sample_value",
       "event_type": "sample_value",
       "summary": "sample_value",
       "created_at": "2026-11-06T10:00:00Z"
@@ -598,7 +1431,37 @@ Read scoped case and sanitized timeline
 }
 ```
 
-**Errors:** 401, 403, 404, 409, 422, 501; global meanings above.
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/questions`
+
+List questions waiting for me
+
+**Authority:** Authenticated; only questions addressed to the caller.
+
+**Parameters:** none.
+
+**Request body:** none.
+
+**Success 200:** QuestionList
+
+```json
+{
+  "items": [
+    {
+      "id": "sample_value",
+      "case_id": "sample_value",
+      "hire_name": "sample_value",
+      "recipient_user_id": "sample_value",
+      "text": "sample_value",
+      "state": "PENDING",
+      "answer": "sample_value"
+    }
+  ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
 
 ### `POST /api/questions/{question_id}/responses`
 
@@ -625,7 +1488,7 @@ Answer intended question and queue resume
 }
 ```
 
-**Errors:** 401, 403, 404, 409, 422, 501; global meanings above.
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
 
 ### `GET /api/work-items/{work_item_id}`
 
@@ -650,7 +1513,7 @@ Poll scoped durable work
 }
 ```
 
-**Errors:** 401, 403, 404, 409, 422, 501; global meanings above.
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
 
 ### `GET /api/review-inbox`
 
@@ -670,6 +1533,8 @@ List exact proposals reviewer may see
     {
       "id": "sample_value",
       "case_id": "sample_value",
+      "hire_id": "sample_value",
+      "hire_name": "sample_value",
       "payload": {
         "action_type": "CHANGE_WORK_LOCATION",
         "location_id": "HYD-DEMO"
@@ -700,38 +1565,35 @@ List exact proposals reviewer may see
         "invalidate_checks": [
           "sample_value"
         ]
-      }
+      },
+      "decision": "APPROVE",
+      "action_state": "PENDING",
+      "outcome": "sample_value"
     }
   ]
 }
 ```
 
-**Errors:** 401, 403, 404, 409, 422, 501; global meanings above.
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
 
-### `POST /api/hires/{hire_id}/change-previews`
+### `GET /api/proposals/{proposal_id}`
 
-Create immutable reviewed-location proposal with plan diff
+Read one proposal
 
-**Authority:** HR + hire scope; body case belongs to hire. No official profile mutation.
+**Authority:** Hire scope.
 
-**Parameters:** `hire_id` (path, string, required).
+**Parameters:** `proposal_id` (path, string, required).
 
-**Request body:** PreviewRequest
+**Request body:** none.
 
-```json
-{
-  "case_id": "sample_value",
-  "location_id": "HYD-DEMO",
-  "expected_profile_version": 1.0
-}
-```
-
-**Success 201:** Proposal
+**Success 200:** Proposal
 
 ```json
 {
   "id": "sample_value",
   "case_id": "sample_value",
+  "hire_id": "sample_value",
+  "hire_name": "sample_value",
   "payload": {
     "action_type": "CHANGE_WORK_LOCATION",
     "location_id": "HYD-DEMO"
@@ -762,11 +1624,179 @@ Create immutable reviewed-location proposal with plan diff
     "invalidate_checks": [
       "sample_value"
     ]
+  },
+  "decision": "APPROVE",
+  "action_state": "PENDING",
+  "outcome": "sample_value"
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/hires/{hire_id}/change-previews`
+
+Create immutable reviewed-location proposal with plan diff
+
+**Authority:** HR + hire scope; body case belongs to hire. No official profile mutation.
+
+**Parameters:** `hire_id` (path, string, required).
+
+**Request body:** PreviewRequest
+
+```json
+{
+  "case_id": "sample_value",
+  "location_id": "HYD-DEMO",
+  "expected_profile_version": 1.0
+}
+```
+
+**Success 201:** Proposal
+
+```json
+{
+  "id": "sample_value",
+  "case_id": "sample_value",
+  "hire_id": "sample_value",
+  "hire_name": "sample_value",
+  "payload": {
+    "action_type": "CHANGE_WORK_LOCATION",
+    "location_id": "HYD-DEMO"
+  },
+  "evidence_ids": [
+    "sample_value"
+  ],
+  "expected_versions": {
+    "profile_version": 1.0,
+    "plan_version": 1.0,
+    "policy_id": "sample_value",
+    "policy_version": 1.0,
+    "source_record_id": "sample_value",
+    "source_version": 1.0
+  },
+  "reviewer_role": "HR",
+  "expires_at": "2026-11-06T10:00:00Z",
+  "plan_diff": {
+    "create": [
+      "sample_value"
+    ],
+    "cancel": [
+      "sample_value"
+    ],
+    "preserve": [
+      "sample_value"
+    ],
+    "invalidate_checks": [
+      "sample_value"
+    ]
+  },
+  "decision": "APPROVE",
+  "action_state": "PENDING",
+  "outcome": "sample_value"
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/hires/{hire_id}/equipment-requests`
+
+Request a device; creates a proposal for IT approval
+
+**Authority:** IT or MANAGER + hire scope. Creates a proposal for IT approval.
+
+**Parameters:** `hire_id` (path, string, required).
+
+**Request body:** EquipmentRequest
+
+```json
+{
+  "equipment_record_id": "sample_value"
+}
+```
+
+**Success 201:** Proposal
+
+```json
+{
+  "id": "sample_value",
+  "case_id": "sample_value",
+  "hire_id": "sample_value",
+  "hire_name": "sample_value",
+  "payload": {
+    "action_type": "CHANGE_WORK_LOCATION",
+    "location_id": "HYD-DEMO"
+  },
+  "evidence_ids": [
+    "sample_value"
+  ],
+  "expected_versions": {
+    "profile_version": 1.0,
+    "plan_version": 1.0,
+    "policy_id": "sample_value",
+    "policy_version": 1.0,
+    "source_record_id": "sample_value",
+    "source_version": 1.0
+  },
+  "reviewer_role": "HR",
+  "expires_at": "2026-11-06T10:00:00Z",
+  "plan_diff": {
+    "create": [
+      "sample_value"
+    ],
+    "cancel": [
+      "sample_value"
+    ],
+    "preserve": [
+      "sample_value"
+    ],
+    "invalidate_checks": [
+      "sample_value"
+    ]
+  },
+  "decision": "APPROVE",
+  "action_state": "PENDING",
+  "outcome": "sample_value"
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/hires/{hire_id}/access-requests`
+
+Create a simulated account or access request
+
+**Authority:** IT or MANAGER + hire scope. Simulated.
+
+**Parameters:** `hire_id` (path, string, required).
+
+**Request body:** AccessRequest
+
+```json
+{
+  "item": "CORPORATE_EMAIL",
+  "detail": ""
+}
+```
+
+**Success 201:** SourceRecord
+
+```json
+{
+  "id": "sample_value",
+  "hire_id": "sample_value",
+  "hire_name": "sample_value",
+  "version": 1.0,
+  "source_system": "demo",
+  "observed_at": "2026-11-06T10:00:00Z",
+  "payload": {
+    "category": "documents",
+    "text": "sample_value",
+    "review_state": "SUBMITTED"
   }
 }
 ```
 
-**Errors:** 401, 403, 404, 409, 422, 501; global meanings above.
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
 
 ### `POST /api/proposals/{proposal_id}/decisions`
 
@@ -796,7 +1826,659 @@ Approve or reject exact immutable proposal
 }
 ```
 
-**Errors:** 401, 403, 404, 409, 422, 501; global meanings above.
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/assistant/questions`
+
+Ask the knowledge assistant
+
+**Authority:** Authenticated. Retrieval is filtered by the caller's access levels before ranking.
+
+**Parameters:** none.
+
+**Request body:** AssistantQuestion
+
+```json
+{
+  "question": "sample_value"
+}
+```
+
+**Success 200:** AssistantAnswer
+
+```json
+{
+  "status": "ANSWERED",
+  "message": "sample_value",
+  "claims": [
+    {
+      "text": "sample_value",
+      "citations": [
+        {
+          "chunk_id": "sample_value",
+          "document_id": "sample_value",
+          "title": "sample_value",
+          "version": 1.0,
+          "section_ref": "sample_value",
+          "access_level": "sample_value",
+          "quote": "sample_value"
+        }
+      ]
+    }
+  ],
+  "uncertainty": "sample_value",
+  "suggest_escalation": true,
+  "sources": [
+    {
+      "chunk_id": "sample_value",
+      "document_id": "sample_value",
+      "title": "sample_value",
+      "version": 1.0,
+      "section_ref": "sample_value",
+      "access_level": "sample_value",
+      "quote": "sample_value"
+    }
+  ],
+  "ai_run_id": "sample_value",
+  "model": "sample_value",
+  "is_stub": true
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/assistant/escalations`
+
+List escalated questions
+
+**Authority:** HR only.
+
+**Parameters:** none.
+
+**Request body:** none.
+
+**Success 200:** EscalationList
+
+```json
+{
+  "items": [
+    {
+      "id": "sample_value",
+      "raised_by": "sample_value",
+      "raised_by_name": "sample_value",
+      "question": "sample_value",
+      "state": "OPEN",
+      "resolution": "sample_value",
+      "created_at": "2026-11-06T10:00:00Z"
+    }
+  ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/assistant/escalations`
+
+Send an unanswered question to HR
+
+**Authority:** Authenticated.
+
+**Parameters:** none.
+
+**Request body:** EscalationCreate
+
+```json
+{
+  "question": "sample_value",
+  "ai_run_id": "sample_value"
+}
+```
+
+**Success 201:** Escalation
+
+```json
+{
+  "id": "sample_value",
+  "raised_by": "sample_value",
+  "raised_by_name": "sample_value",
+  "question": "sample_value",
+  "state": "OPEN",
+  "resolution": "sample_value",
+  "created_at": "2026-11-06T10:00:00Z"
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/assistant/escalations/mine`
+
+List questions I escalated
+
+**Authority:** Authenticated; own questions only.
+
+**Parameters:** none.
+
+**Request body:** none.
+
+**Success 200:** EscalationList
+
+```json
+{
+  "items": [
+    {
+      "id": "sample_value",
+      "raised_by": "sample_value",
+      "raised_by_name": "sample_value",
+      "question": "sample_value",
+      "state": "OPEN",
+      "resolution": "sample_value",
+      "created_at": "2026-11-06T10:00:00Z"
+    }
+  ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/assistant/escalations/{escalation_id}/answers`
+
+Answer an escalated question
+
+**Authority:** HR only.
+
+**Parameters:** `escalation_id` (path, string, required).
+
+**Request body:** EscalationAnswer
+
+```json
+{
+  "answer": "sample_value"
+}
+```
+
+**Success 200:** Escalation
+
+```json
+{
+  "id": "sample_value",
+  "raised_by": "sample_value",
+  "raised_by_name": "sample_value",
+  "question": "sample_value",
+  "state": "OPEN",
+  "resolution": "sample_value",
+  "created_at": "2026-11-06T10:00:00Z"
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/knowledge/documents`
+
+List knowledge sources I may see
+
+**Authority:** HR, or the hire's own EMPLOYEE.
+
+**Parameters:** none.
+
+**Request body:** none.
+
+**Success 200:** KnowledgeDocumentList
+
+```json
+{
+  "items": [
+    {
+      "id": "sample_value",
+      "version": 1.0,
+      "title": "sample_value",
+      "access_level": "GENERAL",
+      "status": "DRAFT",
+      "chunk_count": 0.0,
+      "created_at": "2026-11-06T10:00:00Z"
+    }
+  ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/knowledge/documents`
+
+Upload a draft knowledge document
+
+**Authority:** HR only. Saved as a draft that is not searchable.
+
+**Parameters:** none.
+
+**Request body:** none.
+
+**Success 201:** KnowledgeDocument
+
+```json
+{
+  "id": "sample_value",
+  "version": 1.0,
+  "title": "sample_value",
+  "access_level": "GENERAL",
+  "status": "DRAFT",
+  "chunk_count": 0.0,
+  "created_at": "2026-11-06T10:00:00Z"
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/knowledge/documents/{document_id}/approve`
+
+Approve a draft, making it searchable
+
+**Authority:** HR only. Approval makes the text searchable.
+
+**Parameters:** `document_id` (path, string, required).
+
+**Request body:** KnowledgeApprove
+
+```json
+{
+  "version": 1.0
+}
+```
+
+**Success 200:** KnowledgeDocument
+
+```json
+{
+  "id": "sample_value",
+  "version": 1.0,
+  "title": "sample_value",
+  "access_level": "GENERAL",
+  "status": "DRAFT",
+  "chunk_count": 0.0,
+  "created_at": "2026-11-06T10:00:00Z"
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/notifications`
+
+Read my notifications
+
+**Authority:** Authenticated; own notifications only.
+
+**Parameters:** none.
+
+**Request body:** none.
+
+**Success 200:** NotificationList
+
+```json
+{
+  "items": [
+    {
+      "id": "sample_value",
+      "type": "sample_value",
+      "title": "sample_value",
+      "body": "sample_value",
+      "hire_id": "sample_value",
+      "task_id": "sample_value",
+      "read": true,
+      "created_at": "2026-11-06T10:00:00Z"
+    }
+  ],
+  "unread": 0.0
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/notifications/{notification_id}/read`
+
+Mark a notification read
+
+**Authority:** Authenticated; own notifications only.
+
+**Parameters:** `notification_id` (path, string, required).
+
+**Request body:** none.
+
+**Success 204:** no body
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/notifications/sweep`
+
+Run the deadline escalation sweep
+
+**Authority:** HR only.
+
+**Parameters:** none.
+
+**Request body:** none.
+
+**Success 200:** SweepResult
+
+```json
+{
+  "notifications_created": 0.0
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/analytics/overview`
+
+Read dashboard numbers
+
+**Authority:** HR, limited to hire scope. SQL metrics, no model.
+
+**Parameters:** none.
+
+**Request body:** none.
+
+**Success 200:** Overview
+
+```json
+{
+  "total_employees": 0.0,
+  "onboarding_in_progress": 0.0,
+  "onboarding_completed": 0.0,
+  "tasks_pending": 0.0,
+  "tasks_overdue": 0.0,
+  "documents_awaiting": 0.0,
+  "claims_without_proof": 0.0,
+  "average_completion_days": 1,
+  "by_department": [
+    {
+      "label": "sample_value",
+      "count": 0.0
+    }
+  ],
+  "by_location": [
+    {
+      "label": "sample_value",
+      "count": 0.0
+    }
+  ],
+  "equipment": [
+    {
+      "label": "sample_value",
+      "count": 0.0
+    }
+  ],
+  "upcoming": [
+    {
+      "hire_id": "sample_value",
+      "display_name": "sample_value",
+      "start_date": "2026-11-16",
+      "location_id": "HYD-DEMO"
+    }
+  ],
+  "recent": [
+    {
+      "id": "sample_value",
+      "hire_id": "sample_value",
+      "actor_user_id": "sample_value",
+      "event_type": "sample_value",
+      "summary": "sample_value",
+      "created_at": "2026-11-06T10:00:00Z"
+    }
+  ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/insights/metrics`
+
+Read computed insights
+
+**Authority:** HR, limited to hire scope. SQL metrics, no model.
+
+**Parameters:** none.
+
+**Request body:** none.
+
+**Success 200:** InsightMetrics
+
+```json
+{
+  "metrics": [
+    {
+      "id": "sample_value",
+      "label": "sample_value",
+      "value": 0.0,
+      "evidence": [
+        {
+          "ref": "sample_value",
+          "label": "sample_value"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/insights/summaries`
+
+Create an advisory AI summary
+
+**Authority:** HR. Advisory; numbers and references are validated against the metrics.
+
+**Parameters:** none.
+
+**Request body:** none.
+
+**Success 200:** InsightSummary
+
+```json
+{
+  "summary": "sample_value",
+  "recommendations": [
+    {
+      "text": "sample_value",
+      "evidence_refs": [
+        "sample_value"
+      ]
+    }
+  ],
+  "advisory": true,
+  "ai_run_id": "sample_value",
+  "model": "sample_value",
+  "is_stub": true,
+  "metrics": [
+    {
+      "id": "sample_value",
+      "label": "sample_value",
+      "value": 0.0,
+      "evidence": [
+        {
+          "ref": "sample_value",
+          "label": "sample_value"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/audit-events`
+
+Search the audit log
+
+**Authority:** HR, limited to hire scope.
+
+**Parameters:** none.
+
+**Request body:** none.
+
+**Success 200:** AuditEventList
+
+```json
+{
+  "items": [
+    {
+      "id": "sample_value",
+      "hire_id": "sample_value",
+      "actor_user_id": "sample_value",
+      "event_type": "sample_value",
+      "summary": "sample_value",
+      "created_at": "2026-11-06T10:00:00Z"
+    }
+  ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/ai-runs`
+
+List AI run records
+
+**Authority:** HR. References and measurements only, never prompts or document text.
+
+**Parameters:** none.
+
+**Request body:** none.
+
+**Success 200:** AiRunList
+
+```json
+{
+  "items": [
+    {
+      "id": "sample_value",
+      "operation": "sample_value",
+      "prompt_version": 1.0,
+      "provider": "sample_value",
+      "model": "sample_value",
+      "user_id": "sample_value",
+      "hire_id": "sample_value",
+      "case_id": "sample_value",
+      "chunk_ids": [
+        "sample_value"
+      ],
+      "status": "VALIDATED",
+      "validation_result": "sample_value",
+      "failure_reason": "sample_value",
+      "attempts": 0.0,
+      "input_tokens": 1,
+      "output_tokens": 1,
+      "latency_ms": 0.0,
+      "retrieval_ms": 1,
+      "created_at": "2026-11-06T10:00:00Z"
+    }
+  ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/ai-runs/{run_id}`
+
+Read one AI run record
+
+**Authority:** HR.
+
+**Parameters:** `run_id` (path, string, required).
+
+**Request body:** none.
+
+**Success 200:** AiRun
+
+```json
+{
+  "id": "sample_value",
+  "operation": "sample_value",
+  "prompt_version": 1.0,
+  "provider": "sample_value",
+  "model": "sample_value",
+  "user_id": "sample_value",
+  "hire_id": "sample_value",
+  "case_id": "sample_value",
+  "chunk_ids": [
+    "sample_value"
+  ],
+  "status": "VALIDATED",
+  "validation_result": "sample_value",
+  "failure_reason": "sample_value",
+  "attempts": 0.0,
+  "input_tokens": 1,
+  "output_tokens": 1,
+  "latency_ms": 0.0,
+  "retrieval_ms": 1,
+  "created_at": "2026-11-06T10:00:00Z"
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/metrics`
+
+Read reliability metrics
+
+**Authority:** HR.
+
+**Parameters:** none.
+
+**Request body:** none.
+
+**Success 200:** Metrics
+
+```json
+{
+  "api_requests": 0.0,
+  "api_p50_ms": 1,
+  "api_p95_ms": 1,
+  "api_errors": 0.0,
+  "retrieval_average_ms": 1,
+  "operations": [
+    {
+      "operation": "sample_value",
+      "runs": 0.0,
+      "validated": 0.0,
+      "abstained": 0.0,
+      "rejected": 0.0,
+      "unavailable": 0.0,
+      "average_latency_ms": 1,
+      "total_tokens": 0.0
+    }
+  ],
+  "work_failed": 0.0,
+  "actions_failed": 0.0,
+  "task_completion_rate": 1
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/health/ai`
+
+Read model configuration status
+
+**Authority:** Authenticated. Configuration status only; never exposes a key.
+
+**Parameters:** none.
+
+**Request body:** none.
+
+**Success 200:** AiHealth
+
+```json
+{
+  "provider": "sample_value",
+  "model": "sample_value",
+  "available": true,
+  "is_stub": true,
+  "detail": "sample_value"
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
 
 ## Internal agent contract (not a public endpoint)
 
@@ -843,6 +2525,72 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
     "work_item_id"
   ],
   "title": "AcceptedWork"
+}
+```
+
+### AccessRequest
+
+```json
+{
+  "properties": {
+    "item": {
+      "type": "string",
+      "enum": [
+        "CORPORATE_EMAIL",
+        "VPN",
+        "APPLICATION_ACCESS",
+        "REQUIRED_SOFTWARE"
+      ],
+      "title": "Item"
+    },
+    "detail": {
+      "type": "string",
+      "maxLength": 200,
+      "title": "Detail",
+      "default": ""
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "item"
+  ],
+  "title": "AccessRequest"
+}
+```
+
+### AccountCreate
+
+```json
+{
+  "properties": {
+    "display_name": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Display Name"
+    },
+    "email": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 3,
+      "title": "Email"
+    },
+    "password": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 12,
+      "title": "Password"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "display_name",
+    "email",
+    "password"
+  ],
+  "title": "AccountCreate"
 }
 ```
 
@@ -909,6 +2657,243 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
 }
 ```
 
+### AiHealth
+
+```json
+{
+  "properties": {
+    "provider": {
+      "type": "string",
+      "title": "Provider"
+    },
+    "model": {
+      "type": "string",
+      "title": "Model"
+    },
+    "available": {
+      "type": "boolean",
+      "title": "Available"
+    },
+    "is_stub": {
+      "type": "boolean",
+      "title": "Is Stub"
+    },
+    "detail": {
+      "type": "string",
+      "title": "Detail"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "provider",
+    "model",
+    "available",
+    "is_stub",
+    "detail"
+  ],
+  "title": "AiHealth"
+}
+```
+
+### AiRun
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Id"
+    },
+    "operation": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Operation"
+    },
+    "prompt_version": {
+      "type": "integer",
+      "minimum": 1.0,
+      "title": "Prompt Version"
+    },
+    "provider": {
+      "type": "string",
+      "title": "Provider"
+    },
+    "model": {
+      "type": "string",
+      "title": "Model"
+    },
+    "user_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 80,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "User Id"
+    },
+    "hire_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 80,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Hire Id"
+    },
+    "case_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 80,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Case Id"
+    },
+    "chunk_ids": {
+      "items": {
+        "type": "string",
+        "maxLength": 80,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_-]+$"
+      },
+      "type": "array",
+      "title": "Chunk Ids"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "VALIDATED",
+        "ABSTAINED",
+        "REJECTED_OUTPUT",
+        "UNAVAILABLE"
+      ],
+      "title": "Status"
+    },
+    "validation_result": {
+      "type": "string",
+      "title": "Validation Result"
+    },
+    "failure_reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Failure Reason"
+    },
+    "attempts": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Attempts"
+    },
+    "input_tokens": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Input Tokens"
+    },
+    "output_tokens": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Output Tokens"
+    },
+    "latency_ms": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Latency Ms"
+    },
+    "retrieval_ms": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Retrieval Ms"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "operation",
+    "prompt_version",
+    "provider",
+    "model",
+    "chunk_ids",
+    "status",
+    "validation_result",
+    "attempts",
+    "latency_ms",
+    "created_at"
+  ],
+  "title": "AiRun"
+}
+```
+
+### AiRunList
+
+```json
+{
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/components/schemas/AiRun"
+      },
+      "type": "array",
+      "title": "Items"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "items"
+  ],
+  "title": "AiRunList"
+}
+```
+
 ### AnswerRequest
 
 ```json
@@ -972,6 +2957,129 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
 }
 ```
 
+### AssistantAnswer
+
+```json
+{
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "ANSWERED",
+        "PARTIAL",
+        "NOT_FOUND",
+        "OUT_OF_SCOPE",
+        "UNAVAILABLE"
+      ],
+      "title": "Status"
+    },
+    "message": {
+      "type": "string",
+      "title": "Message"
+    },
+    "claims": {
+      "items": {
+        "$ref": "#/components/schemas/AssistantClaim"
+      },
+      "type": "array",
+      "title": "Claims"
+    },
+    "uncertainty": {
+      "type": "string",
+      "title": "Uncertainty"
+    },
+    "suggest_escalation": {
+      "type": "boolean",
+      "title": "Suggest Escalation"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/components/schemas/Citation"
+      },
+      "type": "array",
+      "title": "Sources"
+    },
+    "ai_run_id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Ai Run Id"
+    },
+    "model": {
+      "type": "string",
+      "title": "Model"
+    },
+    "is_stub": {
+      "type": "boolean",
+      "title": "Is Stub"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "status",
+    "message",
+    "claims",
+    "uncertainty",
+    "suggest_escalation",
+    "sources",
+    "ai_run_id",
+    "model",
+    "is_stub"
+  ],
+  "title": "AssistantAnswer"
+}
+```
+
+### AssistantClaim
+
+```json
+{
+  "properties": {
+    "text": {
+      "type": "string",
+      "title": "Text"
+    },
+    "citations": {
+      "items": {
+        "$ref": "#/components/schemas/Citation"
+      },
+      "type": "array",
+      "title": "Citations"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "text",
+    "citations"
+  ],
+  "title": "AssistantClaim"
+}
+```
+
+### AssistantQuestion
+
+```json
+{
+  "properties": {
+    "question": {
+      "type": "string",
+      "maxLength": 500,
+      "minLength": 3,
+      "title": "Question"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "question"
+  ],
+  "title": "AssistantQuestion"
+}
+```
+
 ### AuditEvent
 
 ```json
@@ -983,6 +3091,34 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
       "minLength": 1,
       "pattern": "^[A-Za-z0-9_-]+$",
       "title": "Id"
+    },
+    "hire_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 80,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Hire Id"
+    },
+    "actor_user_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 80,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Actor User Id"
     },
     "event_type": {
       "type": "string",
@@ -1010,6 +3146,28 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
     "created_at"
   ],
   "title": "AuditEvent"
+}
+```
+
+### AuditEventList
+
+```json
+{
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/components/schemas/AuditEvent"
+      },
+      "type": "array",
+      "title": "Items"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "items"
+  ],
+  "title": "AuditEventList"
 }
 ```
 
@@ -1044,6 +3202,78 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
 }
 ```
 
+### Body_upload_api_hires__hire_id__documents_post
+
+```json
+{
+  "properties": {
+    "category": {
+      "type": "string",
+      "enum": [
+        "government_id",
+        "address_proof",
+        "education",
+        "previous_employment",
+        "bank_details",
+        "tax",
+        "signed_employment"
+      ],
+      "title": "Category"
+    },
+    "file": {
+      "type": "string",
+      "contentMediaType": "application/octet-stream",
+      "title": "File"
+    }
+  },
+  "type": "object",
+  "required": [
+    "category",
+    "file"
+  ],
+  "title": "Body_upload_api_hires__hire_id__documents_post"
+}
+```
+
+### Body_upload_document_api_knowledge_documents_post
+
+```json
+{
+  "properties": {
+    "title": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Title"
+    },
+    "access_level": {
+      "type": "string",
+      "enum": [
+        "GENERAL",
+        "MANAGER",
+        "IT",
+        "PAYROLL",
+        "BENEFITS",
+        "HR"
+      ],
+      "title": "Access Level"
+    },
+    "file": {
+      "type": "string",
+      "contentMediaType": "application/octet-stream",
+      "title": "File"
+    }
+  },
+  "type": "object",
+  "required": [
+    "title",
+    "access_level",
+    "file"
+  ],
+  "title": "Body_upload_document_api_knowledge_documents_post"
+}
+```
+
 ### Bootstrap
 
 ```json
@@ -1059,9 +3289,9 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
     },
     "foundation_only": {
       "type": "boolean",
-      "const": true,
+      "const": false,
       "title": "Foundation Only",
-      "default": true
+      "default": false
     }
   },
   "additionalProperties": false,
@@ -1095,6 +3325,18 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
     },
     "state": {
       "$ref": "#/components/schemas/CaseState"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "INVESTIGATION",
+        "MANUAL"
+      ],
+      "title": "Kind"
+    },
+    "message": {
+      "type": "string",
+      "title": "Message"
     },
     "version": {
       "type": "integer",
@@ -1146,6 +3388,8 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
     "id",
     "hire_id",
     "state",
+    "kind",
+    "message",
     "version",
     "model_calls",
     "tool_calls",
@@ -1179,6 +3423,28 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
 }
 ```
 
+### CaseList
+
+```json
+{
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/components/schemas/Case"
+      },
+      "type": "array",
+      "title": "Items"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "items"
+  ],
+  "title": "CaseList"
+}
+```
+
 ### CaseState
 
 ```json
@@ -1205,6 +3471,7 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
   "enum": [
     "documents",
     "equipment",
+    "it_access",
     "payroll",
     "benefits",
     "training",
@@ -1226,6 +3493,89 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
   ],
   "title": "CheckResult",
   "type": "string"
+}
+```
+
+### Citation
+
+```json
+{
+  "properties": {
+    "chunk_id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Chunk Id"
+    },
+    "document_id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Document Id"
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Title"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1.0,
+      "title": "Version"
+    },
+    "section_ref": {
+      "type": "string",
+      "title": "Section Ref"
+    },
+    "access_level": {
+      "type": "string",
+      "title": "Access Level"
+    },
+    "quote": {
+      "type": "string",
+      "title": "Quote"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "chunk_id",
+    "document_id",
+    "title",
+    "version",
+    "section_ref",
+    "access_level",
+    "quote"
+  ],
+  "title": "Citation"
+}
+```
+
+### CountItem
+
+```json
+{
+  "properties": {
+    "label": {
+      "type": "string",
+      "title": "Label"
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Count"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "label",
+    "count"
+  ],
+  "title": "CountItem"
 }
 ```
 
@@ -1317,6 +3667,283 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
 }
 ```
 
+### Department
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Id"
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Name"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "name"
+  ],
+  "title": "Department"
+}
+```
+
+### DisplayStatus
+
+```json
+{
+  "type": "string",
+  "enum": [
+    "NOT_STARTED",
+    "IN_PROGRESS",
+    "PENDING_APPROVAL",
+    "COMPLETED",
+    "BLOCKED",
+    "OVERDUE",
+    "CANCELLED"
+  ],
+  "title": "DisplayStatus",
+  "description": "Computed at read time, so OVERDUE and BLOCKED can never go stale in storage."
+}
+```
+
+### Document
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Id"
+    },
+    "hire_id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Hire Id"
+    },
+    "hire_name": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Hire Name"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "government_id",
+        "address_proof",
+        "education",
+        "previous_employment",
+        "bank_details",
+        "tax",
+        "signed_employment"
+      ],
+      "title": "Category"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "SUBMITTED",
+        "UNDER_REVIEW",
+        "VERIFIED",
+        "REJECTED",
+        "RESUBMISSION_REQUESTED",
+        "SUPERSEDED"
+      ],
+      "title": "State"
+    },
+    "original_name": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Original Name"
+    },
+    "mime_type": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Mime Type"
+    },
+    "size_bytes": {
+      "type": "integer",
+      "minimum": 1.0,
+      "title": "Size Bytes"
+    },
+    "text_available": {
+      "type": "boolean",
+      "title": "Text Available"
+    },
+    "declared_location_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "HYD-DEMO",
+            "BLR-DEMO"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Declared Location Id"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1.0,
+      "title": "Version"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+    },
+    "reviews": {
+      "items": {
+        "$ref": "#/components/schemas/DocumentReview"
+      },
+      "type": "array",
+      "title": "Reviews"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "hire_id",
+    "hire_name",
+    "category",
+    "state",
+    "original_name",
+    "mime_type",
+    "size_bytes",
+    "text_available",
+    "version",
+    "created_at",
+    "reviews"
+  ],
+  "title": "Document"
+}
+```
+
+### DocumentExtraction
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Id"
+    },
+    "document_id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Document Id"
+    },
+    "suggested_category": {
+      "type": "string",
+      "enum": [
+        "government_id",
+        "address_proof",
+        "education",
+        "previous_employment",
+        "bank_details",
+        "tax",
+        "signed_employment"
+      ],
+      "title": "Suggested Category"
+    },
+    "fields": {
+      "items": {
+        "$ref": "#/components/schemas/ExtractedField"
+      },
+      "type": "array",
+      "title": "Fields"
+    },
+    "missing": {
+      "items": {
+        "type": "string",
+        "maxLength": 200,
+        "minLength": 1
+      },
+      "type": "array",
+      "title": "Missing"
+    },
+    "mismatches": {
+      "items": {
+        "$ref": "#/components/schemas/Mismatch"
+      },
+      "type": "array",
+      "title": "Mismatches"
+    },
+    "summary": {
+      "type": "string",
+      "title": "Summary"
+    },
+    "advisory": {
+      "type": "boolean",
+      "const": true,
+      "title": "Advisory",
+      "default": true
+    },
+    "ai_run_id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Ai Run Id"
+    },
+    "model": {
+      "type": "string",
+      "title": "Model"
+    },
+    "is_stub": {
+      "type": "boolean",
+      "title": "Is Stub"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "document_id",
+    "suggested_category",
+    "fields",
+    "missing",
+    "mismatches",
+    "summary",
+    "ai_run_id",
+    "model",
+    "is_stub",
+    "created_at"
+  ],
+  "title": "DocumentExtraction"
+}
+```
+
 ### DocumentInput
 
 ```json
@@ -1350,6 +3977,115 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
     "review_state"
   ],
   "title": "DocumentInput"
+}
+```
+
+### DocumentList
+
+```json
+{
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/components/schemas/Document"
+      },
+      "type": "array",
+      "title": "Items"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "items"
+  ],
+  "title": "DocumentList"
+}
+```
+
+### DocumentReview
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Id"
+    },
+    "reviewer_user_id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Reviewer User Id"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "VERIFY",
+        "REJECT",
+        "REQUEST_RESUBMISSION"
+      ],
+      "title": "Decision"
+    },
+    "reason": {
+      "type": "string",
+      "title": "Reason"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "reviewer_user_id",
+    "decision",
+    "reason",
+    "created_at"
+  ],
+  "title": "DocumentReview"
+}
+```
+
+### DocumentReviewRequest
+
+```json
+{
+  "properties": {
+    "decision": {
+      "type": "string",
+      "enum": [
+        "VERIFY",
+        "REJECT",
+        "REQUEST_RESUBMISSION"
+      ],
+      "title": "Decision"
+    },
+    "reason": {
+      "type": "string",
+      "maxLength": 500,
+      "title": "Reason",
+      "default": ""
+    },
+    "expected_version": {
+      "type": "integer",
+      "minimum": 1.0,
+      "title": "Expected Version"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "decision",
+    "expected_version"
+  ],
+  "title": "DocumentReviewRequest"
 }
 ```
 
@@ -1412,6 +4148,24 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
         }
       ],
       "title": "Handover At"
+    },
+    "asset_name": {
+      "type": "string",
+      "maxLength": 120,
+      "title": "Asset Name",
+      "default": ""
+    },
+    "asset_type": {
+      "type": "string",
+      "maxLength": 60,
+      "title": "Asset Type",
+      "default": ""
+    },
+    "serial_number": {
+      "type": "string",
+      "maxLength": 60,
+      "title": "Serial Number",
+      "default": ""
     }
   },
   "additionalProperties": false,
@@ -1423,6 +4177,28 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
     "state"
   ],
   "title": "EquipmentInput"
+}
+```
+
+### EquipmentRequest
+
+```json
+{
+  "properties": {
+    "equipment_record_id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Equipment Record Id"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "equipment_record_id"
+  ],
+  "title": "EquipmentRequest"
 }
 ```
 
@@ -1496,6 +4272,152 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
     "error"
   ],
   "title": "ErrorResponse"
+}
+```
+
+### Escalation
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Id"
+    },
+    "raised_by": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Raised By"
+    },
+    "raised_by_name": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Raised By Name"
+    },
+    "question": {
+      "type": "string",
+      "title": "Question"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "OPEN",
+        "ANSWERED"
+      ],
+      "title": "State"
+    },
+    "resolution": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Resolution"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "raised_by",
+    "raised_by_name",
+    "question",
+    "state",
+    "created_at"
+  ],
+  "title": "Escalation"
+}
+```
+
+### EscalationAnswer
+
+```json
+{
+  "properties": {
+    "answer": {
+      "type": "string",
+      "maxLength": 1000,
+      "minLength": 1,
+      "title": "Answer"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "answer"
+  ],
+  "title": "EscalationAnswer"
+}
+```
+
+### EscalationCreate
+
+```json
+{
+  "properties": {
+    "question": {
+      "type": "string",
+      "maxLength": 500,
+      "minLength": 3,
+      "title": "Question"
+    },
+    "ai_run_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 80,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Ai Run Id"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "question"
+  ],
+  "title": "EscalationCreate"
+}
+```
+
+### EscalationList
+
+```json
+{
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/components/schemas/Escalation"
+      },
+      "type": "array",
+      "title": "Items"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "items"
+  ],
+  "title": "EscalationList"
 }
 ```
 
@@ -1738,6 +4660,41 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
 }
 ```
 
+### ExtractedField
+
+```json
+{
+  "properties": {
+    "name": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Name"
+    },
+    "value": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Value"
+    },
+    "quote": {
+      "type": "string",
+      "maxLength": 300,
+      "minLength": 1,
+      "title": "Quote"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "name",
+    "value",
+    "quote"
+  ],
+  "title": "ExtractedField"
+}
+```
+
 ### FinishStep
 
 ```json
@@ -1798,9 +4755,9 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
     },
     "schema_version": {
       "type": "integer",
-      "const": 1,
+      "const": 2,
       "title": "Schema Version",
-      "default": 1
+      "default": 2
     }
   },
   "additionalProperties": false,
@@ -1832,7 +4789,8 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
       "type": "string",
       "enum": [
         "engineer",
-        "operations_associate"
+        "operations_associate",
+        "sales_associate"
       ],
       "title": "Role"
     },
@@ -1878,12 +4836,114 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
       ],
       "title": "Employee User Id"
     },
+    "department_id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Department Id"
+    },
+    "designation": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Designation"
+    },
+    "work_email": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Work Email"
+    },
+    "personal_email": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 200,
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Personal Email"
+    },
+    "phone": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 200,
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Phone"
+    },
     "id": {
       "type": "string",
       "maxLength": 80,
       "minLength": 1,
       "pattern": "^[A-Za-z0-9_-]+$",
       "title": "Id"
+    },
+    "employee_code": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Employee Code"
+    },
+    "employment_status": {
+      "type": "string",
+      "enum": [
+        "PRE_JOINING",
+        "ACTIVE",
+        "WITHDRAWN"
+      ],
+      "title": "Employment Status"
+    },
+    "onboarding_status": {
+      "type": "string",
+      "enum": [
+        "NOT_STARTED",
+        "IN_PROGRESS",
+        "BLOCKED",
+        "COMPLETED"
+      ],
+      "title": "Onboarding Status"
+    },
+    "tasks_completed": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Tasks Completed"
+    },
+    "tasks_total": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Tasks Total"
+    },
+    "tasks_overdue": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Tasks Overdue"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+    },
+    "completed_at": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Completed At"
     },
     "profile_version": {
       "type": "integer",
@@ -1906,7 +4966,17 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
     "work_mode",
     "start_date",
     "manager_user_id",
+    "department_id",
+    "designation",
+    "work_email",
     "id",
+    "employee_code",
+    "employment_status",
+    "onboarding_status",
+    "tasks_completed",
+    "tasks_total",
+    "tasks_overdue",
+    "created_at",
     "profile_version",
     "plan_version"
   ],
@@ -1937,7 +5007,8 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
       "type": "string",
       "enum": [
         "engineer",
-        "operations_associate"
+        "operations_associate",
+        "sales_associate"
       ],
       "title": "Role"
     },
@@ -1982,6 +5053,51 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
         }
       ],
       "title": "Employee User Id"
+    },
+    "department_id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Department Id"
+    },
+    "designation": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Designation"
+    },
+    "work_email": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Work Email"
+    },
+    "personal_email": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 200,
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Personal Email"
+    },
+    "phone": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 200,
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Phone"
     }
   },
   "additionalProperties": false,
@@ -1993,7 +5109,10 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
     "location_id",
     "work_mode",
     "start_date",
-    "manager_user_id"
+    "manager_user_id",
+    "department_id",
+    "designation",
+    "work_email"
   ],
   "title": "HireCreate"
 }
@@ -2018,6 +5137,260 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
     "items"
   ],
   "title": "HireList"
+}
+```
+
+### HirePatch
+
+```json
+{
+  "properties": {
+    "expected_profile_version": {
+      "type": "integer",
+      "minimum": 1.0,
+      "title": "Expected Profile Version"
+    },
+    "designation": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 200,
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Designation"
+    },
+    "work_email": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 200,
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Work Email"
+    },
+    "personal_email": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 200,
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Personal Email"
+    },
+    "phone": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 200,
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Phone"
+    },
+    "department_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 80,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Department Id"
+    },
+    "employment_status": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "PRE_JOINING",
+            "ACTIVE",
+            "WITHDRAWN"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Employment Status"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "expected_profile_version"
+  ],
+  "title": "HirePatch"
+}
+```
+
+### InsightEvidence
+
+```json
+{
+  "properties": {
+    "ref": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Ref"
+    },
+    "label": {
+      "type": "string",
+      "title": "Label"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "ref",
+    "label"
+  ],
+  "title": "InsightEvidence"
+}
+```
+
+### InsightMetric
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Id"
+    },
+    "label": {
+      "type": "string",
+      "title": "Label"
+    },
+    "value": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Value"
+    },
+    "evidence": {
+      "items": {
+        "$ref": "#/components/schemas/InsightEvidence"
+      },
+      "type": "array",
+      "title": "Evidence"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "label",
+    "value",
+    "evidence"
+  ],
+  "title": "InsightMetric"
+}
+```
+
+### InsightMetrics
+
+```json
+{
+  "properties": {
+    "metrics": {
+      "items": {
+        "$ref": "#/components/schemas/InsightMetric"
+      },
+      "type": "array",
+      "title": "Metrics"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "metrics"
+  ],
+  "title": "InsightMetrics"
+}
+```
+
+### InsightSummary
+
+```json
+{
+  "properties": {
+    "summary": {
+      "type": "string",
+      "maxLength": 800,
+      "minLength": 1,
+      "title": "Summary"
+    },
+    "recommendations": {
+      "items": {
+        "$ref": "#/components/schemas/ModelRecommendation"
+      },
+      "type": "array",
+      "maxItems": 5,
+      "title": "Recommendations"
+    },
+    "advisory": {
+      "type": "boolean",
+      "const": true,
+      "title": "Advisory",
+      "default": true
+    },
+    "ai_run_id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Ai Run Id"
+    },
+    "model": {
+      "type": "string",
+      "title": "Model"
+    },
+    "is_stub": {
+      "type": "boolean",
+      "title": "Is Stub"
+    },
+    "metrics": {
+      "items": {
+        "$ref": "#/components/schemas/InsightMetric"
+      },
+      "type": "array",
+      "title": "Metrics"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "summary",
+    "recommendations",
+    "ai_run_id",
+    "model",
+    "is_stub",
+    "metrics"
+  ],
+  "title": "InsightSummary"
 }
 ```
 
@@ -2053,6 +5426,170 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
   ],
   "title": "InvestigationContext",
   "type": "object"
+}
+```
+
+### ItAccessInput
+
+```json
+{
+  "properties": {
+    "category": {
+      "type": "string",
+      "const": "it_access",
+      "title": "Category"
+    },
+    "item": {
+      "type": "string",
+      "enum": [
+        "CORPORATE_EMAIL",
+        "VPN",
+        "APPLICATION_ACCESS",
+        "REQUIRED_SOFTWARE"
+      ],
+      "title": "Item"
+    },
+    "detail": {
+      "type": "string",
+      "maxLength": 200,
+      "title": "Detail",
+      "default": ""
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "REQUESTED",
+        "PROVISIONED"
+      ],
+      "title": "State"
+    },
+    "simulated": {
+      "type": "boolean",
+      "const": true,
+      "title": "Simulated",
+      "default": true
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "category",
+    "item",
+    "state"
+  ],
+  "title": "ItAccessInput"
+}
+```
+
+### KnowledgeApprove
+
+```json
+{
+  "properties": {
+    "version": {
+      "type": "integer",
+      "minimum": 1.0,
+      "title": "Version"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "version"
+  ],
+  "title": "KnowledgeApprove"
+}
+```
+
+### KnowledgeDocument
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Id"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1.0,
+      "title": "Version"
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Title"
+    },
+    "access_level": {
+      "type": "string",
+      "enum": [
+        "GENERAL",
+        "MANAGER",
+        "IT",
+        "PAYROLL",
+        "BENEFITS",
+        "HR"
+      ],
+      "title": "Access Level"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "DRAFT",
+        "APPROVED",
+        "RETIRED"
+      ],
+      "title": "Status"
+    },
+    "chunk_count": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Chunk Count"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "version",
+    "title",
+    "access_level",
+    "status",
+    "chunk_count",
+    "created_at"
+  ],
+  "title": "KnowledgeDocument"
+}
+```
+
+### KnowledgeDocumentList
+
+```json
+{
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/components/schemas/KnowledgeDocument"
+      },
+      "type": "array",
+      "title": "Items"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "items"
+  ],
+  "title": "KnowledgeDocumentList"
 }
 ```
 
@@ -2092,9 +5629,8 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
   "properties": {
     "user_id": {
       "type": "string",
-      "maxLength": 80,
+      "maxLength": 200,
       "minLength": 1,
-      "pattern": "^[A-Za-z0-9_-]+$",
       "title": "User Id"
     },
     "password": {
@@ -2149,6 +5685,147 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
 }
 ```
 
+### Metrics
+
+```json
+{
+  "properties": {
+    "api_requests": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Api Requests"
+    },
+    "api_p50_ms": {
+      "type": "number",
+      "title": "Api P50 Ms"
+    },
+    "api_p95_ms": {
+      "type": "number",
+      "title": "Api P95 Ms"
+    },
+    "api_errors": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Api Errors"
+    },
+    "retrieval_average_ms": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Retrieval Average Ms"
+    },
+    "operations": {
+      "items": {
+        "$ref": "#/components/schemas/OperationMetric"
+      },
+      "type": "array",
+      "title": "Operations"
+    },
+    "work_failed": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Work Failed"
+    },
+    "actions_failed": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Actions Failed"
+    },
+    "task_completion_rate": {
+      "type": "number",
+      "title": "Task Completion Rate"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "api_requests",
+    "api_p50_ms",
+    "api_p95_ms",
+    "api_errors",
+    "operations",
+    "work_failed",
+    "actions_failed",
+    "task_completion_rate"
+  ],
+  "title": "Metrics"
+}
+```
+
+### Mismatch
+
+```json
+{
+  "properties": {
+    "field": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Field"
+    },
+    "document_value": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Document Value"
+    },
+    "profile_value": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Profile Value"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "field",
+    "document_value",
+    "profile_value"
+  ],
+  "title": "Mismatch"
+}
+```
+
+### ModelRecommendation
+
+```json
+{
+  "properties": {
+    "text": {
+      "type": "string",
+      "maxLength": 300,
+      "minLength": 1,
+      "title": "Text"
+    },
+    "evidence_refs": {
+      "items": {
+        "type": "string",
+        "maxLength": 80,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_-]+$"
+      },
+      "type": "array",
+      "maxItems": 6,
+      "minItems": 1,
+      "title": "Evidence Refs"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "text",
+    "evidence_refs"
+  ],
+  "title": "ModelRecommendation"
+}
+```
+
 ### NextStep
 
 ```json
@@ -2191,6 +5868,375 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
 }
 ```
 
+### Notification
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Id"
+    },
+    "type": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Type"
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Title"
+    },
+    "body": {
+      "type": "string",
+      "title": "Body"
+    },
+    "hire_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 80,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Hire Id"
+    },
+    "task_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 80,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Task Id"
+    },
+    "read": {
+      "type": "boolean",
+      "title": "Read"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "type",
+    "title",
+    "body",
+    "read",
+    "created_at"
+  ],
+  "title": "Notification"
+}
+```
+
+### NotificationList
+
+```json
+{
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/components/schemas/Notification"
+      },
+      "type": "array",
+      "title": "Items"
+    },
+    "unread": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Unread"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "items",
+    "unread"
+  ],
+  "title": "NotificationList"
+}
+```
+
+### OperationMetric
+
+```json
+{
+  "properties": {
+    "operation": {
+      "type": "string",
+      "title": "Operation"
+    },
+    "runs": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Runs"
+    },
+    "validated": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Validated"
+    },
+    "abstained": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Abstained"
+    },
+    "rejected": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Rejected"
+    },
+    "unavailable": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Unavailable"
+    },
+    "average_latency_ms": {
+      "type": "number",
+      "title": "Average Latency Ms"
+    },
+    "total_tokens": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Total Tokens"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "operation",
+    "runs",
+    "validated",
+    "abstained",
+    "rejected",
+    "unavailable",
+    "average_latency_ms",
+    "total_tokens"
+  ],
+  "title": "OperationMetric"
+}
+```
+
+### Overview
+
+```json
+{
+  "properties": {
+    "total_employees": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Total Employees"
+    },
+    "onboarding_in_progress": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Onboarding In Progress"
+    },
+    "onboarding_completed": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Onboarding Completed"
+    },
+    "tasks_pending": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Tasks Pending"
+    },
+    "tasks_overdue": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Tasks Overdue"
+    },
+    "documents_awaiting": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Documents Awaiting"
+    },
+    "claims_without_proof": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Claims Without Proof"
+    },
+    "average_completion_days": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Average Completion Days"
+    },
+    "by_department": {
+      "items": {
+        "$ref": "#/components/schemas/CountItem"
+      },
+      "type": "array",
+      "title": "By Department"
+    },
+    "by_location": {
+      "items": {
+        "$ref": "#/components/schemas/CountItem"
+      },
+      "type": "array",
+      "title": "By Location"
+    },
+    "equipment": {
+      "items": {
+        "$ref": "#/components/schemas/CountItem"
+      },
+      "type": "array",
+      "title": "Equipment"
+    },
+    "upcoming": {
+      "items": {
+        "$ref": "#/components/schemas/UpcomingJoiner"
+      },
+      "type": "array",
+      "title": "Upcoming"
+    },
+    "recent": {
+      "items": {
+        "$ref": "#/components/schemas/AuditEvent"
+      },
+      "type": "array",
+      "title": "Recent"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "total_employees",
+    "onboarding_in_progress",
+    "onboarding_completed",
+    "tasks_pending",
+    "tasks_overdue",
+    "documents_awaiting",
+    "claims_without_proof",
+    "by_department",
+    "by_location",
+    "equipment",
+    "upcoming",
+    "recent"
+  ],
+  "title": "Overview"
+}
+```
+
+### PasswordReset
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Id"
+    },
+    "display_name": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Display Name"
+    },
+    "email": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Email"
+    },
+    "role": {
+      "type": "string",
+      "title": "Role"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "display_name",
+    "role",
+    "created_at"
+  ],
+  "title": "PasswordReset"
+}
+```
+
+### PasswordResetCreate
+
+```json
+{
+  "properties": {
+    "email": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Email"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "email"
+  ],
+  "title": "PasswordResetCreate"
+}
+```
+
+### PasswordResetList
+
+```json
+{
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/components/schemas/PasswordReset"
+      },
+      "type": "array",
+      "title": "Items"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "items"
+  ],
+  "title": "PasswordResetList"
+}
+```
+
 ### PayrollInput
 
 ```json
@@ -2208,6 +6254,16 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
     "setup_confirmed": {
       "type": "boolean",
       "title": "Setup Confirmed"
+    },
+    "bank_submitted": {
+      "type": "boolean",
+      "title": "Bank Submitted",
+      "default": false
+    },
+    "tax_submitted": {
+      "type": "boolean",
+      "title": "Tax Submitted",
+      "default": false
     }
   },
   "additionalProperties": false,
@@ -2217,7 +6273,8 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
     "profile_created",
     "setup_confirmed"
   ],
-  "title": "PayrollInput"
+  "title": "PayrollInput",
+  "description": "Status only. Bank and tax numbers are deliberately not representable here."
 }
 ```
 
@@ -2328,10 +6385,17 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
 {
   "properties": {
     "case_id": {
-      "type": "string",
-      "maxLength": 80,
-      "minLength": 1,
-      "pattern": "^[A-Za-z0-9_-]+$",
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 80,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        {
+          "type": "null"
+        }
+      ],
       "title": "Case Id"
     },
     "location_id": {
@@ -2351,7 +6415,6 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
   "additionalProperties": false,
   "type": "object",
   "required": [
-    "case_id",
     "location_id",
     "expected_profile_version"
   ],
@@ -2377,6 +6440,19 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
       "minLength": 1,
       "pattern": "^[A-Za-z0-9_-]+$",
       "title": "Case Id"
+    },
+    "hire_id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Hire Id"
+    },
+    "hire_name": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Hire Name"
     },
     "payload": {
       "oneOf": [
@@ -2431,6 +6507,50 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
           "type": "null"
         }
       ]
+    },
+    "decision": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "APPROVE",
+            "REJECT"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Decision"
+    },
+    "action_state": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "PENDING",
+            "RUNNING",
+            "SUCCEEDED",
+            "FAILED",
+            "UNKNOWN"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Action State"
+    },
+    "outcome": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Outcome"
     }
   },
   "additionalProperties": false,
@@ -2438,6 +6558,8 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
   "required": [
     "id",
     "case_id",
+    "hire_id",
+    "hire_name",
     "payload",
     "evidence_ids",
     "expected_versions",
@@ -2547,6 +6669,17 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
       "pattern": "^[A-Za-z0-9_-]+$",
       "title": "Case Id"
     },
+    "hire_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Hire Name"
+    },
     "recipient_user_id": {
       "type": "string",
       "maxLength": 80,
@@ -2595,6 +6728,28 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
 }
 ```
 
+### QuestionList
+
+```json
+{
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/components/schemas/Question"
+      },
+      "type": "array",
+      "title": "Items"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "items"
+  ],
+  "title": "QuestionList"
+}
+```
+
 ### ReadStep
 
 ```json
@@ -2633,6 +6788,59 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
   ],
   "title": "ReadStep",
   "type": "object"
+}
+```
+
+### Reference
+
+```json
+{
+  "properties": {
+    "departments": {
+      "items": {
+        "$ref": "#/components/schemas/Department"
+      },
+      "type": "array",
+      "title": "Departments"
+    },
+    "locations": {
+      "items": {
+        "type": "string",
+        "enum": [
+          "HYD-DEMO",
+          "BLR-DEMO"
+        ]
+      },
+      "type": "array",
+      "title": "Locations"
+    },
+    "users": {
+      "items": {
+        "$ref": "#/components/schemas/UserSummary"
+      },
+      "type": "array",
+      "title": "Users"
+    },
+    "available_employee_user_ids": {
+      "items": {
+        "type": "string",
+        "maxLength": 80,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_-]+$"
+      },
+      "type": "array",
+      "title": "Available Employee User Ids"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "departments",
+    "locations",
+    "users",
+    "available_employee_user_ids"
+  ],
+  "title": "Reference"
 }
 ```
 
@@ -2743,6 +6951,17 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
       ],
       "title": "Hire Id"
     },
+    "hire_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Hire Name"
+    },
     "version": {
       "type": "integer",
       "minimum": 1.0,
@@ -2768,6 +6987,9 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
           "$ref": "#/components/schemas/EquipmentInput"
         },
         {
+          "$ref": "#/components/schemas/ItAccessInput"
+        },
+        {
           "$ref": "#/components/schemas/PayrollInput"
         },
         {
@@ -2787,6 +7009,7 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
           "benefits": "#/components/schemas/BenefitsInput",
           "documents": "#/components/schemas/DocumentInput",
           "equipment": "#/components/schemas/EquipmentInput",
+          "it_access": "#/components/schemas/ItAccessInput",
           "manager": "#/components/schemas/ManagerInput",
           "payroll": "#/components/schemas/PayrollInput",
           "training": "#/components/schemas/TrainingInput"
@@ -2804,6 +7027,28 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
     "payload"
   ],
   "title": "SourceRecord"
+}
+```
+
+### SourceRecordList
+
+```json
+{
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/components/schemas/SourceRecord"
+      },
+      "type": "array",
+      "title": "Items"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "items"
+  ],
+  "title": "SourceRecordList"
 }
 ```
 
@@ -2826,6 +7071,9 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
           "$ref": "#/components/schemas/EquipmentInput"
         },
         {
+          "$ref": "#/components/schemas/ItAccessInput"
+        },
+        {
           "$ref": "#/components/schemas/PayrollInput"
         },
         {
@@ -2845,6 +7093,7 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
           "benefits": "#/components/schemas/BenefitsInput",
           "documents": "#/components/schemas/DocumentInput",
           "equipment": "#/components/schemas/EquipmentInput",
+          "it_access": "#/components/schemas/ItAccessInput",
           "manager": "#/components/schemas/ManagerInput",
           "payroll": "#/components/schemas/PayrollInput",
           "training": "#/components/schemas/TrainingInput"
@@ -2859,6 +7108,26 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
     "payload"
   ],
   "title": "SourceWrite"
+}
+```
+
+### SweepResult
+
+```json
+{
+  "properties": {
+    "notifications_created": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Notifications Created"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "notifications_created"
+  ],
+  "title": "SweepResult"
 }
 ```
 
@@ -2881,6 +7150,12 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
       "pattern": "^[A-Za-z0-9_-]+$",
       "title": "Hire Id"
     },
+    "hire_name": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Hire Name"
+    },
     "category": {
       "$ref": "#/components/schemas/Category"
     },
@@ -2890,6 +7165,10 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
       "minLength": 1,
       "title": "Title"
     },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
     "owner_user_id": {
       "type": "string",
       "maxLength": 80,
@@ -2897,10 +7176,25 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
       "pattern": "^[A-Za-z0-9_-]+$",
       "title": "Owner User Id"
     },
+    "owner_name": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Owner Name"
+    },
     "due_date": {
       "type": "string",
       "format": "date",
       "title": "Due Date"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+      ],
+      "title": "Priority"
     },
     "critical": {
       "type": "boolean",
@@ -2908,6 +7202,42 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
     },
     "work_state": {
       "$ref": "#/components/schemas/WorkState"
+    },
+    "display_status": {
+      "$ref": "#/components/schemas/DisplayStatus"
+    },
+    "check_type": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Check Type"
+    },
+    "evidence_result": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/CheckResult"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "completed_at": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Completed At"
     },
     "version": {
       "type": "integer",
@@ -2930,12 +7260,17 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
   "required": [
     "id",
     "hire_id",
+    "hire_name",
     "category",
     "title",
+    "description",
     "owner_user_id",
+    "owner_name",
     "due_date",
+    "priority",
     "critical",
     "work_state",
+    "display_status",
     "version",
     "depends_on"
   ],
@@ -2962,6 +7297,60 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
     "items"
   ],
   "title": "TaskList"
+}
+```
+
+### TaskReassign
+
+```json
+{
+  "properties": {
+    "expected_version": {
+      "type": "integer",
+      "minimum": 1.0,
+      "title": "Expected Version"
+    },
+    "owner_user_id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Owner User Id"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "expected_version",
+    "owner_user_id"
+  ],
+  "title": "TaskReassign"
+}
+```
+
+### TemporaryPassword
+
+```json
+{
+  "properties": {
+    "display_name": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Display Name"
+    },
+    "temporary_password": {
+      "type": "string",
+      "title": "Temporary Password"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "display_name",
+    "temporary_password"
+  ],
+  "title": "TemporaryPassword"
 }
 ```
 
@@ -3058,6 +7447,50 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
 }
 ```
 
+### UpcomingJoiner
+
+```json
+{
+  "properties": {
+    "hire_id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Hire Id"
+    },
+    "display_name": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Display Name"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Start Date"
+    },
+    "location_id": {
+      "type": "string",
+      "enum": [
+        "HYD-DEMO",
+        "BLR-DEMO"
+      ],
+      "title": "Location Id"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "hire_id",
+    "display_name",
+    "start_date",
+    "location_id"
+  ],
+  "title": "UpcomingJoiner"
+}
+```
+
 ### User
 
 ```json
@@ -3099,6 +7532,39 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
   ],
   "title": "User",
   "type": "object"
+}
+```
+
+### UserSummary
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Id"
+    },
+    "display_name": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Display Name"
+    },
+    "role": {
+      "$ref": "#/components/schemas/Role"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "display_name",
+    "role"
+  ],
+  "title": "UserSummary"
 }
 ```
 

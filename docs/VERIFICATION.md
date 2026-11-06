@@ -81,3 +81,20 @@ The working directory is initialized as a Git repository on `feature/p01-foundat
 - Independent clean Windows install: `npm ci --include=optional --no-audit --no-fund`, `npm run lint --workspace frontend`, `npm run test --workspace frontend` (**3 passed**) and `npm run build` all passed with fresh dependencies and copied safe frontend source/config. No virtual environment, private .env, database or personal asset was copied. npm warned that esbuild's install script lacked allowScripts approval; the tested binaries and build worked without changing global approval policy.
 - Working-source `npm run check`: passed lockfile guard, Ruff/ESLint/formatting, **16 backend + 3 frontend tests**, TypeScript/Vite build and contract drift. `npm audit --omit=dev`: zero findings. `git diff --check`: passed. Temporary reproduction/install directories and helper were removed after use.
 - Scope/limits: all edits remain on the user's existing fix/portable-openapi-snapshot branch; the empty extra branch created before the user's correction was removed. No further branch, commit, push, dependency upgrade, runtime/schema/API change or CI-specific install workaround was made. Actual GitHub Actions/Ubuntu/Node 22 execution and non-Windows native execution still require the hosted rerun. Prior documented development-tool advisories are not claimed resolved by lockfile metadata repair.
+
+## End-to-end build R06 (2026-11-06)
+
+Run on macOS with Python 3.12, Node 26 for the browser driver, and Chrome. Not rerun on Windows or Linux.
+
+| Check | Result |
+|---|---|
+| `npm run check` (lint, format, tests, build, contract drift) | Passed |
+| Backend tests | 136 passed, using scripted model replies and labelled offline rules |
+| Frontend tests | 35 passed |
+| Scripted real-Chrome run against the production build, offline rules | 50 of 50 checks passed, with no page or server errors |
+| Live model | One evaluation run on Groq; see docs/EVALUATION.md |
+| Handover test on a fresh clone, changing only `LLM_API_KEY` in `.env`, no restart | No key, then a bad key, then a good key: the status message and the assistant each behaved correctly |
+
+The browser script is not in the repository, because it would add a dependency. It signs in as each role, drives every screen with real clicks including uploads and downloads, and walks every sidebar link at 1440 px and 390 px.
+
+**Not verified:** hosting on a real server, a full keyboard or screen-reader pass, other browsers, Windows or Linux, and live-model answers through the browser UI.

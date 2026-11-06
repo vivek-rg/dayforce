@@ -33,7 +33,7 @@ The user confirmed a **local demo and easiest team setup**, so keep this existin
 
 What Git shares: SQL schema, reviewed migration scripts, synthetic fixture files and tests. What Git does not share: `.db`, checkpoints, sessions, API keys, `.env`, installed models, virtual environments or dependencies. Eight copies generated from the same reviewed fixture revision give a reproducible starting story, **not identical mutable database state**. Tests get isolated temporary databases.
 
-The future LangGraph checkpoint file is separate (`.runtime/checkpoints.sqlite` by default). It is not the business database; copying one without the other is not a complete investigation backup.
+Agent state lives in the application database, so one database file is a complete backup. Uploaded documents sit beside it in `.runtime/documents`; back up both together.
 
 ### Use a separate demo database without deleting your current work
 
@@ -43,21 +43,19 @@ PowerShell:
 
 ```powershell
 $env:DATABASE_PATH = ".runtime/demo-practice.db"
-$env:CHECKPOINT_PATH = ".runtime/demo-practice-checkpoints.sqlite"
 npm run dev
 ```
 
 Bash:
 
 ```bash
-DATABASE_PATH=.runtime/demo-practice.db CHECKPOINT_PATH=.runtime/demo-practice-checkpoints.sqlite npm run dev
+DATABASE_PATH=.runtime/demo-practice.db npm run dev
 ```
 
 The app creates the folder/schema, not the demo hires. Set the same paths in **every** future seed/eval command and app terminal; otherwise you may seed one DB and view another. For repeat work, privately set these values in `.env` instead. In PowerShell remove session overrides after stopping the app:
 
 ```powershell
 Remove-Item Env:DATABASE_PATH
-Remove-Item Env:CHECKPOINT_PATH
 ```
 
 ### Demo seed — not implemented yet

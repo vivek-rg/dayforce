@@ -15,15 +15,15 @@ We coordinate six onboarding categories by approved worker/location rules. Task 
 
 Demo: Priya's offer/profile location conflict + completed equipment task without handover evidence → HR clarification/persisted pause → reviewed location diff → IT-approved reservation → fresh receipt showing collection pending. All systems/policies are fictional. One company, one backend, one bounded investigation agent, one local worker; not eight agents.
 
-## Foundation status
+## Build status
 
-Only `/api/health`, `/api/bootstrap`, the connectivity screen and initial SQLite schema work. Other routes return **501**, and service functions raise `NotImplementedError`. Do not assume authentication, AI, approvals, business seed data or security are complete. No feature phase was implemented during setup.
+The OnboardIQ end-to-end build (revision R06 in PHASES.md) implements auth, plans, evidence, documents, knowledge, cases, actions, notifications, analytics and the UI. All are covered by automated tests using scripted replies or the labelled offline rules. One live model, `openai/gpt-oss-20b` on Groq, has been evaluated; see docs/EVALUATION.md. It still needs integrator review, because it changes shared contracts.
 
 ## Stack and structure
 
 - Frontend: React + TypeScript + Vite; browser calls relative `/api` only.
 - Backend: Python + FastAPI + Pydantic; standard-library SQLite, parameterized SQL, per-operation connections, short transactions. The user confirmed a local demo: keep the working database, give all eight teammates the same setup/fixture revision and use independent local files. Cloud PostgreSQL is conditional future work, not a completed migration; see docs/DATABASE_DECISION.md.
-- Agent phase: LangGraph + SQLite checkpointer; explicitly selected local Ollama or approved hosted provider/model. P15–P25 plan discovery/selection for **Groq**, Cerebras, Mistral, Gemini and OpenRouter. P17–P22 implement six paths including local; P23 verifies shared free-tier/cost eligibility. All use the same validated `NextStep` and safety controls; this is planned, not implemented.
+- Agent: one bounded loop whose state lives in application tables, so LangGraph's checkpointer was not needed (R06). Explicitly selected Ollama or one OpenAI-compatible hosted API, through the shared harness in `backend/app/ai/`. Discovery and the selector (P16, P23, P24) are deferred; the hosted transport has been run live on Groq, and Ollama has not.
 - Tests: pytest/FastAPI TestClient, Vitest, manual browser acceptance, CI; no external keys needed for foundation checks.
 
 | Folder | Owner / role |
