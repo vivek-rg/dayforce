@@ -102,6 +102,8 @@ def bootstrap():
 
 
 errors = {code: {"model": ErrorResponse} for code in (401, 403, 404, 409, 422, 501)}
+# Python 3.12 and 3.13 have different default reason phrases for HTTP 422.
+errors[422]["description"] = "Unprocessable Content"
 for router in (auth_router, planning_router, evidence_router, cases_router, actions_router):
     app.include_router(router, prefix="/api", responses=errors)
 

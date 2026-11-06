@@ -14,6 +14,8 @@ For each phase: understand its problem → claim owner → follow the task list 
 
 **Current policy revision R03:** [x] clarified provider/artifact scope and user-confirmed local-demo database decision documented and verified; results in CHANGES.md. Write boundary: .gitignore, .env.example, AGENTS.md, README.md, PHASES.md, CHANGES.md, backend/README.md, frontend/README.md, evals/README.md, fixtures/README.md, resume/README.md, video/README.md, video/VIDEO_LINK.md, ppt/README.md, docs/README.md, docs/ASSUMPTIONS.md, docs/DATA_MODEL.md (explanation only), docs/PROVIDERS.md, docs/TEAM_WORKFLOW.md, docs/DATABASE_DECISION.md, docs/DEMO_PLAN.md, docs/SUBMISSION_CHECKLIST.md and docs/VERIFICATION.md. Runtime source, canonical schema/types, generated contracts, existing databases and private .env remain unchanged. Historical CHANGES/verification entries and original source guide/PDF remain records, not current scope authority.
 
+**Foundation CI fix R04:** [x] reproduced and fixed Python 3.12/3.13 HTTP 422 description drift; regression failed before the fix and all 16 backend tests pass on both interpreters afterward. Full npm check passes; hosted CI rerun is still required. Write boundary: backend/app/main.py (shared response description only), backend/tests/test_contracts.py, PHASES.md, CHANGES.md and docs/VERIFICATION.md; generated docs/API_SPEC.md, docs/openapi.json and frontend/src/shared/api-types.ts only via the existing exporter if regeneration actually changes them. Regeneration produced no file changes. No business behavior, dependency, schema, auth or provider changes.
+
 ## Dependency lanes and ownership
 
 | Lane | Build order / who can start |
