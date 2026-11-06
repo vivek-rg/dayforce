@@ -1,4 +1,6 @@
-# Data model v1
+# Data model v2
+
+> **Revision R06.** Schema v2 adds `departments`, `documents`, `document_reviews`, `document_extractions`, `knowledge_documents`, `knowledge_chunks`, `knowledge_chunks_fts`, `ai_runs`, `hr_escalations`, `notifications`, `case_steps`, `login_attempts`, and read-only views over `source_records` (`equipment_assets_v`, `payroll_status_v`, `benefits_enrolments_v`, `training_assignments_v`). `hires`, `tasks`, `cases` and `work_items` gained columns, and categories gained `it_access`. `backend/app/shared/schema.sql` is the authority. An empty v1 file rebuilds automatically; one holding business rows is refused. The foundation text below still applies where it doesn't conflict. The LangGraph checkpoint section is replaced: application tables hold all agent state.
 
 The executable initial schema is [`../backend/app/shared/schema.sql`](../backend/app/shared/schema.sql). It is applied on startup and covered by tests. Wire payloads/enums/bounds are defined in `backend/app/shared/contracts.py` and exhaustively rendered in `API_SPEC.md`. The foundation creates **no** users, hires, policies or business source records; only app_info is seeded. Feature implementation must not confuse schema presence with completed persistence behavior.
 

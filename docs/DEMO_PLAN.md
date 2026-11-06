@@ -1,5 +1,22 @@
 # Thirty-hour delivery and marking evidence
 
+## Working script (R06)
+
+Seed first (see README). Priya's login is free, so HR creates her live.
+
+1. **U_HR:** create Priya Sharma, engineer, office, **Hyderabad**, manager U_MANAGER, login U_PRIYA. Show the rule-based plan.
+2. **U_PRIYA:** upload `fixtures/documents/offer_letter_priya.txt` as signed employment, and `government_id_priya.txt` as government ID.
+3. **U_HR:** in document verification, run AI extraction and show the Bengaluru vs Hyderabad mismatch. Verify both, by a person.
+4. **U_HR:** open an investigation on Priya's profile. It asks which location is right. Answer "Bengaluru". Approve the exact location change in the review inbox.
+5. **U_IT:** approve the Bengaluru laptop. The result reads "LAPTOP_22 reserved; collection pending."
+6. **U_MANAGER:** record buddy and first-week plan.
+7. **U_PRIYA:** ask "How do I request a laptop?" and open the citation. Ask "Can I bring my dog to the office?", see "not available", and send it to HR.
+8. **U_HR:** run the escalation check; Arjun's seeded overdue task escalates. Show dashboard and insights.
+9. **Failure proof:** set `LLM_PROVIDER=none`, restart, and show that manual work continues. Show a stale or wrong-role approval being refused.
+10. Finish the remaining owners' work to reach "Onboarding complete".
+
+Label the offline-rules mode honestly in any recording. Use a real model for the AI segments once one has been evaluated.
+
 ## One story, not eight separate demos
 
 Priya has an approved Hyderabad profile and Bengaluru offer text; equipment task is complete but only a reservation is recorded. Show a normal six-category plan first. Agent reads scoped records/policy and asks HR. Save/restart/resume. Show exact location diff and HR review, then separate IT reservation approval. Execute with versions/stable action ID; read back **Bengaluru equipment reserved; collection pending**. Keep unrelated completed training. Payroll remains independent and sanitized.

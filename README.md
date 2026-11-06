@@ -1,8 +1,26 @@
-# DayOne Proof
+# OnboardIQ
 
-An evidence-first employee onboarding coordinator. A task marked complete is a claim; a separate check establishes what actually happened. The intended product coordinates documents, equipment, payroll setup, benefits, training and manager work by approved worker/location rules.
+An evidence-first employee onboarding platform, built on the DayOne Proof foundation. **A task marked complete is a claim; a separate check establishes what actually happened.** It coordinates documents, equipment, IT access, payroll, benefits, training and manager work from approved rules based on each person's profile and location.
 
-**Current delivery: repository foundation only.** The website calls FastAPI, which reads a value from persistent local SQLite. Typed business endpoints return **501 FEATURE_NOT_IMPLEMENTED**. Login, plans, AI, approvals, source updates and worker execution are **not implemented yet**. Start with [PHASES.md](PHASES.md), not an assumption that the researched design is already running.
+AI reads permitted records and approved policies, then explains, cites and proposes. Trusted code validates and executes. People approve anything important.
+
+**What works now:** sign-in and role permissions, rule-based plans, human document review, equipment approval with read-back, a cited knowledge assistant, a bounded investigation agent, notifications and escalation, dashboards, and audit records. All of it is covered by automated tests.
+
+**Known limits:**
+- **No real AI model has been tested yet.** The tests use scripted replies and a labelled offline-rules mode (`LLM_PROVIDER=stub`), which is not AI. See [evaluation results](docs/EVALUATION.md).
+- All data is synthetic, and IT, payroll and equipment systems are simulated.
+- No OCR, encryption at rest, single sign-on or production hardening. SQLite on one machine, for a local demo.
+
+## Demo in one go
+
+After the install steps below, set a private `DEMO_PASSWORD` of at least 12 characters in `.env`. To use offline rules, also set `LLM_PROVIDER=stub`. Then seed once and start:
+
+```sh
+node scripts/python.mjs fixtures/seed.py
+npm run dev
+```
+
+Open http://127.0.0.1:5173. Sign-in IDs include `U_HR`, `U_IT`, `U_MANAGER`, `U_PAYROLL`, `U_BENEFITS`, `U_TRAINING` and `U_PRIYA`. The story is in [the demo plan](docs/DEMO_PLAN.md).
 
 ## First things to read
 
@@ -21,10 +39,10 @@ Browser (React/TypeScript)
   → same-origin /api (Vite proxy in dev, FastAPI static frontend in built demo)
   → FastAPI/Pydantic → SQLite application data on local disk
 
-Future feature phases:
-  approved rules → tasks/independent checks → scoped investigation
-  → LangGraph + selected Ollama OR hosted model → typed proposal
-  → correct human approval → version-checked allowed action → read-back
+Approved rules -> tasks and independent checks
+Question or case -> permission-filtered context -> registered AI operation
+  -> schema and citation validation -> advisory answer or typed proposal
+  -> the correct person approves -> version-checked action -> read-back
 ```
 
 One backend, one local worker and one company; not microservices or a replacement HR/payroll suite. SQLite simplifies a small local recorded demo; it is not a multi-company hosting recommendation. The model cannot approve/execute its own proposal. [Assumptions and scope](docs/ASSUMPTIONS.md) explain the thirty-hour cuts.
@@ -132,7 +150,7 @@ In Bash: `SMOKE_BASE_URL=http://127.0.0.1:8000 npm run smoke`. No Vite preview/p
 
 ## Environment and optional model setup
 
-The active setting and original future placeholders are labeled in [.env.example](.env.example). **Only DATABASE_PATH is read by the current application.** For the foundation, keep defaults and leave LLM_API_KEY/DEMO_PASSWORD empty. Other variables do not enable authentication, checkpoints, budgets or inference yet. Track 1/6 must implement and validate them in their feature phases; no empty-password login may ever be enabled.
+All settings are explained in [.env.example](.env.example). With the defaults, AI is off and every manual workflow still works. Set `LLM_PROVIDER` to turn it on. Seeding needs a private `DEMO_PASSWORD`, and no empty-password login exists.
 
 After P02/P03, privately set a demo password of at least 12 characters before the safe seed command is implemented/used. `fixtures/README.md` specifies the planned `node scripts/python.mjs fixtures/seed.py`; **that command does not exist yet**. Do not destroy or reseed someone else's working database.
 

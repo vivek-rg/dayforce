@@ -1,5 +1,7 @@
 # Assumptions and 30-hour scope
 
+> **Update, revision R06:** the OnboardIQ build added document text extraction (still no OCR), a full-text knowledge assistant (still no vector database), notifications and insights. Where this file says those are cut, R06 in PHASES.md is the current scope.
+
 ## Confirmed inputs
 
 - `../Topic_3_Final_Guide.md` is the agreed product/architecture input and remains in the repository unchanged.
