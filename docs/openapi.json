@@ -26,6 +26,32 @@
         "title": "AcceptedWork",
         "type": "object"
       },
+      "AccessRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Detail",
+            "type": "string"
+          },
+          "item": {
+            "enum": [
+              "CORPORATE_EMAIL",
+              "VPN",
+              "APPLICATION_ACCESS",
+              "REQUIRED_SOFTWARE"
+            ],
+            "title": "Item",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item"
+        ],
+        "title": "AccessRequest",
+        "type": "object"
+      },
       "ActionResult": {
         "additionalProperties": false,
         "properties": {
@@ -84,6 +110,228 @@
         "title": "ActionResult",
         "type": "object"
       },
+      "AiHealth": {
+        "additionalProperties": false,
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "is_stub": {
+            "title": "Is Stub",
+            "type": "boolean"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider",
+          "model",
+          "available",
+          "is_stub",
+          "detail"
+        ],
+        "title": "AiHealth",
+        "type": "object"
+      },
+      "AiRun": {
+        "additionalProperties": false,
+        "properties": {
+          "attempts": {
+            "minimum": 0.0,
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "case_id": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Id"
+          },
+          "chunk_ids": {
+            "items": {
+              "maxLength": 80,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "type": "string"
+            },
+            "title": "Chunk Ids",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "failure_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Reason"
+          },
+          "hire_id": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hire Id"
+          },
+          "id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "input_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Tokens"
+          },
+          "latency_ms": {
+            "minimum": 0.0,
+            "title": "Latency Ms",
+            "type": "integer"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "operation": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Operation",
+            "type": "string"
+          },
+          "output_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Tokens"
+          },
+          "prompt_version": {
+            "minimum": 1.0,
+            "title": "Prompt Version",
+            "type": "integer"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "retrieval_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieval Ms"
+          },
+          "status": {
+            "enum": [
+              "VALIDATED",
+              "ABSTAINED",
+              "REJECTED_OUTPUT",
+              "UNAVAILABLE"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          },
+          "validation_result": {
+            "title": "Validation Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "operation",
+          "prompt_version",
+          "provider",
+          "model",
+          "chunk_ids",
+          "status",
+          "validation_result",
+          "attempts",
+          "latency_ms",
+          "created_at"
+        ],
+        "title": "AiRun",
+        "type": "object"
+      },
+      "AiRunList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AiRun"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "AiRunList",
+        "type": "object"
+      },
       "AnswerRequest": {
         "additionalProperties": false,
         "properties": {
@@ -137,9 +385,131 @@
         "title": "AskStep",
         "type": "object"
       },
+      "AssistantAnswer": {
+        "additionalProperties": false,
+        "properties": {
+          "ai_run_id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Ai Run Id",
+            "type": "string"
+          },
+          "claims": {
+            "items": {
+              "$ref": "#/components/schemas/AssistantClaim"
+            },
+            "title": "Claims",
+            "type": "array"
+          },
+          "is_stub": {
+            "title": "Is Stub",
+            "type": "boolean"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "ANSWERED",
+              "PARTIAL",
+              "NOT_FOUND",
+              "OUT_OF_SCOPE",
+              "UNAVAILABLE"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "suggest_escalation": {
+            "title": "Suggest Escalation",
+            "type": "boolean"
+          },
+          "uncertainty": {
+            "title": "Uncertainty",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "message",
+          "claims",
+          "uncertainty",
+          "suggest_escalation",
+          "sources",
+          "ai_run_id",
+          "model",
+          "is_stub"
+        ],
+        "title": "AssistantAnswer",
+        "type": "object"
+      },
+      "AssistantClaim": {
+        "additionalProperties": false,
+        "properties": {
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "citations"
+        ],
+        "title": "AssistantClaim",
+        "type": "object"
+      },
+      "AssistantQuestion": {
+        "additionalProperties": false,
+        "properties": {
+          "question": {
+            "maxLength": 500,
+            "minLength": 3,
+            "title": "Question",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "title": "AssistantQuestion",
+        "type": "object"
+      },
       "AuditEvent": {
         "additionalProperties": false,
         "properties": {
+          "actor_user_id": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor User Id"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -150,6 +520,20 @@
             "minLength": 1,
             "title": "Event Type",
             "type": "string"
+          },
+          "hire_id": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hire Id"
           },
           "id": {
             "maxLength": 80,
@@ -171,6 +555,23 @@
           "created_at"
         ],
         "title": "AuditEvent",
+        "type": "object"
+      },
+      "AuditEventList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AuditEvent"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "AuditEventList",
         "type": "object"
       },
       "BenefitsInput": {
@@ -199,12 +600,74 @@
         "title": "BenefitsInput",
         "type": "object"
       },
+      "Body_upload_api_hires__hire_id__documents_post": {
+        "properties": {
+          "category": {
+            "enum": [
+              "government_id",
+              "address_proof",
+              "education",
+              "previous_employment",
+              "bank_details",
+              "tax",
+              "signed_employment"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "category",
+          "file"
+        ],
+        "title": "Body_upload_api_hires__hire_id__documents_post",
+        "type": "object"
+      },
+      "Body_upload_document_api_knowledge_documents_post": {
+        "properties": {
+          "access_level": {
+            "enum": [
+              "GENERAL",
+              "MANAGER",
+              "IT",
+              "PAYROLL",
+              "BENEFITS",
+              "HR"
+            ],
+            "title": "Access Level",
+            "type": "string"
+          },
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "access_level",
+          "file"
+        ],
+        "title": "Body_upload_document_api_knowledge_documents_post",
+        "type": "object"
+      },
       "Bootstrap": {
         "additionalProperties": false,
         "properties": {
           "foundation_only": {
-            "const": true,
-            "default": true,
+            "const": false,
+            "default": false,
             "title": "Foundation Only",
             "type": "boolean"
           },
@@ -246,6 +709,18 @@
             "minLength": 1,
             "pattern": "^[A-Za-z0-9_-]+$",
             "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "INVESTIGATION",
+              "MANUAL"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
             "type": "string"
           },
           "model_calls": {
@@ -292,6 +767,8 @@
           "id",
           "hire_id",
           "state",
+          "kind",
+          "message",
           "version",
           "model_calls",
           "tool_calls",
@@ -319,6 +796,23 @@
         "title": "CaseCreate",
         "type": "object"
       },
+      "CaseList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Case"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "CaseList",
+        "type": "object"
+      },
       "CaseState": {
         "enum": [
           "OPEN",
@@ -336,6 +830,7 @@
         "enum": [
           "documents",
           "equipment",
+          "it_access",
           "payroll",
           "benefits",
           "training",
@@ -353,6 +848,79 @@
         ],
         "title": "CheckResult",
         "type": "string"
+      },
+      "Citation": {
+        "additionalProperties": false,
+        "properties": {
+          "access_level": {
+            "title": "Access Level",
+            "type": "string"
+          },
+          "chunk_id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Chunk Id",
+            "type": "string"
+          },
+          "document_id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Document Id",
+            "type": "string"
+          },
+          "quote": {
+            "title": "Quote",
+            "type": "string"
+          },
+          "section_ref": {
+            "title": "Section Ref",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1.0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "chunk_id",
+          "document_id",
+          "title",
+          "version",
+          "section_ref",
+          "access_level",
+          "quote"
+        ],
+        "title": "Citation",
+        "type": "object"
+      },
+      "CountItem": {
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "minimum": 0.0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "count"
+        ],
+        "title": "CountItem",
+        "type": "object"
       },
       "DecisionRequest": {
         "additionalProperties": false,
@@ -432,6 +1000,263 @@
         "title": "DecisionResult",
         "type": "object"
       },
+      "Department": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "Department",
+        "type": "object"
+      },
+      "DisplayStatus": {
+        "description": "Computed at read time, so OVERDUE and BLOCKED can never go stale in storage.",
+        "enum": [
+          "NOT_STARTED",
+          "IN_PROGRESS",
+          "PENDING_APPROVAL",
+          "COMPLETED",
+          "BLOCKED",
+          "OVERDUE",
+          "CANCELLED"
+        ],
+        "title": "DisplayStatus",
+        "type": "string"
+      },
+      "Document": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "enum": [
+              "government_id",
+              "address_proof",
+              "education",
+              "previous_employment",
+              "bank_details",
+              "tax",
+              "signed_employment"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "declared_location_id": {
+            "anyOf": [
+              {
+                "enum": [
+                  "HYD-DEMO",
+                  "BLR-DEMO"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Declared Location Id"
+          },
+          "hire_id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Hire Id",
+            "type": "string"
+          },
+          "hire_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Hire Name",
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "mime_type": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Mime Type",
+            "type": "string"
+          },
+          "original_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Original Name",
+            "type": "string"
+          },
+          "reviews": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentReview"
+            },
+            "title": "Reviews",
+            "type": "array"
+          },
+          "size_bytes": {
+            "minimum": 1.0,
+            "title": "Size Bytes",
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "SUBMITTED",
+              "UNDER_REVIEW",
+              "VERIFIED",
+              "REJECTED",
+              "RESUBMISSION_REQUESTED",
+              "SUPERSEDED"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "text_available": {
+            "title": "Text Available",
+            "type": "boolean"
+          },
+          "version": {
+            "minimum": 1.0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "hire_id",
+          "hire_name",
+          "category",
+          "state",
+          "original_name",
+          "mime_type",
+          "size_bytes",
+          "text_available",
+          "version",
+          "created_at",
+          "reviews"
+        ],
+        "title": "Document",
+        "type": "object"
+      },
+      "DocumentExtraction": {
+        "additionalProperties": false,
+        "properties": {
+          "advisory": {
+            "const": true,
+            "default": true,
+            "title": "Advisory",
+            "type": "boolean"
+          },
+          "ai_run_id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Ai Run Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "document_id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Document Id",
+            "type": "string"
+          },
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/ExtractedField"
+            },
+            "title": "Fields",
+            "type": "array"
+          },
+          "id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_stub": {
+            "title": "Is Stub",
+            "type": "boolean"
+          },
+          "mismatches": {
+            "items": {
+              "$ref": "#/components/schemas/Mismatch"
+            },
+            "title": "Mismatches",
+            "type": "array"
+          },
+          "missing": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Missing",
+            "type": "array"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "suggested_category": {
+            "enum": [
+              "government_id",
+              "address_proof",
+              "education",
+              "previous_employment",
+              "bank_details",
+              "tax",
+              "signed_employment"
+            ],
+            "title": "Suggested Category",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "document_id",
+          "suggested_category",
+          "fields",
+          "missing",
+          "mismatches",
+          "summary",
+          "ai_run_id",
+          "model",
+          "is_stub",
+          "created_at"
+        ],
+        "title": "DocumentExtraction",
+        "type": "object"
+      },
       "DocumentInput": {
         "additionalProperties": false,
         "properties": {
@@ -463,14 +1288,120 @@
         "title": "DocumentInput",
         "type": "object"
       },
+      "DocumentList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Document"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "DocumentList",
+        "type": "object"
+      },
+      "DocumentReview": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "decision": {
+            "enum": [
+              "VERIFY",
+              "REJECT",
+              "REQUEST_RESUBMISSION"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "reviewer_user_id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Reviewer User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "reviewer_user_id",
+          "decision",
+          "reason",
+          "created_at"
+        ],
+        "title": "DocumentReview",
+        "type": "object"
+      },
+      "DocumentReviewRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "decision": {
+            "enum": [
+              "VERIFY",
+              "REJECT",
+              "REQUEST_RESUBMISSION"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 1.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "reason": {
+            "default": "",
+            "maxLength": 500,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "decision",
+          "expected_version"
+        ],
+        "title": "DocumentReviewRequest",
+        "type": "object"
+      },
       "EquipmentInput": {
         "additionalProperties": false,
         "properties": {
+          "asset_name": {
+            "default": "",
+            "maxLength": 120,
+            "title": "Asset Name",
+            "type": "string"
+          },
           "asset_tag": {
             "maxLength": 80,
             "minLength": 1,
             "pattern": "^[A-Za-z0-9_-]+$",
             "title": "Asset Tag",
+            "type": "string"
+          },
+          "asset_type": {
+            "default": "",
+            "maxLength": 60,
+            "title": "Asset Type",
             "type": "string"
           },
           "assignee_hire_id": {
@@ -512,6 +1443,12 @@
             "title": "Location Id",
             "type": "string"
           },
+          "serial_number": {
+            "default": "",
+            "maxLength": 60,
+            "title": "Serial Number",
+            "type": "string"
+          },
           "state": {
             "enum": [
               "AVAILABLE",
@@ -529,6 +1466,23 @@
           "state"
         ],
         "title": "EquipmentInput",
+        "type": "object"
+      },
+      "EquipmentRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "equipment_record_id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Equipment Record Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "equipment_record_id"
+        ],
+        "title": "EquipmentRequest",
         "type": "object"
       },
       "ErrorBody": {
@@ -587,6 +1541,132 @@
           "error"
         ],
         "title": "ErrorResponse",
+        "type": "object"
+      },
+      "Escalation": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "raised_by": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Raised By",
+            "type": "string"
+          },
+          "raised_by_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Raised By Name",
+            "type": "string"
+          },
+          "resolution": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolution"
+          },
+          "state": {
+            "enum": [
+              "OPEN",
+              "ANSWERED"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "raised_by",
+          "raised_by_name",
+          "question",
+          "state",
+          "created_at"
+        ],
+        "title": "Escalation",
+        "type": "object"
+      },
+      "EscalationAnswer": {
+        "additionalProperties": false,
+        "properties": {
+          "answer": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Answer",
+            "type": "string"
+          }
+        },
+        "required": [
+          "answer"
+        ],
+        "title": "EscalationAnswer",
+        "type": "object"
+      },
+      "EscalationCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "ai_run_id": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Run Id"
+          },
+          "question": {
+            "maxLength": 500,
+            "minLength": 3,
+            "title": "Question",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "title": "EscalationCreate",
+        "type": "object"
+      },
+      "EscalationList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Escalation"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "EscalationList",
         "type": "object"
       },
       "Evidence": {
@@ -813,6 +1893,36 @@
         "title": "ExpectedVersions",
         "type": "object"
       },
+      "ExtractedField": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "quote": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Quote",
+            "type": "string"
+          },
+          "value": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "value",
+          "quote"
+        ],
+        "title": "ExtractedField",
+        "type": "object"
+      },
       "FinishStep": {
         "additionalProperties": false,
         "properties": {
@@ -859,8 +1969,8 @@
             "type": "string"
           },
           "schema_version": {
-            "const": 1,
-            "default": 1,
+            "const": 2,
+            "default": 2,
             "title": "Schema Version",
             "type": "integer"
           },
@@ -877,10 +1987,46 @@
       "Hire": {
         "additionalProperties": false,
         "properties": {
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "department_id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Department Id",
+            "type": "string"
+          },
+          "designation": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Designation",
+            "type": "string"
+          },
           "display_name": {
             "maxLength": 200,
             "minLength": 1,
             "title": "Display Name",
+            "type": "string"
+          },
+          "employee_code": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Employee Code",
             "type": "string"
           },
           "employee_user_id": {
@@ -896,6 +2042,15 @@
               }
             ],
             "title": "Employee User Id"
+          },
+          "employment_status": {
+            "enum": [
+              "PRE_JOINING",
+              "ACTIVE",
+              "WITHDRAWN"
+            ],
+            "title": "Employment Status",
+            "type": "string"
           },
           "id": {
             "maxLength": 80,
@@ -919,6 +2074,42 @@
             "title": "Manager User Id",
             "type": "string"
           },
+          "onboarding_status": {
+            "enum": [
+              "NOT_STARTED",
+              "IN_PROGRESS",
+              "BLOCKED",
+              "COMPLETED"
+            ],
+            "title": "Onboarding Status",
+            "type": "string"
+          },
+          "personal_email": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Personal Email"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
           "plan_version": {
             "minimum": 1.0,
             "title": "Plan Version",
@@ -932,7 +2123,8 @@
           "role": {
             "enum": [
               "engineer",
-              "operations_associate"
+              "operations_associate",
+              "sales_associate"
             ],
             "title": "Role",
             "type": "string"
@@ -940,6 +2132,27 @@
           "start_date": {
             "format": "date",
             "title": "Start Date",
+            "type": "string"
+          },
+          "tasks_completed": {
+            "minimum": 0.0,
+            "title": "Tasks Completed",
+            "type": "integer"
+          },
+          "tasks_overdue": {
+            "minimum": 0.0,
+            "title": "Tasks Overdue",
+            "type": "integer"
+          },
+          "tasks_total": {
+            "minimum": 0.0,
+            "title": "Tasks Total",
+            "type": "integer"
+          },
+          "work_email": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Work Email",
             "type": "string"
           },
           "work_mode": {
@@ -967,7 +2180,17 @@
           "work_mode",
           "start_date",
           "manager_user_id",
+          "department_id",
+          "designation",
+          "work_email",
           "id",
+          "employee_code",
+          "employment_status",
+          "onboarding_status",
+          "tasks_completed",
+          "tasks_total",
+          "tasks_overdue",
+          "created_at",
           "profile_version",
           "plan_version"
         ],
@@ -977,6 +2200,19 @@
       "HireCreate": {
         "additionalProperties": false,
         "properties": {
+          "department_id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Department Id",
+            "type": "string"
+          },
+          "designation": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Designation",
+            "type": "string"
+          },
           "display_name": {
             "maxLength": 200,
             "minLength": 1,
@@ -1012,10 +2248,37 @@
             "title": "Manager User Id",
             "type": "string"
           },
+          "personal_email": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Personal Email"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
           "role": {
             "enum": [
               "engineer",
-              "operations_associate"
+              "operations_associate",
+              "sales_associate"
             ],
             "title": "Role",
             "type": "string"
@@ -1023,6 +2286,12 @@
           "start_date": {
             "format": "date",
             "title": "Start Date",
+            "type": "string"
+          },
+          "work_email": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Work Email",
             "type": "string"
           },
           "work_mode": {
@@ -1049,7 +2318,10 @@
           "location_id",
           "work_mode",
           "start_date",
-          "manager_user_id"
+          "manager_user_id",
+          "department_id",
+          "designation",
+          "work_email"
         ],
         "title": "HireCreate",
         "type": "object"
@@ -1069,6 +2341,235 @@
           "items"
         ],
         "title": "HireList",
+        "type": "object"
+      },
+      "HirePatch": {
+        "additionalProperties": false,
+        "properties": {
+          "department_id": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department Id"
+          },
+          "designation": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Designation"
+          },
+          "employment_status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "PRE_JOINING",
+                  "ACTIVE",
+                  "WITHDRAWN"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employment Status"
+          },
+          "expected_profile_version": {
+            "minimum": 1.0,
+            "title": "Expected Profile Version",
+            "type": "integer"
+          },
+          "personal_email": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Personal Email"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "work_email": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Work Email"
+          }
+        },
+        "required": [
+          "expected_profile_version"
+        ],
+        "title": "HirePatch",
+        "type": "object"
+      },
+      "InsightEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "ref": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Ref",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ref",
+          "label"
+        ],
+        "title": "InsightEvidence",
+        "type": "object"
+      },
+      "InsightMetric": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/InsightEvidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "value": {
+            "minimum": 0.0,
+            "title": "Value",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "value",
+          "evidence"
+        ],
+        "title": "InsightMetric",
+        "type": "object"
+      },
+      "InsightMetrics": {
+        "additionalProperties": false,
+        "properties": {
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/InsightMetric"
+            },
+            "title": "Metrics",
+            "type": "array"
+          }
+        },
+        "required": [
+          "metrics"
+        ],
+        "title": "InsightMetrics",
+        "type": "object"
+      },
+      "InsightSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "advisory": {
+            "const": true,
+            "default": true,
+            "title": "Advisory",
+            "type": "boolean"
+          },
+          "ai_run_id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Ai Run Id",
+            "type": "string"
+          },
+          "is_stub": {
+            "title": "Is Stub",
+            "type": "boolean"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/InsightMetric"
+            },
+            "title": "Metrics",
+            "type": "array"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/ModelRecommendation"
+            },
+            "maxItems": 5,
+            "title": "Recommendations",
+            "type": "array"
+          },
+          "summary": {
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "summary",
+          "recommendations",
+          "ai_run_id",
+          "model",
+          "is_stub",
+          "metrics"
+        ],
+        "title": "InsightSummary",
         "type": "object"
       },
       "InvestigationContext": {
@@ -1099,6 +2600,150 @@
           "case_id"
         ],
         "title": "InvestigationContext",
+        "type": "object"
+      },
+      "ItAccessInput": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "const": "it_access",
+            "title": "Category",
+            "type": "string"
+          },
+          "detail": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Detail",
+            "type": "string"
+          },
+          "item": {
+            "enum": [
+              "CORPORATE_EMAIL",
+              "VPN",
+              "APPLICATION_ACCESS",
+              "REQUIRED_SOFTWARE"
+            ],
+            "title": "Item",
+            "type": "string"
+          },
+          "simulated": {
+            "const": true,
+            "default": true,
+            "title": "Simulated",
+            "type": "boolean"
+          },
+          "state": {
+            "enum": [
+              "REQUESTED",
+              "PROVISIONED"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "category",
+          "item",
+          "state"
+        ],
+        "title": "ItAccessInput",
+        "type": "object"
+      },
+      "KnowledgeApprove": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "minimum": 1.0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "title": "KnowledgeApprove",
+        "type": "object"
+      },
+      "KnowledgeDocument": {
+        "additionalProperties": false,
+        "properties": {
+          "access_level": {
+            "enum": [
+              "GENERAL",
+              "MANAGER",
+              "IT",
+              "PAYROLL",
+              "BENEFITS",
+              "HR"
+            ],
+            "title": "Access Level",
+            "type": "string"
+          },
+          "chunk_count": {
+            "minimum": 0.0,
+            "title": "Chunk Count",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "DRAFT",
+              "APPROVED",
+              "RETIRED"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1.0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "title",
+          "access_level",
+          "status",
+          "chunk_count",
+          "created_at"
+        ],
+        "title": "KnowledgeDocument",
+        "type": "object"
+      },
+      "KnowledgeDocumentList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeDocument"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "KnowledgeDocumentList",
         "type": "object"
       },
       "LocationAction": {
@@ -1179,6 +2824,132 @@
         "title": "ManagerInput",
         "type": "object"
       },
+      "Metrics": {
+        "additionalProperties": false,
+        "properties": {
+          "actions_failed": {
+            "minimum": 0.0,
+            "title": "Actions Failed",
+            "type": "integer"
+          },
+          "api_errors": {
+            "minimum": 0.0,
+            "title": "Api Errors",
+            "type": "integer"
+          },
+          "api_p50_ms": {
+            "title": "Api P50 Ms",
+            "type": "number"
+          },
+          "api_p95_ms": {
+            "title": "Api P95 Ms",
+            "type": "number"
+          },
+          "api_requests": {
+            "minimum": 0.0,
+            "title": "Api Requests",
+            "type": "integer"
+          },
+          "operations": {
+            "items": {
+              "$ref": "#/components/schemas/OperationMetric"
+            },
+            "title": "Operations",
+            "type": "array"
+          },
+          "retrieval_average_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieval Average Ms"
+          },
+          "task_completion_rate": {
+            "title": "Task Completion Rate",
+            "type": "number"
+          },
+          "work_failed": {
+            "minimum": 0.0,
+            "title": "Work Failed",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "api_requests",
+          "api_p50_ms",
+          "api_p95_ms",
+          "api_errors",
+          "operations",
+          "work_failed",
+          "actions_failed",
+          "task_completion_rate"
+        ],
+        "title": "Metrics",
+        "type": "object"
+      },
+      "Mismatch": {
+        "additionalProperties": false,
+        "properties": {
+          "document_value": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Document Value",
+            "type": "string"
+          },
+          "field": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Field",
+            "type": "string"
+          },
+          "profile_value": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Profile Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "document_value",
+          "profile_value"
+        ],
+        "title": "Mismatch",
+        "type": "object"
+      },
+      "ModelRecommendation": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_refs": {
+            "items": {
+              "maxLength": 80,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "type": "string"
+            },
+            "maxItems": 6,
+            "minItems": 1,
+            "title": "Evidence Refs",
+            "type": "array"
+          },
+          "text": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "evidence_refs"
+        ],
+        "title": "ModelRecommendation",
+        "type": "object"
+      },
       "NextStep": {
         "additionalProperties": false,
         "properties": {
@@ -1216,9 +2987,270 @@
         "title": "NextStep",
         "type": "object"
       },
-      "PayrollInput": {
+      "Notification": {
         "additionalProperties": false,
         "properties": {
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "hire_id": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hire Id"
+          },
+          "id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "read": {
+            "title": "Read",
+            "type": "boolean"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "title",
+          "body",
+          "read",
+          "created_at"
+        ],
+        "title": "Notification",
+        "type": "object"
+      },
+      "NotificationList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Notification"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "unread": {
+            "minimum": 0.0,
+            "title": "Unread",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "unread"
+        ],
+        "title": "NotificationList",
+        "type": "object"
+      },
+      "OperationMetric": {
+        "additionalProperties": false,
+        "properties": {
+          "abstained": {
+            "minimum": 0.0,
+            "title": "Abstained",
+            "type": "integer"
+          },
+          "average_latency_ms": {
+            "title": "Average Latency Ms",
+            "type": "number"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "rejected": {
+            "minimum": 0.0,
+            "title": "Rejected",
+            "type": "integer"
+          },
+          "runs": {
+            "minimum": 0.0,
+            "title": "Runs",
+            "type": "integer"
+          },
+          "total_tokens": {
+            "minimum": 0.0,
+            "title": "Total Tokens",
+            "type": "integer"
+          },
+          "unavailable": {
+            "minimum": 0.0,
+            "title": "Unavailable",
+            "type": "integer"
+          },
+          "validated": {
+            "minimum": 0.0,
+            "title": "Validated",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "operation",
+          "runs",
+          "validated",
+          "abstained",
+          "rejected",
+          "unavailable",
+          "average_latency_ms",
+          "total_tokens"
+        ],
+        "title": "OperationMetric",
+        "type": "object"
+      },
+      "Overview": {
+        "additionalProperties": false,
+        "properties": {
+          "average_completion_days": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Completion Days"
+          },
+          "by_department": {
+            "items": {
+              "$ref": "#/components/schemas/CountItem"
+            },
+            "title": "By Department",
+            "type": "array"
+          },
+          "by_location": {
+            "items": {
+              "$ref": "#/components/schemas/CountItem"
+            },
+            "title": "By Location",
+            "type": "array"
+          },
+          "claims_without_proof": {
+            "minimum": 0.0,
+            "title": "Claims Without Proof",
+            "type": "integer"
+          },
+          "documents_awaiting": {
+            "minimum": 0.0,
+            "title": "Documents Awaiting",
+            "type": "integer"
+          },
+          "equipment": {
+            "items": {
+              "$ref": "#/components/schemas/CountItem"
+            },
+            "title": "Equipment",
+            "type": "array"
+          },
+          "onboarding_completed": {
+            "minimum": 0.0,
+            "title": "Onboarding Completed",
+            "type": "integer"
+          },
+          "onboarding_in_progress": {
+            "minimum": 0.0,
+            "title": "Onboarding In Progress",
+            "type": "integer"
+          },
+          "recent": {
+            "items": {
+              "$ref": "#/components/schemas/AuditEvent"
+            },
+            "title": "Recent",
+            "type": "array"
+          },
+          "tasks_overdue": {
+            "minimum": 0.0,
+            "title": "Tasks Overdue",
+            "type": "integer"
+          },
+          "tasks_pending": {
+            "minimum": 0.0,
+            "title": "Tasks Pending",
+            "type": "integer"
+          },
+          "total_employees": {
+            "minimum": 0.0,
+            "title": "Total Employees",
+            "type": "integer"
+          },
+          "upcoming": {
+            "items": {
+              "$ref": "#/components/schemas/UpcomingJoiner"
+            },
+            "title": "Upcoming",
+            "type": "array"
+          }
+        },
+        "required": [
+          "total_employees",
+          "onboarding_in_progress",
+          "onboarding_completed",
+          "tasks_pending",
+          "tasks_overdue",
+          "documents_awaiting",
+          "claims_without_proof",
+          "by_department",
+          "by_location",
+          "equipment",
+          "upcoming",
+          "recent"
+        ],
+        "title": "Overview",
+        "type": "object"
+      },
+      "PayrollInput": {
+        "additionalProperties": false,
+        "description": "Status only. Bank and tax numbers are deliberately not representable here.",
+        "properties": {
+          "bank_submitted": {
+            "default": false,
+            "title": "Bank Submitted",
+            "type": "boolean"
+          },
           "category": {
             "const": "payroll",
             "title": "Category",
@@ -1230,6 +3262,11 @@
           },
           "setup_confirmed": {
             "title": "Setup Confirmed",
+            "type": "boolean"
+          },
+          "tax_submitted": {
+            "default": false,
+            "title": "Tax Submitted",
             "type": "boolean"
           }
         },
@@ -1336,11 +3373,18 @@
         "additionalProperties": false,
         "properties": {
           "case_id": {
-            "maxLength": 80,
-            "minLength": 1,
-            "pattern": "^[A-Za-z0-9_-]+$",
-            "title": "Case Id",
-            "type": "string"
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Id"
           },
           "expected_profile_version": {
             "minimum": 1.0,
@@ -1357,7 +3401,6 @@
           }
         },
         "required": [
-          "case_id",
           "location_id",
           "expected_profile_version"
         ],
@@ -1367,12 +3410,45 @@
       "Proposal": {
         "additionalProperties": false,
         "properties": {
+          "action_state": {
+            "anyOf": [
+              {
+                "enum": [
+                  "PENDING",
+                  "RUNNING",
+                  "SUCCEEDED",
+                  "FAILED",
+                  "UNKNOWN"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Action State"
+          },
           "case_id": {
             "maxLength": 80,
             "minLength": 1,
             "pattern": "^[A-Za-z0-9_-]+$",
             "title": "Case Id",
             "type": "string"
+          },
+          "decision": {
+            "anyOf": [
+              {
+                "enum": [
+                  "APPROVE",
+                  "REJECT"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision"
           },
           "evidence_ids": {
             "items": {
@@ -1392,12 +3468,36 @@
             "title": "Expires At",
             "type": "string"
           },
+          "hire_id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Hire Id",
+            "type": "string"
+          },
+          "hire_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Hire Name",
+            "type": "string"
+          },
           "id": {
             "maxLength": 80,
             "minLength": 1,
             "pattern": "^[A-Za-z0-9_-]+$",
             "title": "Id",
             "type": "string"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome"
           },
           "payload": {
             "discriminator": {
@@ -1439,6 +3539,8 @@
         "required": [
           "id",
           "case_id",
+          "hire_id",
+          "hire_name",
           "payload",
           "evidence_ids",
           "expected_versions",
@@ -1580,6 +3682,23 @@
         "title": "Question",
         "type": "object"
       },
+      "QuestionList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Question"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "QuestionList",
+        "type": "object"
+      },
       "ReadStep": {
         "additionalProperties": false,
         "properties": {
@@ -1614,6 +3733,54 @@
           "reason_summary"
         ],
         "title": "ReadStep",
+        "type": "object"
+      },
+      "Reference": {
+        "additionalProperties": false,
+        "properties": {
+          "available_employee_user_ids": {
+            "items": {
+              "maxLength": 80,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "type": "string"
+            },
+            "title": "Available Employee User Ids",
+            "type": "array"
+          },
+          "departments": {
+            "items": {
+              "$ref": "#/components/schemas/Department"
+            },
+            "title": "Departments",
+            "type": "array"
+          },
+          "locations": {
+            "items": {
+              "enum": [
+                "HYD-DEMO",
+                "BLR-DEMO"
+              ],
+              "type": "string"
+            },
+            "title": "Locations",
+            "type": "array"
+          },
+          "users": {
+            "items": {
+              "$ref": "#/components/schemas/UserSummary"
+            },
+            "title": "Users",
+            "type": "array"
+          }
+        },
+        "required": [
+          "departments",
+          "locations",
+          "users",
+          "available_employee_user_ids"
+        ],
+        "title": "Reference",
         "type": "object"
       },
       "ReservationAction": {
@@ -1699,6 +3866,17 @@
             ],
             "title": "Hire Id"
           },
+          "hire_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hire Name"
+          },
           "id": {
             "maxLength": 80,
             "minLength": 1,
@@ -1717,6 +3895,7 @@
                 "benefits": "#/components/schemas/BenefitsInput",
                 "documents": "#/components/schemas/DocumentInput",
                 "equipment": "#/components/schemas/EquipmentInput",
+                "it_access": "#/components/schemas/ItAccessInput",
                 "manager": "#/components/schemas/ManagerInput",
                 "payroll": "#/components/schemas/PayrollInput",
                 "training": "#/components/schemas/TrainingInput"
@@ -1729,6 +3908,9 @@
               },
               {
                 "$ref": "#/components/schemas/EquipmentInput"
+              },
+              {
+                "$ref": "#/components/schemas/ItAccessInput"
               },
               {
                 "$ref": "#/components/schemas/PayrollInput"
@@ -1767,6 +3949,23 @@
         "title": "SourceRecord",
         "type": "object"
       },
+      "SourceRecordList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SourceRecord"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "SourceRecordList",
+        "type": "object"
+      },
       "SourceWrite": {
         "additionalProperties": false,
         "properties": {
@@ -1781,6 +3980,7 @@
                 "benefits": "#/components/schemas/BenefitsInput",
                 "documents": "#/components/schemas/DocumentInput",
                 "equipment": "#/components/schemas/EquipmentInput",
+                "it_access": "#/components/schemas/ItAccessInput",
                 "manager": "#/components/schemas/ManagerInput",
                 "payroll": "#/components/schemas/PayrollInput",
                 "training": "#/components/schemas/TrainingInput"
@@ -1793,6 +3993,9 @@
               },
               {
                 "$ref": "#/components/schemas/EquipmentInput"
+              },
+              {
+                "$ref": "#/components/schemas/ItAccessInput"
               },
               {
                 "$ref": "#/components/schemas/PayrollInput"
@@ -1817,11 +4020,49 @@
         "title": "SourceWrite",
         "type": "object"
       },
+      "SweepResult": {
+        "additionalProperties": false,
+        "properties": {
+          "notifications_created": {
+            "minimum": 0.0,
+            "title": "Notifications Created",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "notifications_created"
+        ],
+        "title": "SweepResult",
+        "type": "object"
+      },
       "Task": {
         "additionalProperties": false,
         "properties": {
           "category": {
             "$ref": "#/components/schemas/Category"
+          },
+          "check_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Check Type"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
           },
           "critical": {
             "title": "Critical",
@@ -1837,16 +4078,39 @@
             "title": "Depends On",
             "type": "array"
           },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "display_status": {
+            "$ref": "#/components/schemas/DisplayStatus"
+          },
           "due_date": {
             "format": "date",
             "title": "Due Date",
             "type": "string"
+          },
+          "evidence_result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CheckResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "hire_id": {
             "maxLength": 80,
             "minLength": 1,
             "pattern": "^[A-Za-z0-9_-]+$",
             "title": "Hire Id",
+            "type": "string"
+          },
+          "hire_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Hire Name",
             "type": "string"
           },
           "id": {
@@ -1856,11 +4120,26 @@
             "title": "Id",
             "type": "string"
           },
+          "owner_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Owner Name",
+            "type": "string"
+          },
           "owner_user_id": {
             "maxLength": 80,
             "minLength": 1,
             "pattern": "^[A-Za-z0-9_-]+$",
             "title": "Owner User Id",
+            "type": "string"
+          },
+          "priority": {
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "title": "Priority",
             "type": "string"
           },
           "title": {
@@ -1881,12 +4160,17 @@
         "required": [
           "id",
           "hire_id",
+          "hire_name",
           "category",
           "title",
+          "description",
           "owner_user_id",
+          "owner_name",
           "due_date",
+          "priority",
           "critical",
           "work_state",
+          "display_status",
           "version",
           "depends_on"
         ],
@@ -1908,6 +4192,29 @@
           "items"
         ],
         "title": "TaskList",
+        "type": "object"
+      },
+      "TaskReassign": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "minimum": 1.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "owner_user_id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Owner User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_version",
+          "owner_user_id"
+        ],
+        "title": "TaskReassign",
         "type": "object"
       },
       "ToolObservation": {
@@ -1993,6 +4300,45 @@
         "title": "TrainingInput",
         "type": "object"
       },
+      "UpcomingJoiner": {
+        "additionalProperties": false,
+        "properties": {
+          "display_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Display Name",
+            "type": "string"
+          },
+          "hire_id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Hire Id",
+            "type": "string"
+          },
+          "location_id": {
+            "enum": [
+              "HYD-DEMO",
+              "BLR-DEMO"
+            ],
+            "title": "Location Id",
+            "type": "string"
+          },
+          "start_date": {
+            "format": "date",
+            "title": "Start Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "hire_id",
+          "display_name",
+          "start_date",
+          "location_id"
+        ],
+        "title": "UpcomingJoiner",
+        "type": "object"
+      },
       "User": {
         "additionalProperties": false,
         "properties": {
@@ -2030,6 +4376,34 @@
           "hire_ids"
         ],
         "title": "User",
+        "type": "object"
+      },
+      "UserSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "display_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Display Name",
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          }
+        },
+        "required": [
+          "id",
+          "display_name",
+          "role"
+        ],
+        "title": "UserSummary",
         "type": "object"
       },
       "VersionRequest": {
@@ -2119,18 +4493,752 @@
     },
     "securitySchemes": {
       "DemoBearer": {
-        "description": "Target contract; business routes return 501 until implementation.",
+        "description": "Opaque eight-hour bearer session from POST /api/sessions.",
         "scheme": "bearer",
         "type": "http"
       }
     }
   },
   "info": {
-    "title": "DayOne Proof",
-    "version": "0.1.0"
+    "title": "OnboardIQ",
+    "version": "0.2.0"
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/ai-runs": {
+      "get": {
+        "operationId": "ai_runs_api_ai_runs_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiRunList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "List AI run records",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/api/ai-runs/{run_id}": {
+      "get": {
+        "operationId": "ai_run_api_ai_runs__run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiRun"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Read one AI run record",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/api/analytics/overview": {
+      "get": {
+        "operationId": "overview_api_analytics_overview_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Overview"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Read dashboard numbers",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/api/assistant/escalations": {
+      "get": {
+        "operationId": "list_escalations_api_assistant_escalations_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EscalationList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "List escalated questions",
+        "tags": [
+          "knowledge"
+        ]
+      },
+      "post": {
+        "operationId": "escalate_api_assistant_escalations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EscalationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Escalation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Send an unanswered question to HR",
+        "tags": [
+          "knowledge"
+        ]
+      }
+    },
+    "/api/assistant/escalations/mine": {
+      "get": {
+        "operationId": "my_escalations_api_assistant_escalations_mine_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EscalationList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "List questions I escalated",
+        "tags": [
+          "knowledge"
+        ]
+      }
+    },
+    "/api/assistant/escalations/{escalation_id}/answers": {
+      "post": {
+        "operationId": "answer_escalation_api_assistant_escalations__escalation_id__answers_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "escalation_id",
+            "required": true,
+            "schema": {
+              "title": "Escalation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EscalationAnswer"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Escalation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Answer an escalated question",
+        "tags": [
+          "knowledge"
+        ]
+      }
+    },
+    "/api/assistant/questions": {
+      "post": {
+        "operationId": "ask_api_assistant_questions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistantQuestion"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantAnswer"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Ask the knowledge assistant",
+        "tags": [
+          "knowledge"
+        ]
+      }
+    },
+    "/api/audit-events": {
+      "get": {
+        "operationId": "audit_events_api_audit_events_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditEventList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Search the audit log",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
     "/api/bootstrap": {
       "get": {
         "operationId": "bootstrap_api_bootstrap_get",
@@ -2156,7 +5264,7 @@
             "description": "Service Unavailable"
           }
         },
-        "summary": "Read hello-world value stored in SQLite",
+        "summary": "Read the product name stored in SQLite",
         "tags": [
           "foundation"
         ]
@@ -2236,16 +5344,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -2256,6 +5354,438 @@
         "summary": "Read scoped case and sanitized timeline",
         "tags": [
           "cases"
+        ]
+      }
+    },
+    "/api/documents/queue": {
+      "get": {
+        "operationId": "queue_api_documents_queue_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "List documents to review",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/documents/{document_id}/content": {
+      "get": {
+        "operationId": "content_api_documents__document_id__content_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Stream a document to an authorized user",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/documents/{document_id}/extractions": {
+      "post": {
+        "operationId": "extract_api_documents__document_id__extractions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentExtraction"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Run advisory AI extraction",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/documents/{document_id}/extractions/latest": {
+      "get": {
+        "operationId": "latest_extraction_api_documents__document_id__extractions_latest_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentExtraction"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Read the latest advisory extraction",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/documents/{document_id}/reviews": {
+      "post": {
+        "operationId": "review_api_documents__document_id__reviews_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Verify, reject or request resubmission (human only)",
+        "tags": [
+          "documents"
         ]
       }
     },
@@ -2287,6 +5817,82 @@
         "summary": "Read database-backed readiness",
         "tags": [
           "foundation"
+        ]
+      }
+    },
+    "/api/health/ai": {
+      "get": {
+        "operationId": "ai_health_api_health_ai_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiHealth"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Read model configuration status",
+        "tags": [
+          "analytics"
         ]
       }
     },
@@ -2353,16 +5959,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -2447,16 +6043,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -2544,16 +6130,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -2565,9 +6141,286 @@
         "tags": [
           "planning"
         ]
+      },
+      "patch": {
+        "operationId": "patch_hire_api_hires__hire_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "hire_id",
+            "required": true,
+            "schema": {
+              "title": "Hire Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HirePatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Hire"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Edit profile fields",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/api/hires/{hire_id}/access-requests": {
+      "post": {
+        "operationId": "request_access_api_hires__hire_id__access_requests_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "hire_id",
+            "required": true,
+            "schema": {
+              "title": "Hire Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccessRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceRecord"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Create a simulated account or access request",
+        "tags": [
+          "actions"
+        ]
       }
     },
     "/api/hires/{hire_id}/cases": {
+      "get": {
+        "operationId": "list_cases_api_hires__hire_id__cases_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "hire_id",
+            "required": true,
+            "schema": {
+              "title": "Hire Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "List a hire's cases",
+        "tags": [
+          "cases"
+        ]
+      },
       "post": {
         "operationId": "create_case_api_hires__hire_id__cases_post",
         "parameters": [
@@ -2651,16 +6504,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -2758,16 +6601,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -2855,16 +6688,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -2875,6 +6698,372 @@
         "summary": "Run deterministic checks",
         "tags": [
           "evidence"
+        ]
+      }
+    },
+    "/api/hires/{hire_id}/documents": {
+      "get": {
+        "operationId": "list_documents_api_hires__hire_id__documents_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "hire_id",
+            "required": true,
+            "schema": {
+              "title": "Hire Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "List documents",
+        "tags": [
+          "documents"
+        ]
+      },
+      "post": {
+        "operationId": "upload_api_hires__hire_id__documents_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "hire_id",
+            "required": true,
+            "schema": {
+              "title": "Hire Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_api_hires__hire_id__documents_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Upload a document",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/hires/{hire_id}/equipment-requests": {
+      "post": {
+        "operationId": "request_equipment_api_hires__hire_id__equipment_requests_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "hire_id",
+            "required": true,
+            "schema": {
+              "title": "Hire Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EquipmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Request a device; creates a proposal for IT approval",
+        "tags": [
+          "actions"
+        ]
+      }
+    },
+    "/api/hires/{hire_id}/history": {
+      "get": {
+        "operationId": "history_api_hires__hire_id__history_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "hire_id",
+            "required": true,
+            "schema": {
+              "title": "Hire Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditEventList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Read a hire's audit history",
+        "tags": [
+          "planning"
         ]
       }
     },
@@ -2952,16 +7141,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -3068,16 +7247,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -3088,6 +7257,415 @@
         "summary": "Record a typed simulated-system observation",
         "tags": [
           "evidence"
+        ]
+      }
+    },
+    "/api/insights/metrics": {
+      "get": {
+        "operationId": "insight_metrics_api_insights_metrics_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InsightMetrics"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Read computed insights",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/api/insights/summaries": {
+      "post": {
+        "operationId": "insight_summary_api_insights_summaries_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InsightSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Create an advisory AI summary",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/api/knowledge/documents": {
+      "get": {
+        "operationId": "list_documents_api_knowledge_documents_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeDocumentList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "List knowledge sources I may see",
+        "tags": [
+          "knowledge"
+        ]
+      },
+      "post": {
+        "operationId": "upload_document_api_knowledge_documents_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_document_api_knowledge_documents_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeDocument"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Upload a draft knowledge document",
+        "tags": [
+          "knowledge"
+        ]
+      }
+    },
+    "/api/knowledge/documents/{document_id}/approve": {
+      "post": {
+        "operationId": "approve_document_api_knowledge_documents__document_id__approve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KnowledgeApprove"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeDocument"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Approve a draft, making it searchable",
+        "tags": [
+          "knowledge"
         ]
       }
     },
@@ -3154,16 +7732,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -3174,6 +7742,82 @@
         "summary": "Read authenticated identity and hire scopes",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/api/metrics": {
+      "get": {
+        "operationId": "metrics_api_metrics_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Metrics"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Read reliability metrics",
+        "tags": [
+          "analytics"
         ]
       }
     },
@@ -3240,16 +7884,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -3260,6 +7894,325 @@
         "summary": "List current user-owned tasks",
         "tags": [
           "planning"
+        ]
+      }
+    },
+    "/api/notifications": {
+      "get": {
+        "operationId": "list_notifications_api_notifications_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Read my notifications",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/notifications/sweep": {
+      "post": {
+        "operationId": "sweep_api_notifications_sweep_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SweepResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Run the deadline escalation sweep",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/notifications/{notification_id}/read": {
+      "post": {
+        "operationId": "mark_read_api_notifications__notification_id__read_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notification_id",
+            "required": true,
+            "schema": {
+              "title": "Notification Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Mark a notification read",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/proposals/{proposal_id}": {
+      "get": {
+        "operationId": "get_proposal_api_proposals__proposal_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Read one proposal",
+        "tags": [
+          "actions"
         ]
       }
     },
@@ -3347,16 +8300,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -3370,8 +8313,85 @@
         ]
       }
     },
+    "/api/questions": {
+      "get": {
+        "operationId": "my_questions_api_questions_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "List questions waiting for me",
+        "tags": [
+          "cases"
+        ]
+      }
+    },
     "/api/questions/{question_id}/responses": {
       "post": {
+        "description": "An answer is information for the investigation. It is never an approval.",
         "operationId": "answer_question_api_questions__question_id__responses_post",
         "parameters": [
           {
@@ -3454,16 +8474,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -3474,6 +8484,82 @@
         "summary": "Answer intended question and queue resume",
         "tags": [
           "cases"
+        ]
+      }
+    },
+    "/api/reference": {
+      "get": {
+        "operationId": "reference_api_reference_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reference"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Read form options for staff screens",
+        "tags": [
+          "planning"
         ]
       }
     },
@@ -3540,16 +8626,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -3636,16 +8712,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "summary": "Create a local demo bearer session",
@@ -3710,16 +8776,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -3730,6 +8786,92 @@
         "summary": "Revoke current bearer session",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/api/sources": {
+      "get": {
+        "operationId": "list_sources_api_sources_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "category",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Category"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceRecordList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "List simulated-system records",
+        "tags": [
+          "evidence"
         ]
       }
     },
@@ -3817,16 +8959,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -3835,6 +8967,200 @@
           }
         ],
         "summary": "Record task completion claim",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/api/tasks/{task_id}/reassign": {
+      "post": {
+        "operationId": "reassign_task_api_tasks__task_id__reassign_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "title": "Task Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskReassign"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Reassign a task",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/api/tasks/{task_id}/start": {
+      "post": {
+        "operationId": "start_task_api_tasks__task_id__start_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "title": "Task Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DemoBearer": []
+          }
+        ],
+        "summary": "Start an owned task",
         "tags": [
           "planning"
         ]
@@ -3914,16 +9240,6 @@
               }
             },
             "description": "Unprocessable Content"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [

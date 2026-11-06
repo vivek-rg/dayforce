@@ -4,11 +4,49 @@ export type AcceptedWork = {
   "work_item_id": string;
 };
 
+export type AccessRequest = {
+  "item": "CORPORATE_EMAIL" | "VPN" | "APPLICATION_ACCESS" | "REQUIRED_SOFTWARE";
+  "detail"?: string;
+};
+
 export type ActionResult = {
   "action_id": string;
   "state": "PENDING" | "RUNNING" | "SUCCEEDED" | "FAILED" | "UNKNOWN";
   "observed": Record<string, string | number | boolean | null>;
   "evidence": Array<Evidence>;
+};
+
+export type AiHealth = {
+  "provider": string;
+  "model": string;
+  "available": boolean;
+  "is_stub": boolean;
+  "detail": string;
+};
+
+export type AiRun = {
+  "id": string;
+  "operation": string;
+  "prompt_version": number;
+  "provider": string;
+  "model": string;
+  "user_id"?: string | null;
+  "hire_id"?: string | null;
+  "case_id"?: string | null;
+  "chunk_ids": Array<string>;
+  "status": "VALIDATED" | "ABSTAINED" | "REJECTED_OUTPUT" | "UNAVAILABLE";
+  "validation_result": string;
+  "failure_reason"?: string | null;
+  "attempts": number;
+  "input_tokens"?: number | null;
+  "output_tokens"?: number | null;
+  "latency_ms": number;
+  "retrieval_ms"?: number | null;
+  "created_at": string;
+};
+
+export type AiRunList = {
+  "items": Array<AiRun>;
 };
 
 export type AnswerRequest = {
@@ -22,11 +60,38 @@ export type AskStep = {
   "evidence_ids": Array<string>;
 };
 
+export type AssistantAnswer = {
+  "status": "ANSWERED" | "PARTIAL" | "NOT_FOUND" | "OUT_OF_SCOPE" | "UNAVAILABLE";
+  "message": string;
+  "claims": Array<AssistantClaim>;
+  "uncertainty": string;
+  "suggest_escalation": boolean;
+  "sources": Array<Citation>;
+  "ai_run_id": string;
+  "model": string;
+  "is_stub": boolean;
+};
+
+export type AssistantClaim = {
+  "text": string;
+  "citations": Array<Citation>;
+};
+
+export type AssistantQuestion = {
+  "question": string;
+};
+
 export type AuditEvent = {
   "id": string;
+  "hire_id"?: string | null;
+  "actor_user_id"?: string | null;
   "event_type": string;
   "summary": string;
   "created_at": string;
+};
+
+export type AuditEventList = {
+  "items": Array<AuditEvent>;
 };
 
 export type BenefitsInput = {
@@ -34,16 +99,29 @@ export type BenefitsInput = {
   "state": "NOT_INVITED" | "INVITED" | "ENROLLED" | "DECLINED";
 };
 
+export type Body_upload_api_hires__hire_id__documents_post = {
+  "category": "government_id" | "address_proof" | "education" | "previous_employment" | "bank_details" | "tax" | "signed_employment";
+  "file": string;
+};
+
+export type Body_upload_document_api_knowledge_documents_post = {
+  "title": string;
+  "access_level": "GENERAL" | "MANAGER" | "IT" | "PAYROLL" | "BENEFITS" | "HR";
+  "file": string;
+};
+
 export type Bootstrap = {
   "project_name": string;
   "message": string;
-  "foundation_only"?: true;
+  "foundation_only"?: false;
 };
 
 export type Case = {
   "id": string;
   "hire_id": string;
   "state": CaseState;
+  "kind": "INVESTIGATION" | "MANUAL";
+  "message": string;
   "version": number;
   "model_calls": number;
   "tool_calls": number;
@@ -57,11 +135,30 @@ export type CaseCreate = {
   "message": string;
 };
 
+export type CaseList = {
+  "items": Array<Case>;
+};
+
 export type CaseState = "OPEN" | "INVESTIGATING" | "WAITING_HUMAN" | "WAITING_APPROVAL" | "EXECUTING" | "RESOLVED" | "ESCALATED";
 
-export type Category = "documents" | "equipment" | "payroll" | "benefits" | "training" | "manager";
+export type Category = "documents" | "equipment" | "it_access" | "payroll" | "benefits" | "training" | "manager";
 
 export type CheckResult = "VERIFIED" | "BLOCKED" | "UNKNOWN" | "NOT_APPLICABLE";
+
+export type Citation = {
+  "chunk_id": string;
+  "document_id": string;
+  "title": string;
+  "version": number;
+  "section_ref": string;
+  "access_level": string;
+  "quote": string;
+};
+
+export type CountItem = {
+  "label": string;
+  "count": number;
+};
 
 export type DecisionRequest = {
   "decision": "APPROVE" | "REJECT";
@@ -75,10 +172,66 @@ export type DecisionResult = {
   "work_item_id"?: string | null;
 };
 
+export type Department = {
+  "id": string;
+  "name": string;
+};
+
+export type DisplayStatus = "NOT_STARTED" | "IN_PROGRESS" | "PENDING_APPROVAL" | "COMPLETED" | "BLOCKED" | "OVERDUE" | "CANCELLED";
+
+export type Document = {
+  "id": string;
+  "hire_id": string;
+  "hire_name": string;
+  "category": "government_id" | "address_proof" | "education" | "previous_employment" | "bank_details" | "tax" | "signed_employment";
+  "state": "SUBMITTED" | "UNDER_REVIEW" | "VERIFIED" | "REJECTED" | "RESUBMISSION_REQUESTED" | "SUPERSEDED";
+  "original_name": string;
+  "mime_type": string;
+  "size_bytes": number;
+  "text_available": boolean;
+  "declared_location_id"?: "HYD-DEMO" | "BLR-DEMO" | null;
+  "version": number;
+  "created_at": string;
+  "reviews": Array<DocumentReview>;
+};
+
+export type DocumentExtraction = {
+  "id": string;
+  "document_id": string;
+  "suggested_category": "government_id" | "address_proof" | "education" | "previous_employment" | "bank_details" | "tax" | "signed_employment";
+  "fields": Array<ExtractedField>;
+  "missing": Array<string>;
+  "mismatches": Array<Mismatch>;
+  "summary": string;
+  "advisory"?: true;
+  "ai_run_id": string;
+  "model": string;
+  "is_stub": boolean;
+  "created_at": string;
+};
+
 export type DocumentInput = {
   "category": "documents";
   "text": string;
   "review_state": "SUBMITTED" | "REVIEWED";
+};
+
+export type DocumentList = {
+  "items": Array<Document>;
+};
+
+export type DocumentReview = {
+  "id": string;
+  "reviewer_user_id": string;
+  "decision": "VERIFY" | "REJECT" | "REQUEST_RESUBMISSION";
+  "reason": string;
+  "created_at": string;
+};
+
+export type DocumentReviewRequest = {
+  "decision": "VERIFY" | "REJECT" | "REQUEST_RESUBMISSION";
+  "reason"?: string;
+  "expected_version": number;
 };
 
 export type EquipmentInput = {
@@ -88,6 +241,13 @@ export type EquipmentInput = {
   "state": "AVAILABLE" | "RESERVED" | "HANDED_OVER";
   "assignee_hire_id"?: string | null;
   "handover_at"?: string | null;
+  "asset_name"?: string;
+  "asset_type"?: string;
+  "serial_number"?: string;
+};
+
+export type EquipmentRequest = {
+  "equipment_record_id": string;
 };
 
 export type ErrorBody = {
@@ -103,6 +263,29 @@ export type ErrorDetail = {
 
 export type ErrorResponse = {
   "error": ErrorBody;
+};
+
+export type Escalation = {
+  "id": string;
+  "raised_by": string;
+  "raised_by_name": string;
+  "question": string;
+  "state": "OPEN" | "ANSWERED";
+  "resolution"?: string | null;
+  "created_at": string;
+};
+
+export type EscalationAnswer = {
+  "answer": string;
+};
+
+export type EscalationCreate = {
+  "question": string;
+  "ai_run_id"?: string | null;
+};
+
+export type EscalationList = {
+  "items": Array<Escalation>;
 };
 
 export type Evidence = {
@@ -135,6 +318,12 @@ export type ExpectedVersions = {
   "source_version"?: number | null;
 };
 
+export type ExtractedField = {
+  "name": string;
+  "value": string;
+  "quote": string;
+};
+
 export type FinishStep = {
   "step": "finish" | "escalate";
   "reason_summary": string;
@@ -144,19 +333,32 @@ export type FinishStep = {
 export type Health = {
   "status"?: "ok";
   "database"?: "ok";
-  "schema_version"?: 1;
+  "schema_version"?: 2;
 };
 
 export type Hire = {
   "display_name": string;
   "worker_type": "employee" | "contractor";
-  "role": "engineer" | "operations_associate";
+  "role": "engineer" | "operations_associate" | "sales_associate";
   "location_id": "HYD-DEMO" | "BLR-DEMO";
   "work_mode": "office" | "remote";
   "start_date": string;
   "manager_user_id": string;
   "employee_user_id"?: string | null;
+  "department_id": string;
+  "designation": string;
+  "work_email": string;
+  "personal_email"?: string | null;
+  "phone"?: string | null;
   "id": string;
+  "employee_code": string;
+  "employment_status": "PRE_JOINING" | "ACTIVE" | "WITHDRAWN";
+  "onboarding_status": "NOT_STARTED" | "IN_PROGRESS" | "BLOCKED" | "COMPLETED";
+  "tasks_completed": number;
+  "tasks_total": number;
+  "tasks_overdue": number;
+  "created_at": string;
+  "completed_at"?: string | null;
   "profile_version": number;
   "plan_version": number;
 };
@@ -164,22 +366,89 @@ export type Hire = {
 export type HireCreate = {
   "display_name": string;
   "worker_type": "employee" | "contractor";
-  "role": "engineer" | "operations_associate";
+  "role": "engineer" | "operations_associate" | "sales_associate";
   "location_id": "HYD-DEMO" | "BLR-DEMO";
   "work_mode": "office" | "remote";
   "start_date": string;
   "manager_user_id": string;
   "employee_user_id"?: string | null;
+  "department_id": string;
+  "designation": string;
+  "work_email": string;
+  "personal_email"?: string | null;
+  "phone"?: string | null;
 };
 
 export type HireList = {
   "items": Array<Hire>;
 };
 
+export type HirePatch = {
+  "expected_profile_version": number;
+  "designation"?: string | null;
+  "work_email"?: string | null;
+  "personal_email"?: string | null;
+  "phone"?: string | null;
+  "department_id"?: string | null;
+  "employment_status"?: "PRE_JOINING" | "ACTIVE" | "WITHDRAWN" | null;
+};
+
+export type InsightEvidence = {
+  "ref": string;
+  "label": string;
+};
+
+export type InsightMetric = {
+  "id": string;
+  "label": string;
+  "value": number;
+  "evidence": Array<InsightEvidence>;
+};
+
+export type InsightMetrics = {
+  "metrics": Array<InsightMetric>;
+};
+
+export type InsightSummary = {
+  "summary": string;
+  "recommendations": Array<ModelRecommendation>;
+  "advisory"?: true;
+  "ai_run_id": string;
+  "model": string;
+  "is_stub": boolean;
+  "metrics": Array<InsightMetric>;
+};
+
 export type InvestigationContext = {
   "user": User;
   "hire_id": string;
   "case_id": string;
+};
+
+export type ItAccessInput = {
+  "category": "it_access";
+  "item": "CORPORATE_EMAIL" | "VPN" | "APPLICATION_ACCESS" | "REQUIRED_SOFTWARE";
+  "detail"?: string;
+  "state": "REQUESTED" | "PROVISIONED";
+  "simulated"?: true;
+};
+
+export type KnowledgeApprove = {
+  "version": number;
+};
+
+export type KnowledgeDocument = {
+  "id": string;
+  "version": number;
+  "title": string;
+  "access_level": "GENERAL" | "MANAGER" | "IT" | "PAYROLL" | "BENEFITS" | "HR";
+  "status": "DRAFT" | "APPROVED" | "RETIRED";
+  "chunk_count": number;
+  "created_at": string;
+};
+
+export type KnowledgeDocumentList = {
+  "items": Array<KnowledgeDocument>;
 };
 
 export type LocationAction = {
@@ -198,14 +467,82 @@ export type ManagerInput = {
   "first_week_plan": string;
 };
 
+export type Metrics = {
+  "api_requests": number;
+  "api_p50_ms": number;
+  "api_p95_ms": number;
+  "api_errors": number;
+  "retrieval_average_ms"?: number | null;
+  "operations": Array<OperationMetric>;
+  "work_failed": number;
+  "actions_failed": number;
+  "task_completion_rate": number;
+};
+
+export type Mismatch = {
+  "field": string;
+  "document_value": string;
+  "profile_value": string;
+};
+
+export type ModelRecommendation = {
+  "text": string;
+  "evidence_refs": Array<string>;
+};
+
 export type NextStep = {
   "next_step": ReadStep | AskStep | ProposeStep | FinishStep;
+};
+
+export type Notification = {
+  "id": string;
+  "type": string;
+  "title": string;
+  "body": string;
+  "hire_id"?: string | null;
+  "task_id"?: string | null;
+  "read": boolean;
+  "created_at": string;
+};
+
+export type NotificationList = {
+  "items": Array<Notification>;
+  "unread": number;
+};
+
+export type OperationMetric = {
+  "operation": string;
+  "runs": number;
+  "validated": number;
+  "abstained": number;
+  "rejected": number;
+  "unavailable": number;
+  "average_latency_ms": number;
+  "total_tokens": number;
+};
+
+export type Overview = {
+  "total_employees": number;
+  "onboarding_in_progress": number;
+  "onboarding_completed": number;
+  "tasks_pending": number;
+  "tasks_overdue": number;
+  "documents_awaiting": number;
+  "claims_without_proof": number;
+  "average_completion_days"?: number | null;
+  "by_department": Array<CountItem>;
+  "by_location": Array<CountItem>;
+  "equipment": Array<CountItem>;
+  "upcoming": Array<UpcomingJoiner>;
+  "recent": Array<AuditEvent>;
 };
 
 export type PayrollInput = {
   "category": "payroll";
   "profile_created": boolean;
   "setup_confirmed": boolean;
+  "bank_submitted"?: boolean;
+  "tax_submitted"?: boolean;
 };
 
 export type Plan = {
@@ -223,7 +560,7 @@ export type PlanDiff = {
 };
 
 export type PreviewRequest = {
-  "case_id": string;
+  "case_id"?: string | null;
   "location_id": "HYD-DEMO" | "BLR-DEMO";
   "expected_profile_version": number;
 };
@@ -231,12 +568,17 @@ export type PreviewRequest = {
 export type Proposal = {
   "id": string;
   "case_id": string;
+  "hire_id": string;
+  "hire_name": string;
   "payload": LocationAction | ReservationAction;
   "evidence_ids": Array<string>;
   "expected_versions": ExpectedVersions;
   "reviewer_role": "HR" | "IT";
   "expires_at": string;
   "plan_diff"?: PlanDiff | null;
+  "decision"?: "APPROVE" | "REJECT" | null;
+  "action_state"?: "PENDING" | "RUNNING" | "SUCCEEDED" | "FAILED" | "UNKNOWN" | null;
+  "outcome"?: string | null;
 };
 
 export type ProposalList = {
@@ -259,10 +601,21 @@ export type Question = {
   "answer"?: string | null;
 };
 
+export type QuestionList = {
+  "items": Array<Question>;
+};
+
 export type ReadStep = {
   "step": "read";
   "tool": "get_hire_context" | "get_onboarding_tasks" | "get_document_evidence" | "get_applicable_policy" | "get_equipment_status" | "get_payroll_setup_status" | "get_task_outcome_evidence";
   "reason_summary": string;
+};
+
+export type Reference = {
+  "departments": Array<Department>;
+  "locations": Array<"HYD-DEMO" | "BLR-DEMO">;
+  "users": Array<UserSummary>;
+  "available_employee_user_ids": Array<string>;
 };
 
 export type ReservationAction = {
@@ -282,32 +635,54 @@ export type Session = {
 export type SourceRecord = {
   "id": string;
   "hire_id": string | null;
+  "hire_name"?: string | null;
   "version": number;
   "source_system"?: "demo";
   "observed_at": string;
-  "payload": DocumentInput | EquipmentInput | PayrollInput | BenefitsInput | TrainingInput | ManagerInput;
+  "payload": DocumentInput | EquipmentInput | ItAccessInput | PayrollInput | BenefitsInput | TrainingInput | ManagerInput;
+};
+
+export type SourceRecordList = {
+  "items": Array<SourceRecord>;
 };
 
 export type SourceWrite = {
   "expected_version": number;
-  "payload": DocumentInput | EquipmentInput | PayrollInput | BenefitsInput | TrainingInput | ManagerInput;
+  "payload": DocumentInput | EquipmentInput | ItAccessInput | PayrollInput | BenefitsInput | TrainingInput | ManagerInput;
+};
+
+export type SweepResult = {
+  "notifications_created": number;
 };
 
 export type Task = {
   "id": string;
   "hire_id": string;
+  "hire_name": string;
   "category": Category;
   "title": string;
+  "description": string;
   "owner_user_id": string;
+  "owner_name": string;
   "due_date": string;
+  "priority": "LOW" | "MEDIUM" | "HIGH";
   "critical": boolean;
   "work_state": WorkState;
+  "display_status": DisplayStatus;
+  "check_type"?: string | null;
+  "evidence_result"?: CheckResult | null;
+  "completed_at"?: string | null;
   "version": number;
   "depends_on": Array<string>;
 };
 
 export type TaskList = {
   "items": Array<Task>;
+};
+
+export type TaskReassign = {
+  "expected_version": number;
+  "owner_user_id": string;
 };
 
 export type ToolObservation = {
@@ -322,11 +697,24 @@ export type TrainingInput = {
   "state": "ASSIGNED" | "COMPLETED";
 };
 
+export type UpcomingJoiner = {
+  "hire_id": string;
+  "display_name": string;
+  "start_date": string;
+  "location_id": "HYD-DEMO" | "BLR-DEMO";
+};
+
 export type User = {
   "id": string;
   "display_name": string;
   "role": Role;
   "hire_ids": Array<string>;
+};
+
+export type UserSummary = {
+  "id": string;
+  "display_name": string;
+  "role": Role;
 };
 
 export type VersionRequest = {

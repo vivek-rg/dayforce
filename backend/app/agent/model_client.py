@@ -1,11 +1,28 @@
-"""Track 6/P04: exactly two configured branches, same shared NextStep validation."""
+"""The agent's one model seam, delegating to the shared AI harness."""
 
-from typing import Any
+from collections.abc import Callable
 
-from app.shared.contracts import NextStep
+from app.ai.harness import RunResult, run_operation
+from app.ai.prompts import AGENT_SYSTEM, agent_user
 
 
-def generate_next_step(messages: list[dict[str, str]], schema: dict[str, Any]) -> NextStep:
-    # TODO P04: Ollama format or approved HTTPS response_format; key stays on server.
-    # TODO P04: count SDK retries/timeouts; never silently fall back to cloud.
-    raise NotImplementedError("P04: generate_next_step")
+def generate_next_step(
+    message: str,
+    steps_json: str,
+    *,
+    user_id: str,
+    hire_id: str,
+    case_id: str,
+    before_attempt: Callable[[], bool],
+) -> RunResult:
+    return run_operation(
+        "agent.next_step",
+        [
+            {"role": "system", "content": AGENT_SYSTEM},
+            {"role": "user", "content": agent_user(message, steps_json)},
+        ],
+        user_id=user_id,
+        hire_id=hire_id,
+        case_id=case_id,
+        before_attempt=before_attempt,
+    )

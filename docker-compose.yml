@@ -1,0 +1,12 @@
+# Optional. Published on loopback only. Seed once with:
+#   docker compose run --rm app python fixtures/seed.py
+services:
+  app:
+    build: .
+    env_file: .env
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - onboardiq-data:/app/.runtime
+volumes:
+  onboardiq-data:
