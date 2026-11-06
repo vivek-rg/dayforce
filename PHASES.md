@@ -16,6 +16,8 @@ For each phase: understand its problem → claim owner → follow the task list 
 
 **Foundation CI fix R04:** [x] reproduced and fixed Python 3.12/3.13 HTTP 422 description drift; regression failed before the fix and all 16 backend tests pass on both interpreters afterward. Full npm check passes; hosted CI rerun is still required. Write boundary: backend/app/main.py (shared response description only), backend/tests/test_contracts.py, PHASES.md, CHANGES.md and docs/VERIFICATION.md; generated docs/API_SPEC.md, docs/openapi.json and frontend/src/shared/api-types.ts only via the existing exporter if regeneration actually changes them. Regeneration produced no file changes. No business behavior, dependency, schema, auth or provider changes.
 
+**Foundation CI fix R05:** [x] repaired npm-generated Rollup/esbuild platform metadata without upgrading existing package versions; regression guard failed on the old lockfile and now passes. Full check and clean Windows frontend lint/tests/build passed; a Linux-targeted clean install contains the required GNU binaries, but hosted Ubuntu execution still needs rerunning. Write boundary: package-lock.json (npm-generated), package.json (lockfile check wiring only), scripts/check-lockfile.mjs, PHASES.md, CHANGES.md and docs/VERIFICATION.md. Remain on fix/portable-openapi-snapshot; no further branches. No runtime/business/API/schema/dependency-version changes.
+
 ## Dependency lanes and ownership
 
 | Lane | Build order / who can start |
