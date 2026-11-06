@@ -1,18 +1,17 @@
-# Render Blueprint. One instance only: SQLite and uploaded documents live on the attached disk.
+# Render Blueprint on the free plan. Free instances have no persistent disk, so the SQLite
+# database resets whenever the service sleeps or redeploys; scripts/serve.py re-seeds it on boot.
+# For data that survives restarts, switch to plan: starter and attach a disk at /data with
+# DATABASE_PATH=/data/dayone.db.
 services:
   - type: web
     name: dayforce
     runtime: docker
-    plan: starter
+    plan: free
     region: singapore
     healthCheckPath: /api/health
-    disk:
-      name: data
-      mountPath: /data
-      sizeGB: 1
     envVars:
       - key: DATABASE_PATH
-        value: /data/dayone.db
+        value: .runtime/dayone.db
       - key: LLM_PROVIDER
         value: hosted
       - key: LLM_MODEL
