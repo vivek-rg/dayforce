@@ -129,12 +129,30 @@ def metrics(user: User = Depends(require_user)):
 def ai_health(user: User = Depends(require_user)):
     provider = current_provider()
     available = provider.name != "none"
+    with connect() as connection:
+        latest = connection.execute(
+            "SELECT status, failure_reason FROM ai_runs WHERE status!='ABSTAINED' "
+            "ORDER BY created_at DESC, rowid DESC LIMIT 1"
+        ).fetchone()
+    problem = latest["failure_reason"] if latest and latest["status"] == "UNAVAILABLE" else None
     if provider.is_stub:
         detail = "Offline rules are active. This is not a real AI model."
-    elif available:
-        detail = "A model is configured. Live availability is checked on each call."
+    elif not available:
+        detail = (
+            "No API key is set. Paste a Groq key after LLM_API_KEY= in the .env file. "
+            "All manual workflows still work."
+        )
+    elif problem == "MODEL_RATE_LIMITED":
+        detail = (
+            "The last AI call hit the provider's limit. Wait a minute, or paste another key "
+            "after LLM_API_KEY= in the .env file. No restart is needed."
+        )
+    elif problem == "MODEL_HTTP_401":
+        detail = "The API key was rejected. Paste a valid key after LLM_API_KEY= in the .env file."
+    elif problem:
+        detail = "The last AI call failed. Manual workflows still work."
     else:
-        detail = "No AI model is configured. All manual workflows still work."
+        detail = "A model is configured. To use your own key, change LLM_API_KEY in the .env file."
     return AiHealth(
         provider=provider.name,
         model=provider.model,

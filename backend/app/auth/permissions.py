@@ -29,6 +29,7 @@ PERMISSIONS: dict[str, frozenset[Role]] = {
     "audit.read": frozenset({Role.HR}),
     "metrics.read": frozenset({Role.HR}),
     "sweep.run": frozenset({Role.HR}),
+    "password.reset": frozenset({Role.HR}),
 }
 
 # Who may write each simulated-system category, once the hire is in scope.

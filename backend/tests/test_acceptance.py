@@ -6,14 +6,16 @@ import pytest
 from app.main import app
 from app.shared.db import connect, initialize
 
-PUBLIC = {"/api/health", "/api/bootstrap", "/api/sessions"}
+PUBLIC = {"/api/health", "/api/bootstrap", "/api/sessions", "/api/accounts"}
+PUBLIC_METHODS = {("POST", "/api/password-resets")}
 
 
 def api_routes():
     for path, methods in app.openapi()["paths"].items():
         if path not in PUBLIC:
             for method in methods:
-                yield method.upper(), path
+                if (method.upper(), path) not in PUBLIC_METHODS:
+                    yield method.upper(), path
 
 
 def test_every_business_route_requires_a_session(world):

@@ -5,6 +5,7 @@ from app.agent.worker import process_pending_work, reconcile_after_restart
 from app.ai import providers
 from app.ai.providers import HostedProvider, OllamaProvider, ProviderError, set_provider_for_tests
 from app.ai.stub import StubProvider
+from app.shared import config
 from app.shared.db import connect
 
 from .helpers import Scripted
@@ -338,6 +339,33 @@ def test_malformed_json_reported_as_400_goes_to_repair(monkeypatch):
         raise AssertionError("expected failure")
     except ProviderError as exc:
         assert str(exc) == "MODEL_HTTP_400"
+
+
+def test_pasted_key_works_without_a_restart(tmp_path, monkeypatch):
+    env_file = tmp_path / ".env"
+    env_file.write_text("LLM_API_KEY=\n", encoding="utf-8")
+    monkeypatch.setattr(config, "ENV_FILE", env_file)
+    monkeypatch.setattr(config, "_FILE_AT_START", {"LLM_API_KEY": ""})
+    monkeypatch.setenv("LLM_API_KEY", "")
+    set_provider_for_tests(None)
+    monkeypatch.setenv("LLM_PROVIDER", "hosted")
+    monkeypatch.setenv("LLM_MODEL", "m")
+    monkeypatch.setenv("LLM_BASE_URL", "https://api.example.invalid/v1")
+    assert providers.current_provider().name == "none"
+    env_file.write_text("LLM_API_KEY=first-key\n", encoding="utf-8")
+    assert providers.current_provider().api_key == "first-key"
+    env_file.write_text("LLM_API_KEY= second-key \n", encoding="utf-8")
+    assert providers.current_provider().api_key == "second-key"
+
+
+def test_status_tells_the_person_what_to_do_about_a_key(world):
+    assert "Paste a Groq key" in world.get("U_HR", "/health/ai").json()["detail"]
+    set_provider_for_tests(Scripted(ProviderError("MODEL_RATE_LIMITED")))
+    world.post("U_PRIYA", "/assistant/questions", {"question": "How do I request a laptop?"})
+    assert "paste another key" in world.get("U_HR", "/health/ai").json()["detail"]
+    set_provider_for_tests(Scripted(ProviderError("MODEL_HTTP_401")))
+    world.post("U_PRIYA", "/assistant/questions", {"question": "How do I request a laptop?"})
+    assert "key was rejected" in world.get("U_HR", "/health/ai").json()["detail"]
 
 
 def test_insecure_hosted_url_disables_ai(monkeypatch):

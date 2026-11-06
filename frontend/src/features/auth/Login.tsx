@@ -1,4 +1,5 @@
 import { type FormEvent, type ReactNode, useEffect, useState } from "react";
+import { api } from "../../shared/api";
 import { useAction } from "../../shared/hooks";
 import { useSession } from "../../shared/session-context";
 import { ActionError, Notice } from "../../shared/ui";
@@ -101,61 +102,326 @@ function Icon({ children }: { children: ReactNode }) {
   );
 }
 
-function GoogleLogo() {
+type Mode = "signin" | "forgot" | "signup";
+
+function EmailField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
   return (
-    <svg width="24" height="24" viewBox="0 0 48 48" aria-hidden="true">
-      <path
-        fill="#EA4335"
-        d="M24 9.5c3.5 0 6.7 1.2 9.2 3.6l6.9-6.9C35.9 2.4 30.5 0 24 0 14.6 0 6.5 5.4 2.6 13.2l8 6.2C12.5 13.6 17.8 9.5 24 9.5z"
-      />
-      <path
-        fill="#4285F4"
-        d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.2 5.5-4.7 7.2l7.7 6c4.5-4.2 7.1-10.3 7.1-17.7z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M10.6 28.6A14.5 14.5 0 0 1 9.8 24c0-1.6.3-3.2.8-4.6l-8-6.2A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l8-6.2z"
-      />
-      <path
-        fill="#34A853"
-        d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.2 1.5-5 2.3-8.2 2.3-6.2 0-11.5-4.2-13.4-9.9l-8 6.2C6.5 42.6 14.6 48 24 48z"
-      />
-    </svg>
+    <div>
+      <label className="auth-label" htmlFor="login-email">
+        Email Address
+      </label>
+      <div className="auth-input">
+        <Icon>
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="m3 7 9 6 9-6" />
+        </Icon>
+        <input
+          id="login-email"
+          value={value}
+          placeholder="Enter your email"
+          onChange={(event) => onChange(event.target.value)}
+          autoComplete="username"
+          inputMode="email"
+          spellCheck={false}
+          autoCapitalize="none"
+          required
+        />
+      </div>
+    </div>
   );
 }
 
-function MicrosoftLogo() {
+function PasswordField({
+  value,
+  onChange,
+  autoComplete,
+  placeholder = "Enter your password",
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  autoComplete: string;
+  placeholder?: string;
+}) {
+  const [visible, setVisible] = useState(false);
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-      <path fill="#F25022" d="M1 1h10.5v10.5H1z" />
-      <path fill="#7FBA00" d="M12.5 1H23v10.5H12.5z" />
-      <path fill="#00A4EF" d="M1 12.5h10.5V23H1z" />
-      <path fill="#FFB900" d="M12.5 12.5H23V23H12.5z" />
-    </svg>
+    <div>
+      <label className="auth-label" htmlFor="login-password">
+        Password
+      </label>
+      <div className="auth-input">
+        <Icon>
+          <rect x="5" y="11" width="14" height="10" rx="2" />
+          <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+          <path d="M12 15v2" />
+        </Icon>
+        <input
+          id="login-password"
+          type={visible ? "text" : "password"}
+          value={value}
+          placeholder={placeholder}
+          onChange={(event) => onChange(event.target.value)}
+          autoComplete={autoComplete}
+          required
+        />
+        <button
+          type="button"
+          className="auth-eye"
+          aria-label={visible ? "Hide password" : "Show password"}
+          aria-pressed={visible}
+          onClick={() => setVisible((current) => !current)}
+        >
+          <Icon>
+            <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z" />
+            <circle cx="12" cy="12" r="3" />
+            {!visible && <path d="M4 4l16 16" />}
+          </Icon>
+        </button>
+      </div>
+    </div>
   );
 }
 
-const MESSAGES = {
-  forgot:
-    "Passwords can't be reset from this demo. Ask your OnboardIQ administrator for the demo password.",
-  google:
-    "Google sign-in isn't connected in this demo. Use your email and password.",
-  microsoft:
-    "Microsoft sign-in isn't connected in this demo. Use your email and password.",
-  create:
-    "Accounts are created by HR during onboarding, so there is no self sign-up. Open Demo accounts below to try one.",
-};
-
-export function LoginPage() {
+function SignInForm({ onMode }: { onMode: (mode: Mode) => void }) {
   const { login, expired } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [tooShort, setTooShort] = useState(false);
-  const [missingEmail, setMissingEmail] = useState(false);
-  const [message, setMessage] = useState<keyof typeof MESSAGES | null>(null);
-  const [slide, setSlide] = useState(0);
+  const [problem, setProblem] = useState<string | null>(null);
   const action = useAction();
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (!email.trim()) return setProblem("Enter your email address.");
+    if (password.length < MIN_PASSWORD) {
+      return setProblem(
+        `Password must be at least ${MIN_PASSWORD} characters.`,
+      );
+    }
+    setProblem(null);
+    await action.run(() => login(email.trim(), password));
+  }
+
+  return (
+    <>
+      <h2 id="login-title">Welcome Back 👋</h2>
+      <p className="auth-subtitle">Sign in to your OnboardIQ account</p>
+      <form
+        className="auth-form"
+        onSubmit={(event) => void submit(event)}
+        noValidate
+      >
+        {expired && (
+          <Notice tone="warn" title="Your session ended">
+            Sign in again to continue.
+          </Notice>
+        )}
+        <EmailField value={email} onChange={setEmail} />
+        <PasswordField
+          value={password}
+          onChange={setPassword}
+          autoComplete="current-password"
+        />
+        <button
+          type="button"
+          className="auth-link auth-forgot"
+          onClick={() => onMode("forgot")}
+        >
+          Forgot password?
+        </button>
+        {problem && (
+          <p className="auth-field-error" role="alert">
+            {problem}
+          </p>
+        )}
+        <ActionError error={action.error} />
+        <button type="submit" className="auth-submit" disabled={action.pending}>
+          {action.pending ? "Signing in" : "Sign In"}
+        </button>
+      </form>
+      <p className="auth-new">
+        New to OnboardIQ?{" "}
+        <button
+          type="button"
+          className="auth-link"
+          onClick={() => onMode("signup")}
+        >
+          Create an account
+        </button>
+      </p>
+      <details className="auth-demo">
+        <summary>Demo accounts</summary>
+        <ul>
+          {DEMO_USERS.map(([address, role]) => (
+            <li key={address}>
+              <button
+                type="button"
+                className="auth-demo-user"
+                onClick={() => setEmail(address)}
+              >
+                {role}
+                <small>{address}</small>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </details>
+    </>
+  );
+}
+
+function ForgotForm({ onMode }: { onMode: (mode: Mode) => void }) {
+  const [email, setEmail] = useState("");
+  const [sent, setSent] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  const action = useAction();
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (!email.trim()) return setProblem("Enter your email address.");
+    setProblem(null);
+    const result = await action.run(() =>
+      api.requestPasswordReset(email.trim()),
+    );
+    if (result.ok) setSent(true);
+  }
+
+  return (
+    <>
+      <h2 id="login-title">Reset your password</h2>
+      <p className="auth-subtitle">HR will give you a temporary password.</p>
+      {sent ? (
+        <div className="auth-form">
+          <Notice tone="info" title="Request sent">
+            If that account exists, HR has been told. They will give you a
+            temporary password to sign in with.
+          </Notice>
+        </div>
+      ) : (
+        <form
+          className="auth-form"
+          onSubmit={(event) => void submit(event)}
+          noValidate
+        >
+          <EmailField value={email} onChange={setEmail} />
+          {problem && (
+            <p className="auth-field-error" role="alert">
+              {problem}
+            </p>
+          )}
+          <ActionError error={action.error} />
+          <button
+            type="submit"
+            className="auth-submit"
+            disabled={action.pending}
+          >
+            {action.pending ? "Sending" : "Request Reset"}
+          </button>
+        </form>
+      )}
+      <p className="auth-new">
+        <button
+          type="button"
+          className="auth-link"
+          onClick={() => onMode("signin")}
+        >
+          Back to sign in
+        </button>
+      </p>
+    </>
+  );
+}
+
+function SignUpForm({ onMode }: { onMode: (mode: Mode) => void }) {
+  const { signUp } = useSession();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [problem, setProblem] = useState<string | null>(null);
+  const action = useAction();
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (!name.trim()) return setProblem("Enter your full name.");
+    if (!email.trim()) return setProblem("Enter your email address.");
+    if (password.length < MIN_PASSWORD) {
+      return setProblem(
+        `Password must be at least ${MIN_PASSWORD} characters.`,
+      );
+    }
+    setProblem(null);
+    await action.run(() => signUp(name.trim(), email.trim(), password));
+  }
+
+  return (
+    <>
+      <h2 id="login-title">Create your account</h2>
+      <p className="auth-subtitle">
+        For new employees. HR then links you to your onboarding plan.
+      </p>
+      <form
+        className="auth-form"
+        onSubmit={(event) => void submit(event)}
+        noValidate
+      >
+        <div>
+          <label className="auth-label" htmlFor="signup-name">
+            Full Name
+          </label>
+          <div className="auth-input">
+            <Icon>
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21c1-4 4-6 8-6s7 2 8 6" />
+            </Icon>
+            <input
+              id="signup-name"
+              value={name}
+              placeholder="Enter your full name"
+              maxLength={200}
+              onChange={(event) => setName(event.target.value)}
+              autoComplete="name"
+              required
+            />
+          </div>
+        </div>
+        <EmailField value={email} onChange={setEmail} />
+        <PasswordField
+          value={password}
+          onChange={setPassword}
+          autoComplete="new-password"
+          placeholder="At least 12 characters"
+        />
+        {problem && (
+          <p className="auth-field-error" role="alert">
+            {problem}
+          </p>
+        )}
+        <ActionError error={action.error} />
+        <button type="submit" className="auth-submit" disabled={action.pending}>
+          {action.pending ? "Creating" : "Create Account"}
+        </button>
+      </form>
+      <p className="auth-new">
+        Already have an account?{" "}
+        <button
+          type="button"
+          className="auth-link"
+          onClick={() => onMode("signin")}
+        >
+          Sign in
+        </button>
+      </p>
+    </>
+  );
+}
+
+export function LoginPage() {
+  const [mode, setMode] = useState<Mode>("signin");
+  const [slide, setSlide] = useState(0);
   const current = SLIDES[slide];
 
   useEffect(() => {
@@ -166,22 +432,6 @@ export function LoginPage() {
     );
     return () => window.clearTimeout(timer);
   }, [slide]);
-
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    setMessage(null);
-    if (!email.trim()) {
-      setMissingEmail(true);
-      return;
-    }
-    setMissingEmail(false);
-    if (password.length < MIN_PASSWORD) {
-      setTooShort(true);
-      return;
-    }
-    setTooShort(false);
-    await action.run(() => login(email.trim(), password));
-  }
 
   return (
     <main className="auth">
@@ -277,151 +527,9 @@ export function LoginPage() {
       </section>
       <section className="auth-panel" aria-labelledby="login-title">
         <div className="auth-card">
-          <h2 id="login-title">Welcome Back 👋</h2>
-          <p className="auth-subtitle">Sign in to your OnboardIQ account</p>
-          <form
-            className="auth-form"
-            onSubmit={(event) => void submit(event)}
-            noValidate
-          >
-            {expired && (
-              <Notice tone="warn" title="Your session ended">
-                Sign in again to continue.
-              </Notice>
-            )}
-            <div>
-              <label className="auth-label" htmlFor="login-email">
-                Email Address
-              </label>
-              <div className="auth-input">
-                <Icon>
-                  <rect x="3" y="5" width="18" height="14" rx="2" />
-                  <path d="m3 7 9 6 9-6" />
-                </Icon>
-                <input
-                  id="login-email"
-                  value={email}
-                  placeholder="Enter your email"
-                  onChange={(event) => setEmail(event.target.value)}
-                  autoComplete="username"
-                  inputMode="email"
-                  spellCheck={false}
-                  autoCapitalize="none"
-                  required
-                />
-              </div>
-              {missingEmail && (
-                <p className="auth-field-error" role="alert">
-                  Enter your email address.
-                </p>
-              )}
-            </div>
-            <div>
-              <label className="auth-label" htmlFor="login-password">
-                Password
-              </label>
-              <div className="auth-input">
-                <Icon>
-                  <rect x="5" y="11" width="14" height="10" rx="2" />
-                  <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-                  <path d="M12 15v2" />
-                </Icon>
-                <input
-                  id="login-password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  placeholder="Enter your password"
-                  onChange={(event) => setPassword(event.target.value)}
-                  autoComplete="current-password"
-                  required
-                />
-                <button
-                  type="button"
-                  className="auth-eye"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  aria-pressed={showPassword}
-                  onClick={() => setShowPassword((value) => !value)}
-                >
-                  <Icon>
-                    <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z" />
-                    <circle cx="12" cy="12" r="3" />
-                    {!showPassword && <path d="M4 4l16 16" />}
-                  </Icon>
-                </button>
-              </div>
-              {tooShort && (
-                <p className="auth-field-error" role="alert">
-                  Password must be at least {MIN_PASSWORD} characters.
-                </p>
-              )}
-            </div>
-            <button
-              type="button"
-              className="auth-link auth-forgot"
-              onClick={() => setMessage("forgot")}
-            >
-              Forgot password?
-            </button>
-            <ActionError error={action.error} />
-            <button
-              type="submit"
-              className="auth-submit"
-              disabled={action.pending}
-            >
-              {action.pending ? "Signing in" : "Sign In"}
-            </button>
-          </form>
-          <div className="auth-form">
-            <p className="auth-or">or continue with</p>
-            <div className="auth-sso-group">
-              <button
-                type="button"
-                className="auth-sso"
-                onClick={() => setMessage("google")}
-              >
-                <GoogleLogo /> Continue with Google
-              </button>
-              <button
-                type="button"
-                className="auth-sso"
-                onClick={() => setMessage("microsoft")}
-              >
-                <MicrosoftLogo /> Continue with Microsoft
-              </button>
-            </div>
-          </div>
-          {message && (
-            <div style={{ marginTop: 14 }}>
-              <Notice tone="info">{MESSAGES[message]}</Notice>
-            </div>
-          )}
-          <p className="auth-new">
-            New to OnboardIQ?{" "}
-            <button
-              type="button"
-              className="auth-link"
-              onClick={() => setMessage("create")}
-            >
-              Create an account
-            </button>
-          </p>
-          <details className="auth-demo">
-            <summary>Demo accounts</summary>
-            <ul>
-              {DEMO_USERS.map(([address, role]) => (
-                <li key={address}>
-                  <button
-                    type="button"
-                    className="auth-demo-user"
-                    onClick={() => setEmail(address)}
-                  >
-                    {role}
-                    <small>{address}</small>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </details>
+          {mode === "signin" && <SignInForm onMode={setMode} />}
+          {mode === "forgot" && <ForgotForm onMode={setMode} />}
+          {mode === "signup" && <SignUpForm onMode={setMode} />}
           <p className="auth-note muted small">
             Demo environment. All data is synthetic.
           </p>

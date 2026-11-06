@@ -9,7 +9,7 @@ All routes below are implemented and covered by tests in `backend/tests`. OpenAP
 ## Global rules
 
 - All paths below include `/api`. JSON only; reject extra input fields. IDs are opaque strings, never array indexes. Never infer permission from a supplied ID.
-- `Authorization: Bearer <token>` for all business endpoints except login. No cookie sessions, browser role header, public registration, or arbitrary tool endpoint. Eight-hour server expiry; logout revokes token. Store hashes, not raw tokens/passwords.
+- `Authorization: Bearer <token>` for all business endpoints except login. No cookie sessions, browser role header, or arbitrary tool endpoint. Eight-hour server expiry; logout revokes token. Store hashes, not raw tokens/passwords.
 - ISO date-only joining/deadline dates; UTC timestamps. Lists are `{items: [...]}`; empty is `[]`. Local fixture size is at most six hires; pagination is deferred. A case response returns at most the 100 newest timeline items chronologically; history remains in storage. Never silently truncate decision evidence.
 - Unknown resource: 404. Existing out-of-scope resource: indistinguishable 404. Known in-scope record but wrong operation/role: 403. Missing/expired token: 401. Invalid shape: 422; stale version/state/policy or unsupported pack: 409. Unexpected server failures must be sanitized 500, never traceback/secret data.
 - Duplicate same question answer or decision returns its existing accepted result. Different answer after ANSWERED or different decision after recorded decision: 409. Approval queues work, not execution success. Recheck inputs at execution.
@@ -159,6 +159,117 @@ Read authenticated identity and hire scopes
   "hire_ids": [
     "sample_value"
   ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/accounts`
+
+Create a new employee account
+
+**Authority:** Public. Always creates an EMPLOYEE with no hire scope until HR links them.
+
+**Parameters:** none.
+
+**Request body:** AccountCreate
+
+```json
+{
+  "display_name": "sample_value",
+  "email": "sample_value",
+  "password": "sample_value"
+}
+```
+
+**Success 201:** Session
+
+```json
+{
+  "access_token": "sample_value",
+  "token_type": "bearer",
+  "expires_at": "2026-11-06T10:00:00Z",
+  "user": {
+    "id": "sample_value",
+    "display_name": "sample_value",
+    "role": "HR",
+    "hire_ids": [
+      "sample_value"
+    ]
+  }
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `GET /api/password-resets`
+
+List open reset requests
+
+**Authority:** HR only.
+
+**Parameters:** none.
+
+**Request body:** none.
+
+**Success 200:** PasswordResetList
+
+```json
+{
+  "items": [
+    {
+      "id": "sample_value",
+      "display_name": "sample_value",
+      "email": "sample_value",
+      "role": "sample_value",
+      "created_at": "2026-11-06T10:00:00Z"
+    }
+  ]
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/password-resets`
+
+Ask HR for a password reset
+
+**Authority:** Public. Same reply whether or not the account exists.
+
+**Parameters:** none.
+
+**Request body:** PasswordResetCreate
+
+```json
+{
+  "email": "sample_value"
+}
+```
+
+**Success 202:** unknown
+
+```json
+"sample_value"
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
+### `POST /api/password-resets/{reset_id}/temporary-password`
+
+Issue a temporary password, shown once
+
+**Authority:** HR only. The password is returned once and stored only as a hash.
+
+**Parameters:** `reset_id` (path, string, required).
+
+**Request body:** none.
+
+**Success 200:** TemporaryPassword
+
+```json
+{
+  "display_name": "sample_value",
+  "temporary_password": "sample_value"
 }
 ```
 
@@ -2445,6 +2556,41 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
     "item"
   ],
   "title": "AccessRequest"
+}
+```
+
+### AccountCreate
+
+```json
+{
+  "properties": {
+    "display_name": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Display Name"
+    },
+    "email": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 3,
+      "title": "Email"
+    },
+    "password": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 12,
+      "title": "Password"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "display_name",
+    "email",
+    "password"
+  ],
+  "title": "AccountCreate"
 }
 ```
 
@@ -5997,6 +6143,100 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
 }
 ```
 
+### PasswordReset
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "title": "Id"
+    },
+    "display_name": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Display Name"
+    },
+    "email": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Email"
+    },
+    "role": {
+      "type": "string",
+      "title": "Role"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "display_name",
+    "role",
+    "created_at"
+  ],
+  "title": "PasswordReset"
+}
+```
+
+### PasswordResetCreate
+
+```json
+{
+  "properties": {
+    "email": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Email"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "email"
+  ],
+  "title": "PasswordResetCreate"
+}
+```
+
+### PasswordResetList
+
+```json
+{
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/components/schemas/PasswordReset"
+      },
+      "type": "array",
+      "title": "Items"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "items"
+  ],
+  "title": "PasswordResetList"
+}
+```
+
 ### PayrollInput
 
 ```json
@@ -7085,6 +7325,32 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
     "owner_user_id"
   ],
   "title": "TaskReassign"
+}
+```
+
+### TemporaryPassword
+
+```json
+{
+  "properties": {
+    "display_name": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Display Name"
+    },
+    "temporary_password": {
+      "type": "string",
+      "title": "Temporary Password"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "display_name",
+    "temporary_password"
+  ],
+  "title": "TemporaryPassword"
 }
 ```
 

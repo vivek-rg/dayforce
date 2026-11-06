@@ -22,6 +22,8 @@ import type {
   AccessRequest,
   EvidenceList,
   HireCreate,
+  PasswordResetList,
+  TemporaryPassword,
   HirePatch,
   HireList,
   InsightMetrics,
@@ -47,12 +49,33 @@ import type {
   User,
 } from "./api-types";
 
-// The token lives in this module only. A refresh signs the user out, by design.
-let accessToken: string | null = null;
+const TOKEN_KEY = "onboardiq.session";
+
+// Kept for this browser tab only, so a refresh stays signed in and closing the tab signs out.
+function readStoredToken(): string | null {
+  try {
+    return window.sessionStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+let accessToken: string | null =
+  typeof window === "undefined" ? null : readStoredToken();
 let onUnauthorized: (() => void) | null = null;
 
 export function setAccessToken(token: string | null) {
   accessToken = token;
+  try {
+    if (token) window.sessionStorage.setItem(TOKEN_KEY, token);
+    else window.sessionStorage.removeItem(TOKEN_KEY);
+  } catch {
+    // Private windows may block storage. The session then lasts until a refresh.
+  }
+}
+
+export function hasStoredSession(): boolean {
+  return accessToken !== null;
 }
 
 export function setUnauthorizedHandler(handler: (() => void) | null) {
@@ -156,6 +179,17 @@ export const api = {
   login: (user_id: string, password: string) =>
     send<Session>("POST", "/sessions", { user_id, password }),
   logout: () => request<void>("/sessions/current", { method: "DELETE" }),
+  createAccount: (display_name: string, email: string, password: string) =>
+    send<Session>("POST", "/accounts", { display_name, email, password }),
+  requestPasswordReset: (email: string) =>
+    send<void>("POST", "/password-resets", { email }),
+  passwordResets: (signal?: AbortSignal) =>
+    get<PasswordResetList>("/password-resets", signal),
+  issueTemporaryPassword: (resetId: string) =>
+    send<TemporaryPassword>(
+      "POST",
+      `/password-resets/${encodeURIComponent(resetId)}/temporary-password`,
+    ),
   me: (signal?: AbortSignal) => get<User>("/me", signal),
   reference: (signal?: AbortSignal) => get<Reference>("/reference", signal),
   aiHealth: (signal?: AbortSignal) => get<AiHealth>("/health/ai", signal),

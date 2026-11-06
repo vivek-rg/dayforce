@@ -18,6 +18,16 @@ CREATE TABLE IF NOT EXISTS login_attempts (
     failures INTEGER NOT NULL DEFAULT 0,
     locked_until TEXT
 );
+CREATE TABLE IF NOT EXISTS password_resets (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    state TEXT NOT NULL CHECK (state IN ('OPEN','DONE')),
+    created_at TEXT NOT NULL,
+    resolved_by TEXT REFERENCES users(id),
+    resolved_at TEXT
+);
+CREATE UNIQUE INDEX IF NOT EXISTS one_open_reset_per_user ON password_resets(user_id)
+    WHERE state = 'OPEN';
 CREATE TABLE IF NOT EXISTS departments (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL UNIQUE

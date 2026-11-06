@@ -6,7 +6,6 @@ be described as validated: see docs/EVALUATION.md.
 """
 
 import json
-import os
 import time
 from dataclasses import dataclass
 from typing import Protocol
@@ -14,7 +13,7 @@ from typing import Protocol
 import httpx
 
 from app.ai.stub import StubProvider
-from app.shared.config import llm_model, llm_provider
+from app.shared.config import live_setting, llm_model, llm_provider
 
 MAX_RATE_LIMIT_WAIT_SECONDS = 20
 RATE_LIMIT_WAITS = {"agent.next_step": 3}
@@ -190,10 +189,12 @@ def current_provider() -> Provider:
     if kind == "ollama":
         if not llm_model():
             return DisabledProvider("MODEL_NOT_CONFIGURED")
-        return OllamaProvider(llm_model(), os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434"))
+        return OllamaProvider(
+            llm_model(), live_setting("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
+        )
     if kind == "hosted":
-        base_url = os.getenv("LLM_BASE_URL", "")
-        api_key = os.getenv("LLM_API_KEY", "")
+        base_url = live_setting("LLM_BASE_URL")
+        api_key = live_setting("LLM_API_KEY")
         if not llm_model() or not api_key or not _approved_base_url(base_url):
             return DisabledProvider("MODEL_NOT_CONFIGURED")
         return HostedProvider(llm_model(), base_url, api_key)

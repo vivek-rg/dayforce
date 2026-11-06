@@ -4,7 +4,9 @@ import type { AiHealth, User } from "./api-types";
 export type SessionValue = {
   user: User | null;
   expired: boolean;
+  restoring: boolean;
   login: (userId: string, password: string) => Promise<void>;
+  signUp: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 };
 

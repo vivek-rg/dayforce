@@ -96,4 +96,4 @@ Run on macOS with Python 3.12, Node 26 for the browser driver, and Chrome. Not r
 
 The browser script is not in the repository, because it would add a dependency. It signs in as each role, drives every screen with real clicks including uploads and downloads, and walks every sidebar link at 1440 px and 390 px.
 
-**Not verified:** the Docker files (Docker was not running), hosting on a real server, a full keyboard or screen-reader pass, other browsers, Windows or Linux, and live-model answers through the browser UI.
+**Not verified:** hosting on a real server, a full keyboard or screen-reader pass, other browsers, Windows or Linux, and live-model answers through the browser UI.

@@ -40,7 +40,8 @@ export default function App() {
 }
 
 function Root() {
-  const { user } = useSession();
+  const { user, restoring } = useSession();
+  if (restoring) return null;
   // Keyed by user, so no screen state survives a change of account.
   return user ? (
     <>
@@ -223,10 +224,6 @@ function Shell() {
                   <div className="user-panel">
                     <p className="user-panel-name">{user.display_name}</p>
                     <p className="muted small mono">{user.id}</p>
-                    <p className="muted small">
-                      A refresh signs you out. The session is held in memory
-                      only.
-                    </p>
                     <button
                       type="button"
                       className="btn btn-sm"

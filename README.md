@@ -23,16 +23,21 @@ npm run dev
 
 Open http://127.0.0.1:5173 and sign in with `hema@northstar.example` (HR), or open **Demo accounts** on the sign-in page for the other roles. All accounts use your `DEMO_PASSWORD`. The story is in [the demo plan](docs/DEMO_PLAN.md).
 
-Google and Microsoft sign-in, password reset and self sign-up are not connected. Those buttons say so when clicked.
+New employees can create their own account on the sign-in page. They see nothing until HR links them to a plan in the new employee wizard. **Forgot password** asks HR, who issues a temporary password from Settings. There is no email sending.
 
-## Deploying
+## Using your own Groq API key
 
-This has been run locally, not on a server. For a hosted demo:
+The AI features need a Groq key. To use your own, for example when a limit is reached:
 
-1. Use one instance with persistent disk, because SQLite and uploaded files live in `.runtime/`. Back up both together.
-2. Put HTTPS in front of it. The app binds to `127.0.0.1` by default, so a reverse proxy must run on the same machine. The optional `docker-compose.yml` publishes on loopback too.
-3. Set a strong private `DEMO_PASSWORD` before seeding, and set `LLM_API_KEY` only on the server.
-4. Use synthetic data only. There is no encryption at rest, single sign-on, malware scanning or backup in this build.
+1. Create a key at https://console.groq.com.
+2. Open `.env` and paste it after `LLM_API_KEY=`.
+3. Save the file. No restart is needed, and nothing else needs changing.
+
+Settings shows whether the key was rejected or a limit was reached. Without a key, AI is off and all manual work continues.
+
+## Hosting notes
+
+This has been run locally, not on a server. SQLite and uploaded files live in `.runtime/`, so a host needs one instance with permanent disk. The app binds to `127.0.0.1`, so HTTPS needs a reverse proxy on the same machine. Set a strong private `DEMO_PASSWORD` before seeding, and use synthetic data only: there is no encryption at rest, single sign-on or malware scanning.
 
 ## First things to read
 

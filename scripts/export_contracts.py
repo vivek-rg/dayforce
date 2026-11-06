@@ -37,6 +37,10 @@ ACCESS = {
     "decide": "Exact reviewer role + hire scope, current inputs, expiry and prerequisites.",
     "health": "Public minimal local health; no private records, keys, paths or model calls.",
     "bootstrap": "Public product name and connection message only; no hire or identity data.",
+    "create_account": "Public. Always creates an EMPLOYEE with no hire scope until HR links them.",
+    "request_password_reset": "Public. Same reply whether or not the account exists.",
+    "list_password_resets": "HR only.",
+    "issue_temporary_password": "HR only. The password is returned once and stored only as a hash.",
     "reference": "HR, MANAGER or IT. Form options only.",
     "patch_hire": "HR + hire scope; expected_profile_version required.",
     "history": "Hire scope. Sanitized audit events.",
@@ -178,7 +182,7 @@ def generate():
         "- All paths below include `/api`. JSON only; reject extra input fields. "
         "IDs are opaque strings, never array indexes. Never infer permission from a supplied ID.\n"
         "- `Authorization: Bearer <token>` for all business endpoints except login. "
-        "No cookie sessions, browser role header, public registration, or arbitrary tool endpoint. "
+        "No cookie sessions, browser role header, or arbitrary tool endpoint. "
         "Eight-hour server expiry; logout revokes token. Store hashes, not raw tokens/passwords.\n"
         "- ISO date-only joining/deadline dates; UTC timestamps. Lists are `{items: [...]}`; "
         "empty is `[]`. Local fixture size is at most six hires; pagination is deferred. "
@@ -234,7 +238,12 @@ def generate():
                 continue
             name = operation["operationId"].split("_api_")[0]
             access = ACCESS.get(name, "See scoped ownership rules.")
-            if name not in ("health", "bootstrap", "create_session"):
+            if name not in (
+                "health",
+                "bootstrap",
+                "create_session",
+                "create_account",
+            ) and not (name == "request_password_reset" and method == "post"):
                 operation["security"] = [{"DemoBearer": []}]
             sections += [
                 f"### `{method.upper()} {path}`\n",

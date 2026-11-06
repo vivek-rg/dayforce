@@ -115,6 +115,33 @@ class LoginRequest(Contract):
     password: Annotated[str, Field(min_length=12, max_length=128)]
 
 
+class AccountCreate(Contract):
+    display_name: ShortText
+    email: Annotated[str, Field(min_length=3, max_length=200)]
+    password: Annotated[str, Field(min_length=12, max_length=128)]
+
+
+class PasswordResetCreate(Contract):
+    email: Annotated[str, Field(min_length=1, max_length=200)]
+
+
+class PasswordReset(Contract):
+    id: Id
+    display_name: ShortText
+    email: str | None = None
+    role: str
+    created_at: datetime
+
+
+class PasswordResetList(Contract):
+    items: list[PasswordReset]
+
+
+class TemporaryPassword(Contract):
+    display_name: ShortText
+    temporary_password: str
+
+
 class User(Contract):
     id: Id
     display_name: ShortText

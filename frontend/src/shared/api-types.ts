@@ -9,6 +9,12 @@ export type AccessRequest = {
   "detail"?: string;
 };
 
+export type AccountCreate = {
+  "display_name": string;
+  "email": string;
+  "password": string;
+};
+
 export type ActionResult = {
   "action_id": string;
   "state": "PENDING" | "RUNNING" | "SUCCEEDED" | "FAILED" | "UNKNOWN";
@@ -537,6 +543,22 @@ export type Overview = {
   "recent": Array<AuditEvent>;
 };
 
+export type PasswordReset = {
+  "id": string;
+  "display_name": string;
+  "email"?: string | null;
+  "role": string;
+  "created_at": string;
+};
+
+export type PasswordResetCreate = {
+  "email": string;
+};
+
+export type PasswordResetList = {
+  "items": Array<PasswordReset>;
+};
+
 export type PayrollInput = {
   "category": "payroll";
   "profile_created": boolean;
@@ -684,6 +706,11 @@ export type TaskList = {
 export type TaskReassign = {
   "expected_version": number;
   "owner_user_id": string;
+};
+
+export type TemporaryPassword = {
+  "display_name": string;
+  "temporary_password": string;
 };
 
 export type ToolObservation = {

@@ -2747,48 +2747,6 @@ blockquote {
   cursor: not-allowed;
 }
 
-.auth-or {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  color: #6b6a80;
-  font-size: 15px;
-}
-
-.auth-or::before,
-.auth-or::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: #e2e0ea;
-}
-
-.auth-sso {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  width: 100%;
-  height: 54px;
-  background: #fff;
-  border: 1px solid #d9d7e4;
-  border-radius: 10px;
-  color: #17152e;
-  font: inherit;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.auth-sso:hover {
-  background: #f8f7fd;
-}
-
-.auth-sso-group {
-  display: grid;
-  gap: 14px;
-}
-
 .auth-new {
   margin-top: 24px;
   color: #55546a;
