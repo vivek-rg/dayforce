@@ -89,10 +89,11 @@ Run on macOS with Python 3.12, Node 26 for the browser driver, and Chrome. Not r
 | Check | Result |
 |---|---|
 | `npm run check` (lint, format, tests, build, contract drift) | Passed |
-| Backend tests | 130 passed, using scripted model replies and labelled offline rules |
+| Backend tests | 136 passed, using scripted model replies and labelled offline rules |
 | Frontend tests | 35 passed |
-| Scripted real-Chrome run against the production build, offline rules | 48 of 48 checks passed, no page errors, no server errors, on a fresh clone |
+| Scripted real-Chrome run against the production build, offline rules | 50 of 50 checks passed, with no page or server errors |
 | Live model | One evaluation run on Groq; see docs/EVALUATION.md |
+| Handover test on a fresh clone, changing only `LLM_API_KEY` in `.env`, no restart | No key, then a bad key, then a good key: the status message and the assistant each behaved correctly |
 
 The browser script is not in the repository, because it would add a dependency. It signs in as each role, drives every screen with real clicks including uploads and downloads, and walks every sidebar link at 1440 px and 390 px.
 
