@@ -1,0 +1,32 @@
+# Local secrets (only the commented template is committed)
+.env
+.env.*
+!.env.example
+.venv/
+node_modules/
+frontend/dist/
+.runtime/
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+# Submission assets in resume/, video/ and ppt/ are eligible for normal Git staging.
+# Review consent, secrets and file size before adding them; do not ignore them here.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+coverage/
+.coverage
+test-results/
+playwright-report/
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.impeccable/

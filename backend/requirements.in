@@ -1,0 +1,12 @@
+# Track 1 owns dependency changes. requirements.txt is the exact installed lock.
+fastapi>=0.115,<1
+pydantic>=2.10,<3
+uvicorn>=0.34,<1
+python-dotenv>=1,<2
+langgraph>=1,<2
+langgraph-checkpoint-sqlite>=3,<4
+ollama>=0.6,<1
+openai>=2,<3
+pytest>=8,<10
+httpx>=0.28,<1
+ruff>=0.12,<1

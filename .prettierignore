@@ -1,0 +1,7 @@
+node_modules
+frontend/dist
+frontend/src/shared/api-types.ts
+.runtime
+.venv
+docs/openapi.json
+package-lock.json
