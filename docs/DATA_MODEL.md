@@ -2,7 +2,7 @@
 
 **Authority:** [backend/app/shared/schema.sql](../backend/app/shared/schema.sql) defines exact columns, constraints, indexes and views. [contracts.py](../backend/app/shared/contracts.py) defines wire shapes; [API_SPEC.md](API_SPEC.md) is generated. This explanatory guide changes no schema or API. It replaces obsolete foundation-only/checkpointer prose.
 
-One fictional company per installation, standard-library SQLite, independent local files per teammate. Setup, private uploads/backups and hosting limits live in the [root guide](../README.md#data-and-backups); all unfinished work lives in [the active plan](decisions/2026-11-07-improvement-plan.md).
+One fictional company per installation, standard-library SQLite, independent local files per teammate. Setup, private uploads/backups and hosting limits live in the [root guide](../README.md#data-and-backups).
 
 ## Conventions and initialization
 
