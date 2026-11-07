@@ -1,3 +1,4 @@
+
 import json
 from datetime import UTC, datetime, timedelta
 
@@ -220,3 +221,51 @@ def test_payroll_cannot_hold_bank_numbers(world):
     with connect() as connection:
         rows = connection.execute("SELECT payload_json FROM source_records").fetchall()
     assert "account_number" not in json.dumps([row[0] for row in rows])
+
+
+def test_policy_change_after_proposal_blocks_approval(world):
+    hire = world.create_hire()
+    proposal = reserve(world, hire).json()
+
+    with connect() as connection:
+        task = connection.execute(
+            "SELECT policy_id, policy_version FROM tasks WHERE hire_id=? LIMIT 1",
+            (hire["id"],),
+        ).fetchone()
+
+        policy_id = task["policy_id"]
+        old_version = task["policy_version"]
+        new_version = old_version + 1
+
+        connection.execute(
+            """
+            INSERT INTO policies (
+                id, version, approved_by, effective_from, effective_to,
+                scope_json, sections_json, rules_json
+            )
+            SELECT
+                id, ?, approved_by, effective_from, effective_to,
+                scope_json, sections_json, rules_json
+            FROM policies
+            WHERE id=? AND version=?
+            """,
+            (new_version, policy_id, old_version),
+        )
+
+        connection.execute(
+            """
+            UPDATE tasks
+            SET policy_version=?
+            WHERE hire_id=? AND policy_id=?
+            """,
+            (new_version, hire["id"], policy_id),
+        )
+
+    response = world.post(
+        "U_IT",
+        f"/proposals/{proposal['id']}/decisions",
+        {"decision": "APPROVE"},
+    )
+
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "STALE_VERSION"
