@@ -27,6 +27,13 @@ def test_health_and_db_bootstrap(client):
     assert client.get("/api/bootstrap").json()["project_name"] == "Database proof"
 
 
+def test_health_alias_uses_readiness_without_changing_api_contract(client):
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json() == client.get("/api/health").json()
+    assert "/health" not in app.openapi()["paths"]
+
+
 def test_initialize_is_repeatable_and_preserves_existing_data(client):
     with connect() as connection:
         connection.execute("UPDATE app_info SET project_name=? WHERE id=1", ("Keep me",))
@@ -95,9 +102,10 @@ def test_database_enforces_foreign_keys_and_unique_event_ids(client):
             connection.execute("INSERT INTO user_scopes VALUES ('missing', 'missing')")
 
 
-def test_health_reports_db_failure_without_private_path(client, monkeypatch, tmp_path):
+@pytest.mark.parametrize("path", ["/api/health", "/health"])
+def test_health_reports_db_failure_without_private_path(client, monkeypatch, tmp_path, path):
     monkeypatch.setenv("DATABASE_PATH", str(tmp_path / "missing" / "private.db"))
-    response = client.get("/api/health")
+    response = client.get(path)
     assert response.status_code == 503
     assert response.json()["error"]["code"] == "DATABASE_UNAVAILABLE"
     assert "private.db" not in response.text

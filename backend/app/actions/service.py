@@ -4,6 +4,7 @@ import json
 import sqlite3
 from datetime import UTC, datetime, timedelta
 
+from app.auth.service import load_user
 from app.evidence.service import check_hire, latest_evidence
 from app.notifications.service import notify, notify_role
 from app.planning.service import (
@@ -32,6 +33,8 @@ FAILURE_TEXT = {
     "DEVICE_NO_LONGER_AVAILABLE": "Not done: that device is no longer available.",
     "STALE_INPUTS": "Not done: the records changed after approval. Request a new proposal.",
     "NO_APPROVAL": "Not done: no approval is on record.",
+    "APPROVAL_EXPIRED": "Not done: the proposal expired before execution. Request a new one.",
+    "REVIEWER_NO_LONGER_AUTHORIZED": "Not done: the reviewer no longer has approval authority.",
 }
 RESERVER_REVIEWER = {"CHANGE_WORK_LOCATION": "HR", "RESERVE_EQUIPMENT": "IT"}
 
@@ -319,10 +322,20 @@ def execute_approved_action(action_id: str) -> ActionResult:
         state = "SUCCEEDED"
         if decision is None or decision["decision"] != "APPROVE":
             state, observed = "FAILED", {"reason": "NO_APPROVAL"}
+        elif proposal.expires_at <= datetime.now(UTC):
+            state, observed = "FAILED", {"reason": "APPROVAL_EXPIRED"}
         elif not _versions_current(connection, proposal):
             state, observed = "FAILED", {"reason": "STALE_INPUTS"}
         else:
-            observed = _apply(connection, proposal, decision["reviewer_user_id"], action_id)
+            reviewer = load_user(connection, decision["reviewer_user_id"])
+            if (
+                reviewer is None
+                or reviewer.role.value != proposal.reviewer_role
+                or proposal.hire_id not in reviewer.hire_ids
+            ):
+                state, observed = "FAILED", {"reason": "REVIEWER_NO_LONGER_AUTHORIZED"}
+            else:
+                observed = _apply(connection, proposal, reviewer.id, action_id)
             if observed.get("reason"):
                 state = "FAILED"
         connection.execute(

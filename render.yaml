@@ -1,7 +1,8 @@
-# Render Blueprint on the free plan. Free instances have no persistent disk, so the SQLite
-# database resets whenever the service sleeps or redeploys; scripts/serve.py re-seeds it on boot.
-# For data that survives restarts, switch to plan: starter and attach a disk at /data with
-# DATABASE_PATH=/data/dayone.db.
+# Disposable synthetic demo on the free plan; no persistent disk is configured.
+# SQLite and uploaded files may be lost on instance replacement/redeploy.
+# scripts/serve.py seeds only an empty installation; it does not restore lost progress.
+# Keep durable local backups. Hosted retention requires an owner-approved storage plan
+# covering both the database and uploads; do not enable paid services automatically.
 services:
   - type: web
     name: dayforce
@@ -12,16 +13,15 @@ services:
     envVars:
       - key: DATABASE_PATH
         value: .runtime/dayone.db
+      # Real inference is opt-in after reviewing provider access, privacy and spending controls.
       - key: LLM_PROVIDER
-        value: hosted
+        value: none
       - key: LLM_MODEL
         value: openai/gpt-oss-20b
       - key: LLM_BASE_URL
         value: https://api.groq.com/openai/v1
       - key: WORKER_ENABLED
         value: "1"
-      # Secrets: Render asks for these when the Blueprint is created. Never commit them.
-      - key: LLM_API_KEY
-        sync: false
+      # A fresh seed needs a private demo password. Add a model key privately only if opting in.
       - key: DEMO_PASSWORD
         sync: false

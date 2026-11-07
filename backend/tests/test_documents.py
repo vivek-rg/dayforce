@@ -1,3 +1,4 @@
+import pytest
 from app.ai.providers import ProviderError, set_provider_for_tests
 from app.ai.stub import StubProvider
 from app.documents.service import detect_location, safe_name
@@ -186,3 +187,48 @@ def test_location_detection_prefers_a_labelled_line():
     assert detect_location("Head office Hyderabad.\nPlace of posting: Bengaluru") == "BLR-DEMO"
     assert detect_location("Offices in Hyderabad and Bengaluru") is None
     assert detect_location(None) is None
+
+
+@pytest.mark.parametrize("failure", ["write", "rename", "commit"])
+def test_failed_upload_preserves_previous_document_and_can_be_retried(world, monkeypatch, failure):
+    from pathlib import Path
+
+    from app.documents import service
+
+    hire = world.create_hire()
+    first = world.upload("U_PRIYA", hire["id"], "education", "old.txt", b"Previous proof").json()
+    before = set(documents_path().iterdir())
+    original_write = Path.write_bytes
+    original_audit = service.audit
+
+    def failed_write(path, data):
+        original_write(path, data[:2])
+        raise OSError("Synthetic partial write failure")
+
+    def failed_rename(*args):
+        raise OSError("Synthetic rename failure")
+
+    def failed_commit(connection, *args, **kwargs):
+        original_audit(connection, *args, **kwargs)
+        connection.execute("PRAGMA defer_foreign_keys=ON")
+        connection.execute("INSERT INTO user_scopes VALUES ('missing_user',?)", (hire["id"],))
+
+    with monkeypatch.context() as fault:
+        if failure == "write":
+            fault.setattr(Path, "write_bytes", failed_write)
+        elif failure == "rename":
+            fault.setattr(Path, "replace", failed_rename)
+        else:
+            fault.setattr(service, "audit", failed_commit)
+        failed = world.upload("U_PRIYA", hire["id"], "education", "new.txt", b"Updated proof")
+    assert failed.status_code == 500
+    assert set(documents_path().iterdir()) == before
+    listed = world.get("U_PRIYA", f"/hires/{hire['id']}/documents").json()["items"]
+    assert len(listed) == 1
+    assert listed[0]["id"] == first["id"] and listed[0]["state"] == "SUBMITTED"
+    assert listed[0]["version"] == first["version"]
+    retried = world.upload("U_PRIYA", hire["id"], "education", "new.txt", b"Updated proof")
+    assert retried.status_code == 201
+    stored = world.get("U_PRIYA", f"/documents/{retried.json()['id']}/content")
+    assert stored.content == b"Updated proof"
+    assert world.get("U_PRIYA", f"/documents/{first['id']}/content").content == b"Previous proof"

@@ -22,7 +22,7 @@ from app.shared.contracts import (
 )
 from app.shared.db import connect
 from app.shared.errors import fail, stale
-from app.shared.util import audit
+from app.shared.util import audit, audit_summary
 
 router = APIRouter(tags=["planning"])
 
@@ -82,6 +82,10 @@ def patch_hire(hire_id: str, body: HirePatch, user: User = Depends(require_user)
     require_hire_scope(user, hire_id)
     require(user.role, "hire.edit")
     changes = body.model_dump(exclude_unset=True, exclude={"expected_profile_version"})
+    if any(
+        value is None and key not in {"personal_email", "phone"} for key, value in changes.items()
+    ):
+        fail(422, "VALIDATION_ERROR", "Required profile fields cannot be cleared.")
     with connect() as connection:
         if (
             "department_id" in changes
@@ -121,7 +125,7 @@ def history(hire_id: str, user: User = Depends(require_user)):
                 hire_id=row["hire_id"],
                 actor_user_id=row["actor_user_id"],
                 event_type=row["event_type"],
-                summary=row["summary"],
+                summary=audit_summary(row, user.role),
                 created_at=row["created_at"],
             )
             for row in rows

@@ -139,20 +139,32 @@ def ai_health(user: User = Depends(require_user)):
         detail = "Offline rules are active. This is not a real AI model."
     elif not available:
         detail = (
-            "No API key is set. Paste a Groq key after LLM_API_KEY= in the .env file. "
-            "All manual workflows still work."
+            "AI is off or its configuration is incomplete. Check LLM_PROVIDER, LLM_MODEL "
+            "and the matching endpoint in the root .env; hosted mode also needs LLM_API_KEY. "
+            "This status does not test a key or contact a model. All manual workflows still work."
         )
     elif problem == "MODEL_RATE_LIMITED":
         detail = (
-            "The last AI call hit the provider's limit. Wait a minute, or paste another key "
-            "after LLM_API_KEY= in the .env file. No restart is needed."
+            "The last AI call hit the provider's limit. Check account quota and retry later, "
+            "or continue manually. No automatic key rotation or provider fallback is used."
         )
     elif problem == "MODEL_HTTP_401":
-        detail = "The API key was rejected. Paste a valid key after LLM_API_KEY= in the .env file."
+        detail = (
+            "The API key was rejected on the last AI call. Check the matching provider's "
+            "LLM_API_KEY and account access privately. Manual workflows still work."
+        )
+    elif problem == "MODEL_HTTP_404":
+        detail = (
+            "The last model request returned 404. Check the provider endpoint and model ID; "
+            "the OnboardIQ server on port 8000 is not a model server. Manual workflows still work."
+        )
     elif problem:
         detail = "The last AI call failed. Manual workflows still work."
     else:
-        detail = "A model is configured. To use your own key, change LLM_API_KEY in the .env file."
+        detail = (
+            "A model is configured. This status does not test connectivity, key validity or "
+            "inference; inspect an actual AI run before claiming it works."
+        )
     return AiHealth(
         provider=provider.name,
         model=provider.model,

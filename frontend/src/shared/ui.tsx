@@ -1,4 +1,11 @@
-import { type KeyboardEvent, type ReactNode, useId, useRef } from "react";
+import {
+  type KeyboardEvent,
+  type ReactNode,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 import { ApiError } from "./api";
 import type { CheckResult, DisplayStatus, Evidence, Task } from "./api-types";
 import {
@@ -281,8 +288,36 @@ export function DataTable<T>({
   rowKey: (row: T) => string;
   minWidth?: number;
 }) {
+  const regionRef = useRef<HTMLDivElement>(null);
+  const hintId = useId();
+  const [scrollable, setScrollable] = useState(false);
+
+  useEffect(() => {
+    const region = regionRef.current;
+    if (!region) return;
+    const update = () => setScrollable(region.scrollWidth > region.clientWidth);
+    const observer = new ResizeObserver(update);
+    observer.observe(region);
+    const table = region.querySelector("table");
+    if (table) observer.observe(table);
+    update();
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="table-wrap" role="region" aria-label={caption} tabIndex={0}>
+    <div
+      ref={regionRef}
+      className="table-wrap"
+      role="region"
+      aria-label={caption}
+      aria-describedby={scrollable ? hintId : undefined}
+      tabIndex={0}
+    >
+      {scrollable && (
+        <p id={hintId} className="table-hint">
+          Scroll horizontally to see all columns and actions.
+        </p>
+      )}
       <table className="table" style={{ minWidth }}>
         <caption className="sr-only">{caption}</caption>
         <thead>

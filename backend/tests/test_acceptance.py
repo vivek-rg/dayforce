@@ -135,3 +135,18 @@ def test_seed_refuses_a_database_with_data(world):
 
     with pytest.raises(SystemExit):
         seed(PASSWORD)
+
+
+def test_render_blueprint_is_a_disposable_demo_with_ai_off():
+    import yaml
+    from app.shared.config import ROOT
+
+    blueprint = yaml.safe_load((ROOT / "render.yaml").read_text(encoding="utf-8"))
+    service = blueprint["services"][0]
+    settings = {setting["key"]: setting for setting in service["envVars"]}
+    assert service["plan"] == "free" and not service.get("disk")
+    assert settings["DATABASE_PATH"]["value"] == ".runtime/dayone.db"
+    assert settings["LLM_PROVIDER"]["value"] == "none"
+    assert "LLM_API_KEY" not in settings
+    assert "value" not in settings["DEMO_PASSWORD"]
+    assert settings["DEMO_PASSWORD"]["sync"] is False

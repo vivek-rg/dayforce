@@ -3,9 +3,8 @@ from fastapi import APIRouter, Depends
 from app.actions.service import get_proposal
 from app.auth.permissions import require
 from app.auth.service import require_hire_scope, require_user
-from app.evidence.service import to_evidence
 from app.notifications.service import notify_role
-from app.planning.service import get_hire_row
+from app.planning.service import get_hire_row, get_plan
 from app.shared.contracts import (
     AcceptedWork,
     AnswerRequest,
@@ -15,12 +14,13 @@ from app.shared.contracts import (
     CaseList,
     Question,
     QuestionList,
+    Role,
     User,
     WorkItem,
 )
 from app.shared.db import connect
 from app.shared.errors import forbidden, invalid_state, not_found
-from app.shared.util import audit, new_id, now_iso
+from app.shared.util import audit, audit_summary, new_id, now_iso
 
 router = APIRouter(tags=["cases"])
 
@@ -56,13 +56,7 @@ def _to_case(connection, row, user: User) -> Case:
     proposals = connection.execute(
         "SELECT id FROM proposals WHERE case_id=? ORDER BY rowid", (row["id"],)
     ).fetchall()
-    evidence = connection.execute(
-        "SELECT e.* FROM evidence e JOIN ("
-        "  SELECT check_type, MAX(rowid) AS newest FROM evidence WHERE hire_id=? "
-        "  GROUP BY check_type"
-        ") latest ON latest.newest=e.rowid",
-        (row["hire_id"],),
-    ).fetchall()
+    evidence = get_plan(connection, row["hire_id"], user).checks
     timeline = connection.execute(
         "SELECT * FROM audit_events WHERE case_id=? ORDER BY created_at DESC, rowid DESC LIMIT 100",
         (row["id"],),
@@ -72,20 +66,26 @@ def _to_case(connection, row, user: User) -> Case:
         hire_id=row["hire_id"],
         state=row["state"],
         kind=row["kind"],
-        message=row["message"],
+        message=row["message"]
+        if user.role == Role.HR or (user.role == Role.MANAGER and row["opened_by"] == user.id)
+        else "",
         version=row["version"],
         model_calls=row["model_calls"],
         tool_calls=row["tool_calls"],
-        questions=[_to_question(item) for item in questions],
+        questions=[
+            _to_question(item)
+            for item in questions
+            if user.role == Role.HR or item["recipient_user_id"] == user.id
+        ],
         proposals=[get_proposal(connection, item["id"]) for item in proposals],
-        evidence=[to_evidence(item) for item in evidence],
+        evidence=evidence,
         timeline=[
             AuditEvent(
                 id=item["id"],
                 hire_id=item["hire_id"],
                 actor_user_id=item["actor_user_id"],
                 event_type=item["event_type"],
-                summary=item["summary"],
+                summary=audit_summary(item, user.role),
                 created_at=item["created_at"],
             )
             for item in reversed(timeline)
@@ -161,12 +161,14 @@ def get_case(case_id: str, user: User = Depends(require_user)):
 def my_questions(user: User = Depends(require_user)):
     with connect() as connection:
         rows = connection.execute(
-            "SELECT q.*, h.display_name AS hire_name FROM questions q "
+            "SELECT q.*, c.hire_id, h.display_name AS hire_name FROM questions q "
             "JOIN cases c ON c.id=q.case_id JOIN hires h ON h.id=c.hire_id "
             "WHERE q.recipient_user_id=? AND q.state='PENDING' ORDER BY q.rowid",
             (user.id,),
         ).fetchall()
-    return QuestionList(items=[_to_question(row) for row in rows])
+    return QuestionList(
+        items=[_to_question(row) for row in rows if row["hire_id"] in user.hire_ids]
+    )
 
 
 @router.post(
