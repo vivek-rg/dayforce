@@ -1,11 +1,24 @@
-# Evaluation — Track 7/P08
+# Evaluation
 
-Create `scenarios.json`, `answer_keys.json`, `run.py`, and `results/` in this phase. They are not implemented by the foundation. Answers stay here, never in fixtures/model prompts. Use stable scenario IDs only for evaluation, not runtime records.
+Implemented: scenarios.json, answer_keys.json, run.py and historical JSON results under results/. Answers stay separate from runtime fixtures/prompts. The runner creates its own temporary SQLite database and never uses a teammate's working database.
 
-Start with: healthy hire, operations/contractor applicability, unsupported policy, ambiguous date, conflicting location, missing handover, source unavailable, malicious offer text, wrong role/hire, stale approval, duplicate effect, restart waiting, and model failure. Keep held-out variants written independently.
+## Commands from repository root
 
-The original planned command is `node scripts/python.mjs evals/run.py --provider ollama` (or the original single `hosted` mode), **not a runnable foundation command**. P15/P25 must align final CLI provider IDs with the reviewed registry and document the actual commands: Ollama, Groq, Cerebras, Mistral, Gemini and OpenRouter use the same held-out diagnostic set with an explicitly selected real model. Reuse one runner and write `results/<provider>_<model>_<UTC timestamp>.json`. Sanitize filesystem-unsafe model-ID characters, including `/`, `:` and backslashes, for Windows/macOS/Linux without changing the actual ID recorded in results. Missing provider/key means **not run**, never passed. Respect global call/token/time budgets; no silent cloud switch. Record model/prompt/fixture/config versions, semantic expected/actual result, supporting evidence, tool/call counts, latency, cost confidence and failure reason. No invented saved-time/accuracy numbers.
+```sh
+node scripts/python.mjs evals/run.py --provider stub --no-write
+```
 
-Future feature CI will use deterministic model stubs; current foundation CI makes no model calls and has no business evaluation runner. Real-model evaluation is separate. A stub can test permissions and state flow, not model competence. Use baseline checklist and rules-only comparisons without misrepresenting competitor products. P25 tracks separate live-validation rows for all six paths; P23 verifies cost/eligibility controls rather than adding a seventh provider. No claim of a permanently free API or successful run without actual evidence.
+This runs **offline rules, not AI**. Without --no-write the runner writes a timestamped JSON report to results/. Current CLI choices are stub, ollama and hosted, not separate groq/gemini/etc. registry IDs.
 
-Evaluation data stays synthetic and isolated from each teammate's runtime DB. The selected database remains SQLite for the local demo; no cloud-engine performance or migration result may be inferred from these tests. If a future PostgreSQL move is approved, rerun connected data/concurrency/security checks on that actual engine before claiming equivalence.
+Only after explicit operator authorization and private provider/model setup:
+
+```sh
+node scripts/python.mjs evals/run.py --provider hosted
+node scripts/python.mjs evals/run.py --provider ollama
+```
+
+These are alternatives, not instructions to spend quota on both. Configure LLM_MODEL and the matching server-side endpoint/key privately; do not put secrets in shell history. Missing configuration reports NOT RUN, not a pass. No model download or paid upgrade is authorized here.
+
+[Historical results](../docs/EVALUATION.md) cover one live Groq model and offline rules. Search was tuned on part of the scenario set; newer questions are untuned but not independently held out. The runner's zero exit is report completion, not a guarantee of zero misses—inspect summary/rows. A stub tests retrieval/controls, not model competence. Independent held-out scoring and same-scenario provider comparison remain pending/deferred.
+
+Keep future wrong-role, stale/duplicate, restart, injection, unavailable-source, missing-handover and model-outage cases. Record exact model/config/prompt/fixture versions, failures, latency and cost confidence; never invent accuracy or savings. Extra providers/discovery remain the [roadmap](../README.md#ai-keys-and-providers), not an implemented six-provider claim.

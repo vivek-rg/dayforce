@@ -182,7 +182,6 @@ function NextAction({
 
   return (
     <section className="hero" aria-label="Your next action">
-      <p className="eyebrow">Your next action</p>
       <h2 className="hero-title">{title}</h2>
       <p className="hero-detail">{detail}</p>
       {step.kind === "task" && <ClaimProof task={step.task} />}
@@ -307,7 +306,7 @@ function PortalBody({ hire }: { hire: Hire }) {
               onGoToDocuments={() => documentsRef.current?.scrollIntoView()}
             />
             <aside className="portal-side">
-              <h2 className="eyebrow">Your progress</h2>
+              <h2>Your progress</h2>
               <LedgerRail ledger={planLedger(data.tasks)} />
               <p className="muted small">
                 Claimed means marked complete. Proven means an independent check

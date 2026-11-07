@@ -170,3 +170,38 @@ def test_it_sees_only_its_categories(world):
     hire = world.create_hire()
     categories = {task["category"] for task in world.plan("U_IT", hire["id"])["tasks"]}
     assert categories == {"equipment", "it_access"}
+
+
+@pytest.mark.parametrize(
+    "field", ["designation", "work_email", "department_id", "employment_status"]
+)
+def test_required_profile_fields_cannot_be_cleared(world, field):
+    hire = world.create_hire(personal_email="before@example.invalid")
+    response = world.client.patch(
+        f"/api/hires/{hire['id']}",
+        headers=world.headers("U_HR"),
+        json={
+            "expected_profile_version": 1,
+            field: None,
+            "personal_email": "after@example.invalid",
+        },
+    )
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "VALIDATION_ERROR"
+    fresh = world.get("U_HR", f"/hires/{hire['id']}").json()
+    assert fresh["profile_version"] == 1
+    assert fresh["personal_email"] == "before@example.invalid"
+    assert fresh[field] == hire[field]
+
+
+def test_optional_profile_contacts_can_be_cleared_without_clearing_omitted_fields(world):
+    hire = world.create_hire(phone="synthetic-phone", personal_email="before@example.invalid")
+    response = world.client.patch(
+        f"/api/hires/{hire['id']}",
+        headers=world.headers("U_HR"),
+        json={"expected_profile_version": 1, "phone": None, "personal_email": None},
+    )
+    assert response.status_code == 200
+    assert response.json()["phone"] is None and response.json()["personal_email"] is None
+    assert response.json()["designation"] == hire["designation"]
+    assert response.json()["profile_version"] == 2

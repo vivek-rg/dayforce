@@ -1,7 +1,7 @@
 # Demo video status
 
-**Not recorded yet.** Track 8 owns recording and publication in P13 after integration and feature freeze. No public URL is available or invented.
+**Not recorded or published yet.** [script.md](script.md) contains the researched tool choices, nine-minute-thirty-second storyline, eight speaking parts and rehearsal/privacy/file-size checks. The active implementation plan assigns actual recording/submission work; a script is not the required video.
 
-At submission replace this status with the real accessible video URL or the relative path to the size-reviewed recording, duration, recording date, commit shown and chosen model/provider. Verify playback and permissions. See README.md in this folder for size/privacy rules.
+Before submission replace this status with the **real accessible URL or reviewed relative video path**, actual duration/date, submitted commit, provider/model or explicit offline mode, any shortened-wait/edit disclosure and signed-out playback result. Update the root README’s pending recording label too. Do not invent a link, file or model result.
 
-Recordings are Git-eligible, not ignored. Prefer a repository-relative path when the reviewed file fits ordinary Git limits, otherwise a real approved LFS/Release/hosted link. No link, file or cloud-database implementation is fabricated by this status page.
+Recordings are Git-eligible after participant consent, secret/size review and owner approval. Use a real approved hosted/Release/LFS option for large files; LFS is not preconfigured. See [delivery checklist](script.md#final-recording--upload-checklist). Nothing was recorded, uploaded or deployed by creating this page.

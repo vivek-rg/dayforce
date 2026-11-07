@@ -6,6 +6,7 @@ import {
 import { AuditPage } from "./features/audit/Audit";
 import { LoginPage } from "./features/auth/Login";
 import { DocumentQueuePage } from "./features/documents/DocumentQueue";
+import { GuidePage } from "./features/guide/Guide";
 import { InsightsPage } from "./features/insights/Insights";
 import { ItEquipmentPage } from "./features/it/ItEquipment";
 import { KnowledgePage } from "./features/knowledge/KnowledgeBase";
@@ -41,7 +42,11 @@ export default function App() {
 
 function Root() {
   const { user, restoring } = useSession();
+  const route = useRoute();
   if (restoring) return null;
+  if (!user && (route.name === "how-it-works" || route.name === "role-guide")) {
+    return <GuidePage page={route.name} />;
+  }
   // Keyed by user, so no screen state survives a change of account.
   return user ? (
     <>
@@ -138,6 +143,10 @@ function Shell() {
 
   const home = homeHref(user.role);
   const currentHref = route.name === "home" ? home : hash;
+  const pageLabel =
+    navFor(user.role)
+      .flatMap((group) => group.items)
+      .find((item) => item.href === currentHref)?.label ?? "Workspace";
 
   return (
     <ShellContext.Provider value={shell}>
@@ -200,6 +209,7 @@ function Shell() {
               <MenuIcon />
             </button>
             <span className="topbar-brand">OnboardIQ</span>
+            <span className="topbar-location">{pageLabel}</span>
             <div className="topbar-right">
               <a
                 className="bell"
@@ -279,6 +289,9 @@ function RouteView({
           This page does not exist.
         </EmptyState>
       );
+    case "how-it-works":
+    case "role-guide":
+      return <GuidePage page={route.name} embedded />;
     case "dashboard":
       return <OverviewPage />;
     case "directory":

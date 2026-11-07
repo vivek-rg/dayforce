@@ -1,6 +1,7 @@
 import json
 from datetime import date, timedelta
 
+import pytest
 from app.agent.worker import process_pending_work, reconcile_after_restart
 from app.ai import providers
 from app.ai.providers import HostedProvider, OllamaProvider, ProviderError, set_provider_for_tests
@@ -377,3 +378,130 @@ def test_insecure_hosted_url_disables_ai(monkeypatch):
     assert providers.current_provider().name == "none"
     monkeypatch.setenv("LLM_BASE_URL", "https://api.example.invalid/v1")
     assert providers.current_provider().name == "hosted"
+
+
+@pytest.mark.parametrize(
+    "viewer", ["U_PRIYA", "U_MANAGER", "U_IT", "U_PAYROLL", "U_BENEFITS", "U_TRAINING"]
+)
+def test_case_discussion_is_private_for_other_roles(world, viewer):
+    from app.shared.util import audit
+
+    hire = world.create_hire()
+    marker = "HR_ONLY_SYNTHETIC_DISCUSSION"
+    opened = world.post("U_HR", f"/hires/{hire['id']}/cases", {"message": marker})
+    case_id = opened.json()["case_id"]
+    with connect() as connection:
+        connection.execute(
+            "INSERT INTO questions (id, case_id, dedupe_key, recipient_user_id, text, state, "
+            "answer, answered_by) VALUES ('Q_PRIVATE',?,'private','U_HR',?,'ANSWERED',?,'U_HR')",
+            (case_id, marker, marker),
+        )
+        connection.execute(
+            "INSERT INTO questions (id, case_id, dedupe_key, recipient_user_id, text, state) "
+            "VALUES ('Q_OWN',?,'own',?,'Please confirm your part.','PENDING')",
+            (case_id, viewer),
+        )
+        audit(connection, hire["id"], "CASE_RESOLVED", marker, "U_HR", case_id)
+    hr_view = world.get("U_HR", f"/cases/{case_id}")
+    assert marker in hr_view.text and len(hr_view.json()["questions"]) == 2
+    response = world.get(viewer, f"/cases/{case_id}")
+    assert response.status_code == 200
+    assert marker not in response.text
+    assert [q["id"] for q in response.json()["questions"]] == ["Q_OWN"]
+    assert marker not in world.get(viewer, f"/hires/{hire['id']}/history").text
+    if viewer == "U_MANAGER":
+        assert marker not in world.get(viewer, f"/hires/{hire['id']}/cases").text
+    if viewer == "U_IT":
+        assert {e["check_type"] for e in response.json()["evidence"]} <= {
+            "device_handover_recorded",
+            "it_access_provisioned",
+        }
+    assert world.get(viewer, "/questions").json()["items"][0]["id"] == "Q_OWN"
+    assert (
+        world.post(viewer, "/questions/Q_OWN/responses", {"answer": "Confirmed."}).status_code
+        == 202
+    )
+    assert world.get("U_MANAGER2", f"/cases/{case_id}").status_code == 404
+
+
+def test_question_list_rechecks_hire_scope(world):
+    hire = world.create_hire()
+    case_id = open_case(world, hire["id"])
+    with connect() as connection:
+        connection.execute(
+            "INSERT INTO questions (id, case_id, dedupe_key, recipient_user_id, text, state) "
+            "VALUES ('Q_REVOKED',?,'revoked','U_HR','Private question.','PENDING')",
+            (case_id,),
+        )
+        connection.execute(
+            "DELETE FROM user_scopes WHERE user_id='U_HR' AND hire_id=?", (hire["id"],)
+        )
+    assert world.get("U_HR", "/questions").json()["items"] == []
+    assert world.post("U_HR", "/questions/Q_REVOKED/responses", {"answer": "x"}).status_code == 404
+
+
+@pytest.mark.parametrize("kind", ["hosted", "ollama"])
+@pytest.mark.parametrize(
+    "malformation",
+    [
+        "non_json",
+        "not_object",
+        "missing_content",
+        "non_text",
+        "bad_usage",
+        "negative_tokens",
+        "boolean_tokens",
+    ],
+)
+def test_provider_envelopes_are_validated(monkeypatch, kind, malformation):
+    provider = (
+        HostedProvider("m", "https://example.invalid/v1", "SYNTHETIC_KEY")
+        if kind == "hosted"
+        else OllamaProvider("m", "http://127.0.0.1:11434")
+    )
+    body = (
+        {"choices": [{"message": {"content": "{}"}}], "usage": {"prompt_tokens": 1}}
+        if kind == "hosted"
+        else {"message": {"content": "{}"}, "prompt_eval_count": 1}
+    )
+    if malformation == "not_object":
+        body = []
+    elif malformation == "missing_content":
+        body = {}
+    elif malformation == "non_text":
+        message = body["choices"][0]["message"] if kind == "hosted" else body["message"]
+        message["content"] = ["SECRET_PROVIDER_BODY"]
+    elif malformation in ("bad_usage", "negative_tokens", "boolean_tokens"):
+        value = {
+            "bad_usage": "SECRET_PROVIDER_BODY",
+            "negative_tokens": -1,
+            "boolean_tokens": True,
+        }[malformation]
+        if kind == "hosted":
+            body["usage"]["prompt_tokens"] = value
+        else:
+            body["prompt_eval_count"] = value
+    response = (
+        providers.httpx.Response(200, content=b"SECRET_PROVIDER_BODY")
+        if malformation == "non_json"
+        else providers.httpx.Response(200, json=body)
+    )
+    monkeypatch.setattr(providers.httpx, "post", lambda *a, **k: response)
+    with pytest.raises(ProviderError, match="^MODEL_INVALID_RESPONSE$"):
+        provider.generate("assistant.answer", [{"role": "system", "content": "s"}], {}, 1, 10)
+
+
+def test_bad_provider_envelope_keeps_sources_and_records_failure(world, monkeypatch):
+    set_provider_for_tests(HostedProvider("m", "https://example.invalid/v1", "SYNTHETIC_KEY"))
+    monkeypatch.setattr(
+        providers.httpx, "post", lambda *a, **k: providers.httpx.Response(200, json={"choices": []})
+    )
+    response = world.post(
+        "U_PRIYA", "/assistant/questions", {"question": "How do I request a laptop?"}
+    )
+    assert response.status_code == 200
+    assert response.json()["status"] == "UNAVAILABLE" and response.json()["sources"]
+    with connect() as connection:
+        run = connection.execute("SELECT * FROM ai_runs ORDER BY rowid DESC LIMIT 1").fetchone()
+    assert run["status"] == "UNAVAILABLE" and run["failure_reason"] == "MODEL_INVALID_RESPONSE"
+    assert "SYNTHETIC_KEY" not in response.text
