@@ -1,4 +1,3 @@
-
 """The approval gate. Immutable proposal, right reviewer, expiry, conditional write, read-back."""
 
 import json
