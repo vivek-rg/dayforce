@@ -13,15 +13,17 @@ services:
     envVars:
       - key: DATABASE_PATH
         value: .runtime/dayone.db
-      # Real inference is opt-in after reviewing provider access, privacy and spending controls.
+      # Hosted AI requires LLM_API_KEY to be set privately in Render.
       - key: LLM_PROVIDER
-        value: none
+        value: hosted
       - key: LLM_MODEL
         value: openai/gpt-oss-20b
       - key: LLM_BASE_URL
         value: https://api.groq.com/openai/v1
       - key: WORKER_ENABLED
         value: "1"
-      # A fresh seed needs a private demo password. Add a model key privately only if opting in.
+      - key: LLM_API_KEY
+        sync: false
+      # A fresh seed needs a private demo password.
       - key: DEMO_PASSWORD
         sync: false

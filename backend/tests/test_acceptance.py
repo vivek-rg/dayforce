@@ -144,7 +144,7 @@ def test_seed_refuses_a_database_with_data(world):
         seed(PASSWORD)
 
 
-def test_render_blueprint_is_a_disposable_demo_with_ai_off():
+def test_render_blueprint_is_a_disposable_demo_with_private_hosted_ai():
     import yaml
     from app.shared.config import ROOT
 
@@ -153,8 +153,12 @@ def test_render_blueprint_is_a_disposable_demo_with_ai_off():
     settings = {setting["key"]: setting for setting in service["envVars"]}
     assert service["plan"] == "free" and not service.get("disk")
     assert settings["DATABASE_PATH"]["value"] == ".runtime/dayone.db"
-    assert settings["LLM_PROVIDER"]["value"] == "none"
-    assert "LLM_API_KEY" not in settings
+    assert settings["LLM_PROVIDER"]["value"] == "hosted"
+    assert settings["LLM_MODEL"]["value"] == "openai/gpt-oss-20b"
+    assert settings["LLM_BASE_URL"]["value"] == "https://api.groq.com/openai/v1"
+    assert settings["WORKER_ENABLED"]["value"] == "1"
+    assert "value" not in settings["LLM_API_KEY"]
+    assert settings["LLM_API_KEY"]["sync"] is False
     assert "value" not in settings["DEMO_PASSWORD"]
     assert settings["DEMO_PASSWORD"]["sync"] is False
 
