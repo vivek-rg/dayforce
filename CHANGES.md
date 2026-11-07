@@ -307,4 +307,18 @@ Commit/PR: actual reference when created, otherwise state not committed
 - **Files changed:** `frontend/src/features/auth/Login.tsx`.
 - **Added/changed:** Clicking any demo profile under "Demo accounts" now auto-fills both the email and the default demo password (`DemoPassword123!`), allowing instant 1-click login without having to re-enter the password manually.
 - **Verification:** `npm run test --workspace frontend` passed (56 tests). `npm run lint` and `npm run format:check` passed.
+- **Commit/PR:** On `main` (`de47feb`).
+
+## 2026-11-07 — Add Dark and Light Mode Theme System
+
+- **Author:** Senior Frontend & Production Readiness Architect (Antigravity).
+- **Files changed:** `frontend/src/styles.css`, `frontend/src/shared/theme-context.tsx` (new), `frontend/src/shared/theme.tsx` (new), `frontend/src/shared/theme.test.tsx` (new), `frontend/src/App.tsx`, `frontend/src/features/auth/Login.tsx`, `frontend/src/features/guide/Guide.tsx`.
+- **Added/changed:**
+  - Implemented persistent Dark & Light theme system with automatic detection of OS preference (`prefers-color-scheme`) and persistence via `localStorage`.
+  - Added `[data-theme="dark"]` CSS variables mapping elevated dark surfaces, crisp high-contrast typography, and tailored SVG illustration palettes.
+  - Added accessible `ThemeToggle` button component with interactive Sun/Moon icons in the main app navigation header (`topbar-right`), the public sign-in card, and public product guides.
+- **Verification:**
+  - `npm run test --workspace frontend`: 58 tests passed across 9 test files (100% pass rate).
+  - `npm run lint` & `npm run format:check`: 0 errors, 0 warnings across all files.
+  - `npm run build`: Production build cleanly bundled client assets in 1.98s.
 - **Commit/PR:** On `main`.

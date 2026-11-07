@@ -3,6 +3,7 @@ import type { Role } from "../../shared/api-types";
 import { HandoffIllustration } from "../../shared/HandoffIllustration";
 import { Icon } from "../../shared/icons";
 import { Field } from "../../shared/ui";
+import { ThemeToggle } from "../../shared/theme";
 import { GUIDE_FAQS, ROLE_GUIDES, ROLE_ORDER, WORKFLOW } from "./guide-content";
 
 type GuideName = "how-it-works" | "role-guide";
@@ -290,9 +291,12 @@ export function GuidePage({
           OnboardIQ<span aria-hidden="true">.</span>
         </a>
         <GuideLinks current={page} />
-        <a className="btn btn-primary" href="#/">
-          Sign in
-        </a>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <ThemeToggle />
+          <a className="btn btn-primary" href="#/">
+            Sign in
+          </a>
+        </div>
       </header>
       <main id="guide-main" tabIndex={-1}>
         {content}

@@ -30,13 +30,16 @@ import { Icon, MenuIcon } from "./shared/icons";
 import { type Route, canOpen, homeHref, navFor } from "./shared/routes";
 import { SessionProvider } from "./shared/session";
 import { ShellContext, useSession, useUser } from "./shared/session-context";
+import { ThemeProvider, ThemeToggle } from "./shared/theme";
 import { DeniedState, EmptyState } from "./shared/ui";
 
 export default function App() {
   return (
-    <SessionProvider>
-      <Root />
-    </SessionProvider>
+    <ThemeProvider>
+      <SessionProvider>
+        <Root />
+      </SessionProvider>
+    </ThemeProvider>
   );
 }
 
@@ -211,6 +214,7 @@ function Shell() {
             <span className="topbar-brand">OnboardIQ</span>
             <span className="topbar-location">{pageLabel}</span>
             <div className="topbar-right">
+              <ThemeToggle />
               <a
                 className="bell"
                 href="#/notifications"

@@ -4,6 +4,7 @@ import { api } from "../../shared/api";
 import { useAction } from "../../shared/hooks";
 import { useSession } from "../../shared/session-context";
 import { ActionError, Notice } from "../../shared/ui";
+import { ThemeToggle } from "../../shared/theme";
 
 const MIN_PASSWORD = 12;
 const DEMO_PASSWORD = "DemoPassword123!";
@@ -430,6 +431,7 @@ export function LoginPage() {
           <nav className="auth-guide-links" aria-label="Learn about OnboardIQ">
             <a href="#/how-it-works">How it works</a>
             <a href="#/role-guide">Find your role</a>
+            <ThemeToggle className="theme-toggle-link" />
           </nav>
           <p className="auth-note muted small">
             Demo environment. All data is synthetic.
