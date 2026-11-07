@@ -221,11 +221,12 @@ def check_hire(connection: sqlite3.Connection, hire_id: str) -> list[Evidence]:
         result, reason, observed, source_id, source_version = CHECKS[check_type](connection, hire)
         previous = current.get(check_type)
         if (
-            previous
-            and previous.result == result
+            pre and previous.result == result
             and previous.reason_code == reason
             and previous.source_version == source_version
             and previous.profile_version == hire["profile_version"]
+            and previous.policy_id == policy_id
+            and previous.policy_version == policy_version
             and previous.observed == observed
         ):
             continue
