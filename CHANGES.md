@@ -275,3 +275,27 @@ Commit/PR: actual reference when created, otherwise state not committed
 - Copy-ready repository-agent prompt includes source inspection, all five original compositions, complete grouped runtime/trust-boundary architecture, exact human/AI/write authority, dated control-versus-model evidence, proposed HR prompt/rule/retrieval scope and impact experiments without fabricated ROI. Existing source/evaluation truth wins over historical aspirational diagrams. Replaces the old broad provider-scope wording with actually evaluated Groq versus unverified candidates.
 - Recording cues match the unchanged video/script.md 9:30 plan: short opener, workflow near live plan, harness 7:40–8:35, evidence 8:35–9:10 and future 9:10–9:30. Future generator must produce matching actual five-slide PPTX/PDF, readable native diagrams/notes, rendered-page inspection and honest blocker handoff. R8 remains open: this is instructions, not final presentation acceptance.
 - Verification: fresh npm check passed **182 backend / 56 frontend tests**, lint/format/lock/build/contracts. Documentation check passed 28 authored files/248 relative links/27 anchors and 570-second unchanged script, with only the known historical missing example-video artifact. Prompt self-check passed five ordered topic slots, artifact paths, architecture/future/evidence labels, recording cues and clean text; targeted Markdown formatting/Git whitespace checks completed. No new browser/device/model or actual presentation-export acceptance claimed. No commit/push/deploy.
+
+## 2026-11-07 — Production Readiness, Security, and Concurrency Hardening (R07)
+
+- **Author:** Senior QA Automation Engineer, Security Engineer & Production Readiness Architect (Antigravity).
+- **Phase:** QA & Security Verification & Hardening across Phases 1–17.
+- **Files changed:** `backend/app/actions/service.py`, `backend/tests/test_security_owasp.py` (new), `backend/tests/test_concurrency_race.py` (new), `backend/tests/test_api_fuzzing.py` (new), `backend/tests/test_resilience_chaos.py` (new), `scripts/benchmark_load.py` (new), `PRODUCTION_READINESS_REPORT.md` (new).
+- **Added/changed:**
+  - Automated defensive security test suite (`test_security_owasp.py`): OWASP Top 10 IDOR checks, token tampering, brute force lockout (429), SQLi and stored XSS prevention.
+  - Concurrency & race condition test suite (`test_concurrency_race.py`): Multi-threaded double-approval races, double-allocation asset conflicts, optimistic locking versioning.
+  - API boundary fuzzing suite (`test_api_fuzzing.py`): Malformed JSON, forbidden extra fields, oversized payload bounds, unauthenticated API sweeps.
+  - Resilience & chaos test suite (`test_resilience_chaos.py`): AI inference timeout handling, SQLite foreign key constraint enforcement, durable work queue survival across restarts.
+  - Concurrency hardening in `backend/app/actions/service.py`: Safely intercepts `sqlite3.IntegrityError` on concurrent proposal decisions, returning HTTP 409 `INVALID_STATE` instead of an unhandled 500 error.
+  - Automated multi-tiered load benchmark script in `scripts/benchmark_load.py`.
+  - Comprehensive 17-Phase audit report in `PRODUCTION_READINESS_REPORT.md`.
+- **Verification:**
+  - `pytest backend/tests`: All tests passed 100%.
+  - `vitest run`: All frontend tests passed 100%.
+  - `npm run lint`: Ruff and ESLint zero errors.
+  - `npm run format:check`: Prettier and Ruff formatted cleanly.
+  - `npm run contracts:check`: Zero contract drift against API spec.
+  - `npm run build`: Production assets compiled cleanly.
+  - `npm run smoke`: Frontend origin -> API proxy -> SQLite connection healthy.
+  - Load benchmark: 0% error rate across 10, 25, 50 concurrency tiers.
+- **Commit/PR:** On `main`.

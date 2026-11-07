@@ -240,11 +240,14 @@ def decide(
             fail(409, "STALE_VERSION", "This proposal has expired. Request a new one.")
         if not _versions_current(connection, proposal):
             stale()
-    connection.execute(
-        "INSERT INTO decisions (proposal_id, reviewer_user_id, decision, note, created_at) "
-        "VALUES (?,?,?,?,?)",
-        (proposal_id, user.id, decision, note, now_iso()),
-    )
+    try:
+        connection.execute(
+            "INSERT INTO decisions (proposal_id, reviewer_user_id, decision, note, created_at) "
+            "VALUES (?,?,?,?,?)",
+            (proposal_id, user.id, decision, note, now_iso()),
+        )
+    except sqlite3.IntegrityError:
+        fail(409, "INVALID_STATE", "A decision was already recorded concurrently.")
     audit(
         connection,
         proposal.hire_id,
