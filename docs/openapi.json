@@ -3481,6 +3481,16 @@
             },
             "title": "Preserve",
             "type": "array"
+          },
+          "restore": {
+            "items": {
+              "maxLength": 80,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "type": "string"
+            },
+            "title": "Restore",
+            "type": "array"
           }
         },
         "required": [

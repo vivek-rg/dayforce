@@ -3,6 +3,7 @@ import { api } from "../../shared/api";
 import type { Case } from "../../shared/api-types";
 import { caseTone, formatDateTime, humanize } from "../../shared/format";
 import { useAction, useInterval, useResource } from "../../shared/hooks";
+import { hireHref } from "../../shared/routes";
 import { useShell, useUser } from "../../shared/session-context";
 import {
   ActionError,
@@ -12,6 +13,7 @@ import {
   EmptyState,
   EvidenceCard,
   Field,
+  Notice,
   Section,
   Stat,
 } from "../../shared/ui";
@@ -67,6 +69,17 @@ function CaseDetail({
         );
         return (
           <div className="case-detail">
+            {data.state === "ESCALATED" && (
+              <Notice tone="warn" title="Continue without AI">
+                This investigation needs a person. Your saved work is kept.
+                Review the evidence below, or{" "}
+                <a href={hireHref(data.hire_id, "plan")}>
+                  open the onboarding plan
+                </a>{" "}
+                to continue manually. Changes still need the usual review and
+                approval.
+              </Notice>
+            )}
             {aiHealth ? (
               <AdvisoryPanel
                 model={aiHealth.model}

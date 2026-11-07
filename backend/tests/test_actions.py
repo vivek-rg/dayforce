@@ -172,6 +172,97 @@ def test_location_change_preserves_history_and_rewrites_only_the_future(world):
     assert world.task(hire["id"], "Issue Bengaluru office badge")["work_state"] == "PENDING"
 
 
+@pytest.mark.parametrize("completed,blocked", [(False, False), (False, True), (True, False)])
+def test_location_round_trip_restores_only_cancelled_tasks(world, completed, blocked):
+    if blocked:
+        with connect() as connection:
+            policy = connection.execute("SELECT * FROM policies LIMIT 1").fetchone()
+            rules = json.loads(policy["rules_json"])
+            next(rule for rule in rules if rule["id"] == "BADGE_HYD")["depends_on"] = [
+                "CONFIRM_LOCATION"
+            ]
+            connection.execute("UPDATE policies SET rules_json=?", (json.dumps(rules),))
+    hire = world.create_hire()
+    if completed:
+        assert world.complete("U_IT", hire["id"], "Issue Hyderabad office badge").status_code == 200
+    original = world.task(hire["id"], "Issue Hyderabad office badge")
+    for location in ("BLR-DEMO", "HYD-DEMO"):
+        profile = world.get("U_HR", f"/hires/{hire['id']}").json()
+        response = world.post(
+            "U_HR",
+            f"/hires/{hire['id']}/change-previews",
+            {"location_id": location, "expected_profile_version": profile["profile_version"]},
+        )
+        assert response.status_code == 201, response.text
+        proposal = response.json()
+        if location == "HYD-DEMO":
+            assert proposal["plan_diff"]["restore"] == ([] if completed else [original["id"]])
+            assert (original["id"] in proposal["plan_diff"]["preserve"]) is completed
+            assert proposal["plan_diff"]["create"] == []
+            before = world.task(hire["id"], "Issue Hyderabad office badge")
+            assert before["work_state"] == ("COMPLETED" if completed else "CANCELLED")
+        decision = world.post(
+            "U_HR", f"/proposals/{proposal['id']}/decisions", {"decision": "APPROVE"}
+        )
+        assert decision.status_code == 200, decision.text
+        world.work()
+        assert (
+            world.get("U_HR", f"/proposals/{proposal['id']}").json()["action_state"] == "SUCCEEDED"
+        )
+    restored = world.task(hire["id"], "Issue Hyderabad office badge")
+    assert restored["id"] == original["id"]
+    assert restored["work_state"] == (
+        "COMPLETED" if completed else "WAITING_DEPENDENCY" if blocked else "PENDING"
+    )
+    assert restored["completed_at"] == original["completed_at"]
+    assert world.task(hire["id"], "Issue Bengaluru office badge")["work_state"] == "CANCELLED"
+
+
+@pytest.mark.parametrize("already_approved", [False, True])
+def test_legacy_location_previews_require_review_for_restoration(world, already_approved):
+    hire = world.create_hire()
+    proposal = world.post(
+        "U_HR",
+        f"/hires/{hire['id']}/change-previews",
+        {"location_id": "BLR-DEMO", "expected_profile_version": 1},
+    ).json()
+    old_diff = dict(proposal["plan_diff"])
+    old_diff.pop("restore")
+    with connect() as connection:
+        connection.execute(
+            "UPDATE proposals SET plan_diff_json=? WHERE id=?",
+            (json.dumps(old_diff), proposal["id"]),
+        )
+    response = world.get("U_HR", f"/proposals/{proposal['id']}")
+    assert response.status_code == 200
+    assert response.json()["plan_diff"] == {**old_diff, "restore": []}
+    decision = world.post("U_HR", f"/proposals/{proposal['id']}/decisions", {"decision": "APPROVE"})
+    assert decision.status_code == 200
+    world.work()
+    reverse = world.post(
+        "U_HR",
+        f"/hires/{hire['id']}/change-previews",
+        {"location_id": "HYD-DEMO", "expected_profile_version": 2},
+    ).json()
+    url = f"/proposals/{reverse['id']}/decisions"
+    if already_approved:
+        assert world.post("U_HR", url, {"decision": "APPROVE"}).status_code == 200
+    legacy_diff = reverse["plan_diff"]
+    legacy_diff["preserve"] += legacy_diff.pop("restore")
+    with connect() as connection:
+        connection.execute(
+            "UPDATE proposals SET plan_diff_json=? WHERE id=?",
+            (json.dumps(legacy_diff), reverse["id"]),
+        )
+    if already_approved:
+        world.work()
+        assert world.get("U_HR", f"/proposals/{reverse['id']}").json()["action_state"] == "FAILED"
+    else:
+        assert world.post("U_HR", url, {"decision": "APPROVE"}).status_code == 409
+    assert world.get("U_HR", f"/hires/{hire['id']}").json()["location_id"] == "BLR-DEMO"
+    assert world.task(hire["id"], "Issue Hyderabad office badge")["work_state"] == "CANCELLED"
+
+
 def test_source_authority_by_category(world):
     hire = world.create_hire()
     hire_id = hire["id"]

@@ -151,6 +151,8 @@ Source authority: `src/styles.css`, `src/fonts.css`, `src/shared/ui.tsx`, `src/s
 
 ## Colors
 
+First visits default to the light palette, independently of the device color preference. The theme toggle remains available and a saved light/dark choice is respected. If browser storage is blocked, the site opens in light mode and the toggle still works for that visit.
+
 ### Primary
 
 Deep red (`accent`) identifies primary actions, links, selected role explanations and focus on light surfaces. Hover darkens primary red; selected navigation/role explanations use pale red with deep red text and existing aria-current/aria-pressed semantics. Sidebar focus is red on white. Authentication inputs use the same red focus on white; its light story remains noninteractive.

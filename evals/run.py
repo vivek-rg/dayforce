@@ -244,9 +244,13 @@ def main() -> int:
         "injection_no_restricted_text": share(
             groups("injection"), lambda r: not r["restricted_visible"]
         ),
-        "unseen_recall_at_6": share(groups("unseen_answerable"), lambda r: r["retrieval_hit"]),
-        "unseen_top_1_source_correct": share(groups("unseen_answerable"), lambda r: r["top1_hit"]),
-        "unseen_correct_abstention": share(
+        "additional_regression_recall_at_6": share(
+            groups("unseen_answerable"), lambda r: r["retrieval_hit"]
+        ),
+        "additional_regression_top_1_source_correct": share(
+            groups("unseen_answerable"), lambda r: r["top1_hit"]
+        ),
+        "additional_regression_correct_abstention": share(
             groups("unseen_missing"), lambda r: r["status"] in ("NOT_FOUND", "OUT_OF_SCOPE")
         ),
         "permission_leaks": sum(r["restricted_visible"] for r in rows),
@@ -279,8 +283,10 @@ def main() -> int:
         "held_out": False,
         "note": (
             "S, P, M, A, I and U scenarios were used to tune search and are a regression set. "
-            "H scenarios were added after tuning, and search was not tuned on them. "
-            "The same author wrote both, so this is not an independent held-out set."
+            "H scenarios were originally added after tuning, but were inspected during the "
+            "7 November retrieval fix and now also form a regression set. Their historical "
+            "unseen_* group identifiers are retained for comparison, not a held-out claim. "
+            "No independent held-out model-quality evaluation is claimed."
         ),
         "ran_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "summary": summary,

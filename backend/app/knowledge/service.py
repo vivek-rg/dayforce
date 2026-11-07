@@ -34,7 +34,7 @@ STOPWORDS = frozenset(
     much must my need needs new of off on or other our out over per please policies policy really
     rule rules should so some still tell than that the their them then there these they thing
     this to us use was we were what when where which who why will with within would year years
-    you your""".split()
+    you your happens take taking""".split()
 )
 # A small reviewed list that closes common paraphrase gaps. Porter stemming handles the rest.
 SYNONYMS = {
@@ -71,6 +71,21 @@ SYNONYMS = {
     "broken": ("lost", "damaged"),
     "lost": ("lost", "damaged"),
     "stolen": ("lost", "damaged"),
+    "notice": ("notice", "advance"),
+    "leftover": ("unused",),
+    "expire": ("expire", "lapse"),
+    "id": ("identity",),
+    "certificate": ("certificate", "document"),
+    "certificates": ("certificate", "document"),
+    "approve": ("approve", "verify", "review"),
+    "decide": ("choose", "enrol", "decline"),
+    "needed": ("need", "require"),
+}
+QUERY_PHRASES = {
+    "time off": "leave",
+    "didn't use": "unused",
+    "did not use": "unused",
+    "not used": "unused",
 }
 ADVICE_PATTERN = re.compile(
     r"\b(should i (resign|quit|sue|negotiate)|legal advice|am i eligible|can i sue|"
@@ -204,8 +219,11 @@ def list_documents(connection, user: User) -> list[KnowledgeDocument]:
 
 def query_terms(question: str) -> list[tuple[str, ...]]:
     """Each meaningful word becomes one group of alternatives. FTS operators cannot survive this."""
+    normalized = question.lower().replace("’", "'")
+    for phrase, replacement in QUERY_PHRASES.items():
+        normalized = re.sub(r"\b" + re.escape(phrase) + r"\b", replacement, normalized)
     groups: list[tuple[str, ...]] = []
-    for word in TERM_PATTERN.findall(question.lower()):
+    for word in TERM_PATTERN.findall(normalized):
         if word in STOPWORDS or len(word) < 2:
             continue
         group = SYNONYMS.get(word, (word,))

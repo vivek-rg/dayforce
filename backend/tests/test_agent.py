@@ -78,6 +78,60 @@ def test_investigation_pauses_durably_and_resumes_after_restart(world):
     assert world.get("U_HR", f"/hires/{hire['id']}").json()["location_id"] == "HYD-DEMO"
 
 
+@pytest.mark.parametrize("budget,expected", [(12, "RESOLVED"), (2, "ESCALATED")])
+def test_repeated_answered_question_does_not_wait_again(world, monkeypatch, budget, expected):
+    monkeypatch.setenv("MAX_MODEL_CALLS", str(budget))
+    question = {
+        "next_step": {
+            "step": "ask",
+            "question": "Which location is correct?",
+            "recipient_role": "HR",
+            "evidence_ids": [],
+        }
+    }
+    finish = {
+        "next_step": {"step": "finish", "reason_summary": "Answer recorded.", "evidence_ids": []}
+    }
+    provider = Scripted(question, question, finish)
+    set_provider_for_tests(provider)
+    hire = world.create_hire()
+    case_id = open_case(world, hire["id"])
+    world.work()
+    pending = case(world, case_id)["questions"][0]
+    response = world.post(
+        "U_HR", f"/questions/{pending['id']}/responses", {"answer": "Bengaluru is correct."}
+    )
+    assert response.status_code == 202
+    world.work()
+    current = case(world, case_id)
+    assert current["state"] == expected
+    assert len(current["questions"]) == 1 and current["questions"][0]["state"] == "ANSWERED"
+    assert current["model_calls"] == min(budget, 3)
+    if expected == "RESOLVED":
+        assert "Bengaluru is correct." in json.dumps(provider.calls[-1]["messages"])
+
+
+def test_investigation_leaves_room_for_hosted_reasoning(world, monkeypatch):
+    limits = []
+    finish = {
+        "next_step": {"step": "finish", "reason_summary": "No change needed.", "evidence_ids": []}
+    }
+
+    def respond(url, **kwargs):
+        limits.append(kwargs["json"]["max_tokens"])
+        return providers.httpx.Response(
+            200, json={"choices": [{"message": {"content": json.dumps(finish)}}]}
+        )
+
+    monkeypatch.setattr(providers.httpx, "post", respond)
+    set_provider_for_tests(HostedProvider("m", "https://example.invalid/v1", "SYNTHETIC_KEY"))
+    hire = world.create_hire()
+    case_id = open_case(world, hire["id"])
+    world.work()
+    assert case(world, case_id)["state"] == "RESOLVED"
+    assert limits == [1500]
+
+
 def test_model_cannot_choose_the_reviewer_or_arbitrary_tools(world):
     hire = conflict_hire(world)
     bad = [

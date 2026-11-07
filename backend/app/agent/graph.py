@@ -188,6 +188,7 @@ def run_investigation(case_id: str) -> None:
                 )
             continue
         if isinstance(step, AskStep):
+            key = hashlib.sha256(step.question.encode()).hexdigest()[:24]
             with connect() as connection:
                 recipient = _recipient(connection, step.recipient_role.value, case["hire_id"])
                 if recipient is None:
@@ -195,13 +196,19 @@ def run_investigation(case_id: str) -> None:
                 if recipient is None:
                     recipient = None
                 else:
-                    key = hashlib.sha256(step.question.encode()).hexdigest()[:24]
                     question_id = new_id("QST")
                     connection.execute(
                         "INSERT OR IGNORE INTO questions (id, case_id, dedupe_key, "
                         "recipient_user_id, text, state) VALUES (?,?,?,?,?,'PENDING')",
                         (question_id, case_id, key, recipient, step.question),
                     )
+                    existing = connection.execute(
+                        "SELECT state FROM questions WHERE case_id=? AND dedupe_key=?",
+                        (case_id, key),
+                    ).fetchone()
+                    # Check under the write lock: recorded answers are already in build_steps.
+                    if existing["state"] != "PENDING":
+                        continue
                     _set_state(connection, case_id, "WAITING_HUMAN")
                     audit(
                         connection,

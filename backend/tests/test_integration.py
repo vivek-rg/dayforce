@@ -2,10 +2,13 @@
 
 from datetime import date, timedelta
 
-from app.ai.providers import set_provider_for_tests
+import pytest
+from app.ai.providers import ProviderError, set_provider_for_tests
 from app.ai.stub import StubProvider
 from app.shared.contracts import utc_now
 from app.shared.db import connect
+
+from .helpers import Scripted
 
 
 def test_full_onboarding_journey(world):
@@ -201,6 +204,67 @@ def test_full_onboarding_journey(world):
         "ACTION_SUCCEEDED",
         "ONBOARDING_COMPLETED",
     } <= events
+
+
+@pytest.mark.parametrize(
+    "failure",
+    ["MODEL_TIMEOUT", "MODEL_RATE_LIMITED", "MODEL_HTTP_401", "MODEL_HTTP_500", "invalid_json"],
+)
+def test_ai_failures_leave_human_recovery_available(world, failure):
+    reply = "{invalid" if failure == "invalid_json" else ProviderError(failure)
+    set_provider_for_tests(Scripted(*([reply] * 8)))
+    hire = world.create_hire()
+    document = world.upload_fixture(
+        "U_PRIYA", hire["id"], "signed_employment", "offer_letter_priya.txt"
+    ).json()
+
+    question = "What documents do I need for onboarding?"
+    answer = world.post("U_PRIYA", "/assistant/questions", {"question": question}).json()
+    assert answer["status"] == "UNAVAILABLE" and answer["claims"] == []
+    assert answer["sources"] and answer["suggest_escalation"]
+    sent = world.post(
+        "U_PRIYA",
+        "/assistant/escalations",
+        {"question": question, "ai_run_id": answer["ai_run_id"]},
+    )
+    assert sent.status_code == 201
+    resolved = world.post(
+        "U_HR",
+        f"/assistant/escalations/{sent.json()['id']}/answers",
+        {"answer": "Please read the approved onboarding documents guide."},
+    )
+    assert resolved.status_code == 200 and resolved.json()["state"] == "ANSWERED"
+
+    extraction = world.post("U_HR", f"/documents/{document['id']}/extractions")
+    assert extraction.status_code == 503
+    assert extraction.json()["error"]["code"] == "AI_UNAVAILABLE"
+    assert world.review(document).json()["state"] == "VERIFIED"
+
+    metrics = world.get("U_HR", "/insights/metrics").json()
+    assert world.post("U_HR", "/insights/summaries").status_code == 503
+    assert world.get("U_HR", "/insights/metrics").json() == metrics
+    opened = world.post("U_HR", f"/hires/{hire['id']}/cases", {"message": "Check location."})
+    world.work()
+    case = world.get("U_HR", f"/cases/{opened.json()['case_id']}").json()
+    assert case["state"] == "ESCALATED" and case["proposals"] == []
+    assert any(
+        item["title"] == "Investigation needs a person"
+        for item in world.get("U_HR", "/notifications").json()["items"]
+    )
+    assert world.get("U_HR", f"/hires/{hire['id']}").json()["location_id"] == "HYD-DEMO"
+    with connect() as connection:
+        assert connection.execute("SELECT COUNT(*) FROM actions").fetchone()[0] == 0
+
+    proposal = world.post(
+        "U_HR",
+        f"/hires/{hire['id']}/change-previews",
+        {"location_id": "BLR-DEMO", "expected_profile_version": 1},
+    ).json()
+    decision = world.post("U_HR", f"/proposals/{proposal['id']}/decisions", {"decision": "APPROVE"})
+    assert decision.status_code == 200
+    world.work()
+    assert world.get("U_HR", f"/proposals/{proposal['id']}").json()["action_state"] == "SUCCEEDED"
+    assert world.get("U_HR", f"/hires/{hire['id']}").json()["location_id"] == "BLR-DEMO"
 
 
 def test_the_whole_workflow_runs_with_ai_switched_off(world):

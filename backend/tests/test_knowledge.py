@@ -41,6 +41,48 @@ def test_the_six_brief_questions_retrieve_the_right_source(world, question, titl
     assert first_chunk(question)["title"] == title
 
 
+@pytest.mark.parametrize(
+    "question,title,section",
+    [
+        ("How much notice should I give for time off?", "Leave Policy", "Annual leave"),
+        ("Does leftover vacation expire?", "Leave Policy", "Carry forward"),
+        (
+            "Which ID do I submit when joining?",
+            "Onboarding Documents Guide",
+            "Documents required for onboarding",
+        ),
+        (
+            "Are AI certificates automatically verified?",
+            "Onboarding Documents Guide",
+            "How documents are verified",
+        ),
+        ("What is the benefits enrolment deadline?", "Benefits Overview", "How to enrol"),
+        (
+            "Is the VPN required while working at home?",
+            "Remote Work Policy",
+            "Remote work requirements",
+        ),
+    ],
+)
+def test_ordinary_phrasing_retrieves_the_relevant_section(world, question, title, section):
+    chunk = first_chunk(question)
+    assert (chunk["title"], chunk["section_ref"]) == (title, section)
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "Can my unused leave be exchanged for cryptocurrency?",
+        "Do benefits cover spaceship repairs?",
+    ],
+)
+def test_query_expansion_still_abstains_on_missing_topics(world, question):
+    provider = Scripted()
+    set_provider_for_tests(provider)
+    assert ask(world, question)["status"] == "NOT_FOUND"
+    assert provider.calls == []
+
+
 def test_answer_has_a_real_citation_with_metadata(world):
     set_provider_for_tests(StubProvider())
     body = ask(world, "How do I request a laptop?")

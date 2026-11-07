@@ -11,7 +11,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("onboardiq_theme", theme);
+    try {
+      localStorage.setItem("onboardiq_theme", theme);
+    } catch {
+      // Theme switching still works for this visit without browser storage.
+    }
   }, [theme]);
 
   const toggleTheme = () => {
