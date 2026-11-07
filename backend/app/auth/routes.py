@@ -5,8 +5,10 @@ from fastapi import APIRouter, Depends, Request
 
 from app.auth import service
 from app.auth.permissions import require
+from app.shared.config import live_setting
 from app.shared.contracts import (
     AccountCreate,
+    DemoPassword,
     LoginRequest,
     PasswordResetCreate,
     PasswordResetList,
@@ -37,6 +39,19 @@ def _limit_public_form(request: Request) -> None:
 @router.post("/sessions", response_model=Session, summary="Create a local demo bearer session")
 def create_session(body: LoginRequest):
     return service.login(body.user_id, body.password)
+
+
+@router.get(
+    "/demo-password",
+    response_model=DemoPassword,
+    summary="Read the synthetic demo accounts' password for sign-in autofill",
+)
+def demo_password():
+    """Seeded accounts use DEMO_PASSWORD, so autofill reads the same value the seed hashed."""
+    password = live_setting("DEMO_PASSWORD")
+    if len(password) < 12:
+        fail(404, "NOT_FOUND", "No demo password is configured.")
+    return DemoPassword(password=password)
 
 
 @router.delete("/sessions/current", status_code=204, summary="Revoke current bearer session")

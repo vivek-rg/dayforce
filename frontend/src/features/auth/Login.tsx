@@ -7,7 +7,6 @@ import { ActionError, Notice } from "../../shared/ui";
 import { ThemeToggle } from "../../shared/theme";
 
 const MIN_PASSWORD = 12;
-const DEMO_PASSWORD = "DemoPassword123!";
 
 const DEMO_USERS: [string, string][] = [
   ["hema@northstar.example", "HR"],
@@ -198,7 +197,7 @@ function SignInForm({ onMode }: { onMode: (mode: Mode) => void }) {
       <details className="auth-demo">
         <summary>Demo accounts</summary>
         <p className="muted small">
-          Choose an email, then enter the demo password shared by your team.
+          Choose an account to fill in its email and the demo password.
         </p>
         <ul>
           {DEMO_USERS.map(([address, role]) => (
@@ -208,8 +207,12 @@ function SignInForm({ onMode }: { onMode: (mode: Mode) => void }) {
                 className="auth-demo-user"
                 onClick={() => {
                   setEmail(address);
-                  setPassword(DEMO_PASSWORD);
                   setProblem(null);
+                  // The server returns the same DEMO_PASSWORD it seeded the accounts with.
+                  api
+                    .demoPassword()
+                    .then((demo) => setPassword(demo.password))
+                    .catch(() => undefined);
                 }}
               >
                 {role}

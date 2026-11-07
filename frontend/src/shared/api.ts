@@ -24,6 +24,7 @@ import type {
   HireCreate,
   PasswordResetList,
   TemporaryPassword,
+  DemoPassword,
   HirePatch,
   HireList,
   InsightMetrics,
@@ -181,6 +182,7 @@ export const api = {
   logout: () => request<void>("/sessions/current", { method: "DELETE" }),
   createAccount: (display_name: string, email: string, password: string) =>
     send<Session>("POST", "/accounts", { display_name, email, password }),
+  demoPassword: () => get<DemoPassword>("/demo-password"),
   requestPasswordReset: (email: string) =>
     send<void>("POST", "/password-resets", { email }),
   passwordResets: (signal?: AbortSignal) =>

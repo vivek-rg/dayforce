@@ -125,6 +125,26 @@ Create a local demo bearer session
 
 **Errors:** 401, 403, 404, 409, 422; global meanings above.
 
+### `GET /api/demo-password`
+
+Read the synthetic demo accounts' password for sign-in autofill
+
+**Authority:** See scoped ownership rules.
+
+**Parameters:** none.
+
+**Request body:** none.
+
+**Success 200:** DemoPassword
+
+```json
+{
+  "password": "sample_value"
+}
+```
+
+**Errors:** 401, 403, 404, 409, 422; global meanings above.
+
 ### `DELETE /api/sessions/current`
 
 Revoke current bearer session
@@ -3664,6 +3684,26 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
     "decision"
   ],
   "title": "DecisionResult"
+}
+```
+
+### DemoPassword
+
+```json
+{
+  "properties": {
+    "password": {
+      "type": "string",
+      "title": "Password"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "password"
+  ],
+  "title": "DemoPassword",
+  "description": "The shared password of the seeded synthetic demo accounts, for sign-in page autofill."
 }
 ```
 
