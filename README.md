@@ -1,4 +1,4 @@
-[Video](video/VIDEO_LINK.md) | [PPT](ppt/README.md) | [Resume](resume/)
+[Video](#demo-video) | [PPT](#presentation) | [Resumes](#team-resumes)
 
 # OnboardIQ
 
@@ -6,25 +6,67 @@
 
 OnboardIQ is an employee onboarding prototype built for **Topic 3: Employee Onboarding** of the AI Innovation Challenge. It brings HR, IT, Payroll, Benefits, Training, Managers and Employees into one workflow, with clear responsibilities and evidence for each outcome.
 
+[Overview](#project-at-a-glance) · [The problem](#problem-and-solution) · [User journey](#user-journey-and-roles) · [Architecture](#architecture) · [Setup](#install-and-run) · [Quality checks](#verification)
+
 ## Submission materials
 
-| Material | Location / link |
+### Demo video
+
+**Watch the demo:** `DEMO_VIDEO_LINK`
+
+Recording location: `video/`.
+
+### Presentation
+
+**Open the five-slide presentation:** `PRESENTATION_FILE_LINK`
+
+Presentation location: `ppt/`.
+
+<!-- Replace the two link placeholders above with the final accessible video and presentation links. The folder paths are upload locations, not links to files that already exist. -->
+
+### Team resumes
+
+All eight uploaded resumes are in [resume/](resume/):
+
+| Team member | Resume |
 | --- | --- |
-| Demo recording | `DEMO_VIDEO_LINK` — recording location: `video/` |
-| Five-slide presentation | `PRESENTATION_FILE_LINK` — presentation location: `ppt/` |
-| Team resumes | [resume/](resume/) |
-| Challenge rules | [AI Innovation Challenge brief](AI_Innovation_Challenge_University_Brief%201.pdf) |
+| Danyal Ibrahim | [PDF](resume/danyal_ibrahim_resume.pdf) |
+| Kavana Vijay Hegde | [PDF](resume/KAVANA_VIJAY_HEGDE_.pdf) |
+| Koushik A | [PDF](resume/koushik_a_resume.pdf) |
+| Lakshmi M | [PDF](resume/Lakshmi_M_1DT23CS103.pdf) |
+| Ruhinaaz | [PDF](resume/Ruhinaaz_resume.pdf) |
+| Swet Anshu | [PDF](resume/Swet_Anshu_resume.pdf) |
+| Vinay | [PDF](resume/vinay_resume.pdf) |
+| Vivek R Gowda | [PDF](resume/Vivek_R_Gowda_resume.pdf) |
 
-<!-- Replace DEMO_VIDEO_LINK and PRESENTATION_FILE_LINK with the final accessible links. -->
+Challenge rules: [AI Innovation Challenge brief](AI_Innovation_Challenge_University_Brief%201.pdf).
 
-Resumes included in the repository:
+## Project at a glance
 
-- [Lakshmi M](resume/Lakshmi_M_1DT23CS103.pdf)
-- [Ruhinaaz](resume/Ruhinaaz_resume.pdf)
-- [Vivek R Gowda](resume/Vivek_R_Gowda_resume.pdf)
-- [Danyal Ibrahim](resume/danyal_ibrahim_resume.pdf)
-- [Koushik A](resume/koushik_a_resume.pdf)
-- [Vinay](resume/vinay_resume.pdf)
+> **A checklist tells you what someone marked done. OnboardIQ also shows what the evidence supports.**
+
+One hire gets one coordinated plan. Each team sees its own work, knows what is blocking the next step and records the actual outcome. AI helps investigate disagreements; it does not replace the person responsible for the decision.
+
+```text
+New-hire profile -> Approved plan -> Owned team tasks -> Checked evidence
+                                                              |
+                                                     Something disagrees?
+                                                              |
+                                Read facts -> Ask a person -> Propose a change
+                                                              |
+                                          Human approval -> Execute -> Verify
+```
+
+| What we coordinate | What people record |
+| --- | --- |
+| Documents | Employee submissions and HR review decisions |
+| Equipment and IT access | Device reservation, handover and simulated account provisioning |
+| Payroll setup | Profile/setup confirmation flags, not real banking information |
+| Benefits enrolment | Invitation, enrolment or permitted decline |
+| Training | Assigned courses and recorded completion |
+| Manager tasks | Buddy assignment and a first-week plan |
+
+**Built with:** React, TypeScript and Vite · FastAPI and Pydantic · SQLite with FTS5 search · optional hosted or local model inference.
 
 ## Problem and solution
 
@@ -33,6 +75,16 @@ A new hire depends on several teams before they can start work. Documents need r
 OnboardIQ separates **task progress** from **proof of the result**. A reserved laptop is not a delivered laptop. Uploading a document does not mean HR has verified it. Each task has an owner, due date and dependencies; separate checks show whether the expected outcome is supported by current evidence.
 
 Plans come from approved rules based on the worker profile and location. When records disagree, an optional AI investigation reads permitted evidence, asks the responsible person for clarification and proposes a limited correction. Application code validates the proposal, a person approves it, and the system checks the actual result after execution. Manual workflows continue when AI is disabled or unavailable.
+
+### Progress is not the same as proof
+
+| What happened | What it does not prove | What still needs checking |
+| --- | --- | --- |
+| An employee uploaded an offer letter | HR has verified it | A permitted human review |
+| IT reserved a laptop | The employee received it | The handover record and matching assignee |
+| Someone completed a task | Its intended outcome happened | Current independent evidence |
+| HR approved a change | The change executed successfully | Execution and a fresh result read-back |
+| An investigation was resolved | Every onboarding task is complete | The remaining teams' tasks and outcome checks |
 
 This prototype uses one fictional company, synthetic employee documents and simulated source systems. It is not a live Dayforce integration or a production payroll system.
 
@@ -91,7 +143,7 @@ One local worker resumes saved investigations and actions
 
 - **Planning:** approved executable rules select tasks for the worker profile and location. The plan tracks owners, dependencies and deadlines. Uploading policy prose does not change these rules.
 - **Evidence:** checks compare the intended result with source records. Results are `VERIFIED`, `BLOCKED`, `UNKNOWN` or approved `NOT_APPLICABLE`. Missing, unavailable or stale evidence is not success. Marking a task complete does not create proof.
-- **Documents:** uploads are checked for size and supported file type, stored privately and reviewed by a person. Extraction is advisory. Text PDFs and plain text can be read; scanned images need manual review because OCR is not implemented.
+- **Documents:** uploads are limited to 5 MB and supported PDF, PNG, JPEG or TXT content, stored privately and reviewed by a person. Extraction is advisory. Text PDFs and plain text can be read; scanned images need manual review because OCR is not implemented.
 - **Knowledge assistant:** approved Markdown/TXT policies are searched using SQLite FTS5 with access filtering. Answers must cite checked passage quotes, or the assistant abstains and offers HR escalation. Quote matching does not prove that every answer is semantically correct.
 - **AI harness:** four operations share prompt versions, typed outputs, validation and run records: policy answers, document extraction, investigation next steps and insight summaries. Invalid output can receive at most one repair attempt, then falls back safely.
 - **Investigations:** the model can choose only allowlisted reads, ask a person, propose an action or finish/escalate. Questions, steps, budgets and waiting state are saved in SQLite. No database transaction stays open across a model call or human wait. Default limits are 12 model attempts, 16 reads and a 90-second active run segment; this is not a hard whole-case time guarantee.
@@ -99,6 +151,8 @@ One local worker resumes saved investigations and actions
 - **Access and observability:** the server checks the current user, role and hire scope. Passwords and session tokens are stored as hashes; browser tokens use tab-scoped sessionStorage. Request IDs, timings, AI run references and audit events help trace behavior without logging full prompts or credentials. The database and case history must still be treated as private.
 
 ### Key technical decisions
+
+The **AI harness** is the set of trusted controls around the model: what it may read, what shape it must return, who must approve a change, how much work it may attempt and how the result is checked. It is not just a chat prompt.
 
 React and Vite provide a typed role-based interface. FastAPI and Pydantic provide request validation and OpenAPI contracts. Standard-library SQLite and FTS5 make the prototype easy to run without a separate database or vector service. One worker and application-owned saved state support the bounded investigation flow; a separate orchestration framework is not required by the runtime.
 
@@ -109,9 +163,12 @@ Canonical API types are defined in [contracts.py](backend/app/shared/contracts.p
 | Path | Contents |
 | --- | --- |
 | `backend/app/` | FastAPI routes, authentication and domain services |
-| `backend/app/planning/`, `evidence/` | Rule-based plans, task progress and independent outcome checks |
-| `backend/app/documents/`, `knowledge/` | Private document review and approved policy search |
-| `backend/app/agent/`, `cases/`, `actions/`, `ai/` | Saved investigations, human questions, controlled actions and model harness |
+| `backend/app/planning/`, `backend/app/evidence/` | Rule-based plans, task progress and independent outcome checks |
+| `backend/app/documents/`, `backend/app/knowledge/` | Private document review and approved policy search |
+| `backend/app/agent/`, `backend/app/cases/` | Saved investigations, local worker and human questions |
+| `backend/app/actions/`, `backend/app/ai/` | Reviewed proposals, controlled execution, prompts, providers and validation |
+| `backend/app/auth/` | Accounts, sessions, roles and hire-scope permissions |
+| `backend/app/analytics/`, `backend/app/notifications/` | Database-backed metrics, audit/AI run views, notifications and follow-up |
 | `backend/app/shared/` | Canonical contracts, SQL schema, configuration and shared utilities |
 | `backend/tests/` | Backend unit, API, integration, security and resilience tests |
 | `frontend/src/features/` | Role screens, onboarding workspace, guides and employee portal |
@@ -122,10 +179,30 @@ Canonical API types are defined in [contracts.py](backend/app/shared/contracts.p
 | `scripts/` | Startup, smoke checks, contract generation and tooling |
 | `docs/` | [API specification](docs/API_SPEC.md), [OpenAPI JSON](docs/openapi.json), [data model](docs/DATA_MODEL.md) and [evaluation results](docs/EVALUATION.md) |
 | `.github/workflows/ci.yml` | Automated repository checks on push and pull request |
-| `resume/`, `ppt/`, `video/` | Team resumes, presentation and demo recording locations |
+| `frontend/DESIGN.md`, `frontend/PRODUCT.md` | Interface design rules and product behavior notes |
+| `frontend/OFL-Source-Sans-3.txt` | Licence for the bundled Source Sans 3 font |
+| `resume/` | Uploaded team resumes |
+| `ppt/`, `video/` | Presentation and recording upload locations |
 | `.env.example`, `Dockerfile`, `render.yaml` | Safe environment template and optional container hosting configuration |
 
-Feature-directory names above are relative to their parent (`backend/app/`). Local `.env`, `.runtime/`, `.venv/`, `node_modules/` and `frontend/dist/` are private or generated artifacts, not submission source.
+Local `.env`, `.runtime/`, `.venv/`, `node_modules/` and `frontend/dist/` are private or generated artifacts, not submission source.
+
+### What `docs/` and `evals/` are for
+
+These folders have different jobs. **The website does not load saved evaluation reports to answer questions or populate dashboards.** It uses its own database, approved knowledge and current workflow records.
+
+| Files | Purpose | Where they are used |
+| --- | --- | --- |
+| `docs/API_SPEC.md`, `docs/openapi.json` | Generated descriptions of the API | Contract tests and `npm run contracts:check`; deleting them breaks current checks |
+| `docs/DATA_MODEL.md` | Human-readable explanation of database tables and state | Developer/reviewer reference, not runtime input |
+| `docs/EVALUATION.md` | Explanation of measured model/retrieval results and limits | Submission evidence, not runtime input |
+| `evals/run.py`, `evals/scenarios.json`, `evals/answer_keys.json` | Reproducible evaluation program, questions and expected sources | Explicit evaluation commands; `evals/` is also included in linting |
+| `evals/results/*.json` | Saved outputs from past evaluation runs | Raw evidence behind the evaluation report; not loaded by the app or by subsequent evaluation runs |
+| `evals/README.md` | Instructions for rerunning and interpreting evaluations | Developer/reviewer reference |
+
+Runtime knowledge comes from a separate place: `fixtures/seed.py` loads the nine `fixtures/knowledge/*.md` policies and `fixtures/policy_pack.json` into a new synthetic database. Policy search then uses approved database content, not evaluation questions or answer keys. The evaluation runner seeds its own temporary database and writes reports only when `--no-write` is omitted.
+
+FastAPI also generates the running app's `/docs` and `/openapi.json` from Python routes and models. Those URLs are not a static website backed by the repository's `docs/` folder. The checked-in snapshot includes additional security metadata and internal agent schemas for review.
 
 ## Install and run
 
