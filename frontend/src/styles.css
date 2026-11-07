@@ -1,6 +1,6 @@
 @import "./fonts.css";
 
-/* Open Handoffs: monochrome navigation and readable work, with separate proof. */
+/* Open Handoffs: white work surfaces, black type and red action/selection accents. */
 :root {
   --canvas: #f7f7f7;
   --surface: #ffffff;
@@ -10,9 +10,9 @@
   --ink-3: #626262;
   --line: #dedede;
   --line-2: #b6b6b6;
-  --accent: #171717;
-  --accent-hover: #363636;
-  --accent-soft: #e8e8e8;
+  --accent: #b4232c;
+  --accent-hover: #941c24;
+  --accent-soft: #fff1f2;
 
   --ok: #14693a;
   --ok-bg: #e8f3ed;
@@ -23,12 +23,12 @@
   --info: #474e56;
   --info-bg: #eef0f2;
 
-  --focus: #171717;
+  --focus: var(--accent);
 
-  --side: #111111;
-  --side-ink: #e8e8e8;
-  --side-muted: #aaaaaa;
-  --side-accent: #ffffff;
+  --side: #ffffff;
+  --side-ink: #454545;
+  --side-muted: #626262;
+  --side-accent: var(--accent);
 
   --radius: 4px;
   --font:
@@ -214,13 +214,13 @@ a {
 }
 
 .sidebar :focus-visible {
-  outline-color: #ffffff;
+  outline-color: var(--focus);
 }
 
 .brand {
   display: block;
   padding: 0 10px 18px;
-  color: #ffffff;
+  color: var(--ink);
   font-size: 24px;
   font-weight: 650;
   letter-spacing: -0.01em;
@@ -254,13 +254,13 @@ a {
 }
 
 .nav-item:hover {
-  background: #262626;
-  color: #ffffff;
+  background: var(--surface-2);
+  color: var(--ink);
 }
 
 .nav-item[aria-current="page"] {
-  background: #ffffff;
-  color: #111111;
+  background: var(--accent-soft);
+  color: var(--side-accent);
   font-weight: 600;
 }
 
@@ -2463,18 +2463,12 @@ a,
 }
 
 .auth-story {
-  --ink: #ffffff;
-  --ink-2: #cccccc;
-  --ink-3: #b8b8b8;
-  --line: #363636;
-  --line-2: #444444;
-  --accent: #ffffff;
-  color: #ffffff;
+  color: var(--ink);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   padding: clamp(28px, 5vw, 80px);
-  background: var(--side);
+  background: var(--canvas);
   border-right: 1px solid var(--line);
 }
 
@@ -2508,6 +2502,10 @@ a,
 
 .auth-headline span {
   display: block;
+}
+
+.auth-headline span:last-child {
+  color: var(--accent);
 }
 
 .auth-lede {
@@ -2913,6 +2911,7 @@ a,
 
 .public-brand span {
   margin-left: 2px;
+  color: var(--accent);
 }
 
 .guide-links {
@@ -2931,7 +2930,7 @@ a,
 
 .guide-links a:hover,
 .guide-links a[aria-current="page"] {
-  color: var(--ink);
+  color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 7px;
 }
@@ -3055,7 +3054,7 @@ a,
 
 .journey-number {
   font-size: 24px;
-  color: var(--ink-3);
+  color: var(--accent);
   line-height: 1.2;
 }
 
@@ -3200,8 +3199,8 @@ a,
 }
 
 .role-picker button[aria-pressed="true"] {
-  color: #ffffff;
-  background: #171717;
+  color: var(--accent);
+  background: var(--accent-soft);
   font-weight: 600;
 }
 
@@ -3481,6 +3480,7 @@ a,
   --scene-paper: #ffffff;
   --scene-muted: #626262;
   --scene-soft: #cccccc;
+  --scene-accent: var(--accent);
   display: block;
   width: 180px;
   height: auto;
@@ -3497,12 +3497,16 @@ a,
   width: 100%;
 }
 
-.auth-opening .handoff-illustration,
+.auth-opening .handoff-illustration {
+  width: 156px;
+}
+
 .handoff-example .handoff-illustration {
   --scene-ink: #ffffff;
   --scene-paper: #151515;
   --scene-muted: #b8b8b8;
   --scene-soft: #454545;
+  --scene-accent: #ffb4b8;
   width: 156px;
 }
 

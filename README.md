@@ -117,7 +117,7 @@ React/Vite keeps the existing role interface simple; FastAPI/Pydantic gives type
 | `frontend/src/features/assistant/`, `knowledge/`, `insights/`  | Grounded answers, approved knowledge administration and advisory insights                                  |
 | `frontend/src/features/notifications/`, `audit/`, `settings/`  | Answers/notifications, audit/reliability and existing settings—not a model selector                        |
 | `frontend/src/shared/`                                         | API helper/generated types, session/routes/hooks, accessible primitives/icons and illustration             |
-| `frontend/src/styles.css`, `fonts.css`                         | Shared monochrome responsive design, reduced-motion and bundled font                                       |
+| `frontend/src/styles.css`, `fonts.css`                         | Shared black/white/red responsive design, reduced-motion and bundled font                                  |
 | `frontend/PRODUCT.md`, `DESIGN.md`                             | Product truth and implemented visual-system rules; font licence stays alongside                            |
 | `fixtures/`                                                    | Safe seed, executable fictional policy pack, sample documents and nine runtime knowledge Markdown files    |
 | `evals/`                                                       | Evaluation runner, separate scenarios/answer keys and dated JSON results; see its focused README           |
@@ -247,7 +247,21 @@ There is no CHECKPOINT_PATH configuration in the current runtime. The coding ass
 
 ## AI keys and providers
 
-**I assume “Rock” means Groq. Never send your actual key in chat.** Paste the selected key only after `LLM_API_KEY=` in your private root .env. The current application does not read separate GEMINI_API_KEY or MISTRAL_API_KEY variables or pool/switch multiple keys automatically. You can keep unused keys in your private password manager, not the repository.
+**Hosted inference needs a key for the selected provider; manual workflows and local Ollama do not. Never send your actual key in chat.** Paste the selected key only after `LLM_API_KEY=` in your private root .env. The current application does not read separate GEMINI_API_KEY or MISTRAL_API_KEY variables or pool/switch multiple keys automatically. You can keep unused keys in your private password manager, not the repository.
+
+### App health is not a model endpoint
+
+OnboardIQ runs on `http://127.0.0.1:8000` during local development. `/api/health` (and its `/health` alias) checks application/database readiness. This backend is **not an OpenAI-compatible inference server** and does not implement `/v1/models`. Repeated incoming `GET /v1/models` requests returning 404 mean a caller is asking the wrong service for that route; **they do not establish whether your private API key exists or is valid**. No in-repository caller for that path was found. The supplied access logs do not identify the caller; check the model-client/discovery tool or health-probe configuration privately. Do not add a fake models endpoint to silence it.
+
+Keep three destinations distinct:
+
+| Destination                                                        | Correct purpose                                           |
+| ------------------------------------------------------------------ | --------------------------------------------------------- |
+| OnboardIQ `/api/*` on port 8000                                    | Browser business API; browser uses relative `/api` calls  |
+| `LLM_BASE_URL` (for example Groq `https://api.groq.com/openai/v1`) | Backend hosted inference; app appends `/chat/completions` |
+| `OLLAMA_BASE_URL` (normally `http://127.0.0.1:11434`)              | Local Ollama service; app appends `/api/chat`             |
+
+In an authorized signed-in session, `/api/health/ai` shows configuration plus the last recorded availability problem, without a provider call or key exposure. `available=true` means configured, **not** reachable, authenticated or quality-tested. `available=false` can mean intentionally off or incomplete provider/model/endpoint/key settings, not necessarily a missing key. A provider 401 may indicate rejected credentials/access; a provider 404 may indicate a wrong endpoint or unavailable model ID; 429 is quota/rate limiting. These outgoing model failures are different from the incoming `/v1/models` probe above. Verify inference only with an explicitly authorized synthetic operation, then inspect its actual result/run. No key inspection or live inference was performed for this troubleshooting update.
 
 ### Groq — historical live-tested path
 
@@ -338,6 +352,7 @@ No production SSO, multi-tenancy, encryption at rest, malware scanning, OCR, rea
 | Empty hires / Priya has no plan                       | Verify current role/scope and matching seed/app DB. A fresh empty DB has no business hires; HR must link/create Priya.                                                                                                                                                                                           |
 | Password changed in.env but sign-in still fails       | Stored password hashes are unchanged. Use the existing HR reset flow; do not reseed working data.                                                                                                                                                                                                                |
 | SQLite locked                                         | Stop duplicate writers and let short transactions finish; never delete locks/journals or use a synced/network drive.                                                                                                                                                                                             |
+| `/v1/models` returns 404 on port 8000                 | Wrong service for model discovery; this is the onboarding app, not a model server. Check the requesting client/probe and point it at its real provider/model API. This does not diagnose a missing key.                                                                                                          |
 | AI off after adding a key                             | Check selected provider/model/base URL and root .env privately; inspect process overrides. Only LLM_API_KEY is consumed for hosted inference. Never print the key for debugging.                                                                                                                                 |
 | 401/429/timeout from provider                         | Check account/model access/quota privately; use manual fallback. No unbounded retries, automatic key rotation or paid upgrade.                                                                                                                                                                                   |
 | Contract drift                                        | Correct canonical source through integrator review, regenerate once and rerun checks; never hand-edit generated types.                                                                                                                                                                                           |

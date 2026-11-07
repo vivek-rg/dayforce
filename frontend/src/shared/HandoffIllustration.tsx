@@ -75,7 +75,7 @@ export function HandoffIllustration() {
           width="40"
           height="26"
           rx="10"
-          fill="var(--scene-ink)"
+          fill="var(--scene-accent)"
           stroke="none"
         />
         <path
@@ -86,7 +86,7 @@ export function HandoffIllustration() {
       </g>
       <g className="handoff-paper">
         <path d="M142 23h29l12 12v44h-41Z" fill="var(--scene-paper)" />
-        <path d="M171 23v12h12" fill="var(--scene-soft)" />
+        <path d="M171 23v12h12" fill="var(--scene-accent)" />
         <path d="M151 46h23m-23 10h18m-18 10h12" stroke="var(--scene-muted)" />
       </g>
     </svg>

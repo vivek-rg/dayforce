@@ -21,13 +21,20 @@ function contrast(a: string, b: string) {
 describe("Open Handoffs visual guardrails", () => {
   it("keeps readable text and primary controls on the approved surfaces", () => {
     for (const background of ["#ffffff", "#f7f7f7", "#f1f1f1"]) {
-      for (const foreground of ["#141414", "#454545", "#626262", "#171717"]) {
+      for (const foreground of ["#141414", "#454545", "#626262", "#b4232c"]) {
         expect(contrast(foreground, background)).toBeGreaterThanOrEqual(4.5);
       }
     }
-    expect(contrast("#ffffff", "#171717")).toBeGreaterThanOrEqual(4.5);
-    expect(contrast("#aaaaaa", "#111111")).toBeGreaterThanOrEqual(4.5);
-    expect(css).toContain("--accent: #171717;");
+    for (const background of ["#b4232c", "#941c24"]) {
+      expect(contrast("#ffffff", background)).toBeGreaterThanOrEqual(4.5);
+    }
+    expect(contrast("#b4232c", "#fff1f2")).toBeGreaterThanOrEqual(4.5);
+    expect(contrast("#b4232c", "#ffffff")).toBeGreaterThanOrEqual(3);
+    expect(css).toContain("--accent: #b4232c;");
+    expect(css).toContain("--accent-hover: #941c24;");
+    expect(css).toContain("--accent-soft: #fff1f2;");
+    expect(css).toContain("--side: #ffffff;");
+    expect(css).toContain("outline-color: var(--focus)");
   });
 
   it("keeps optional motion finite and behind the user motion preference", () => {

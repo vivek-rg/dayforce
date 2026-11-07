@@ -360,13 +360,53 @@ def test_pasted_key_works_without_a_restart(tmp_path, monkeypatch):
 
 
 def test_status_tells_the_person_what_to_do_about_a_key(world):
-    assert "Paste a Groq key" in world.get("U_HR", "/health/ai").json()["detail"]
+    detail = world.get("U_HR", "/health/ai").json()["detail"]
+    assert "AI is off or its configuration is incomplete" in detail
+    assert "No API key is set" not in detail
     set_provider_for_tests(Scripted(ProviderError("MODEL_RATE_LIMITED")))
     world.post("U_PRIYA", "/assistant/questions", {"question": "How do I request a laptop?"})
-    assert "paste another key" in world.get("U_HR", "/health/ai").json()["detail"]
+    assert "retry later" in world.get("U_HR", "/health/ai").json()["detail"]
     set_provider_for_tests(Scripted(ProviderError("MODEL_HTTP_401")))
     world.post("U_PRIYA", "/assistant/questions", {"question": "How do I request a laptop?"})
     assert "key was rejected" in world.get("U_HR", "/health/ai").json()["detail"]
+
+
+@pytest.mark.parametrize("kind", ["none", "hosted", "ollama"])
+def test_config_status_does_not_infer_missing_key_or_contact_model(world, monkeypatch, kind):
+    set_provider_for_tests(None)
+    monkeypatch.setattr(config, "ENV_FILE", config.ROOT / "backend/tests/absent.env")
+    monkeypatch.setenv("LLM_PROVIDER", kind)
+    monkeypatch.setenv("LLM_MODEL", "")
+    monkeypatch.setenv("LLM_API_KEY", "SYNTHETIC_KEY_NOT_MISSING")
+    monkeypatch.setattr(
+        providers.httpx, "post", lambda *a, **k: pytest.fail("Status must not call a model")
+    )
+    response = world.get("U_HR", "/health/ai")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["available"] is False
+    assert "configuration is incomplete" in body["detail"]
+    assert "No API key is set" not in body["detail"]
+    assert "SYNTHETIC_KEY_NOT_MISSING" not in response.text
+
+
+def test_configured_status_is_not_a_live_model_check(world, monkeypatch):
+    set_provider_for_tests(HostedProvider("m", "https://example.invalid/v1", "SYNTHETIC_KEY"))
+    monkeypatch.setattr(
+        providers.httpx, "post", lambda *a, **k: pytest.fail("Status must not call a model")
+    )
+    response = world.get("U_HR", "/health/ai")
+    assert response.json()["available"] is True
+    assert "does not test connectivity" in response.json()["detail"]
+    assert "SYNTHETIC_KEY" not in response.text
+
+
+def test_model_404_status_points_to_routing_not_a_missing_key(world):
+    set_provider_for_tests(Scripted(ProviderError("MODEL_HTTP_404")))
+    world.post("U_PRIYA", "/assistant/questions", {"question": "How do I request a laptop?"})
+    detail = world.get("U_HR", "/health/ai").json()["detail"]
+    assert "endpoint and model ID" in detail
+    assert "not a model server" in detail
 
 
 def test_insecure_hosted_url_disables_ai(monkeypatch):

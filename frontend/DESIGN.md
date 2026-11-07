@@ -1,6 +1,6 @@
 ---
 name: OnboardIQ
-description: Open Handoffs — confident monochrome work surfaces that keep completion claims and evidence distinct.
+description: Open Handoffs — black type, white work surfaces and restrained red actions, with separate claims and evidence.
 colors:
   canvas: "#f7f7f7"
   surface: "#ffffff"
@@ -10,15 +10,15 @@ colors:
   ink-3: "#626262"
   line: "#dedede"
   line-2: "#b6b6b6"
-  accent: "#171717"
-  accent-hover: "#363636"
-  accent-soft: "#e8e8e8"
-  side: "#111111"
-  side-ink: "#e8e8e8"
-  side-muted: "#aaaaaa"
-  side-hover: "#262626"
-  story-muted: "#cccccc"
-  story-rule: "#444444"
+  accent: "#b4232c"
+  accent-hover: "#941c24"
+  accent-soft: "#fff1f2"
+  side: "#ffffff"
+  side-ink: "#454545"
+  side-muted: "#626262"
+  side-hover: "#f1f1f1"
+  story-muted: "#454545"
+  story-rule: "#b6b6b6"
   example-ground: "#151515"
   example-muted: "#bbbbbb"
   ok: "#14693a"
@@ -103,8 +103,8 @@ components:
     rounded: "{rounded.control}"
     padding: "7px 10px"
   nav-current:
-    backgroundColor: "{colors.surface}"
-    textColor: "{colors.side}"
+    backgroundColor: "{colors.accent-soft}"
+    textColor: "{colors.accent}"
     rounded: "{rounded.control}"
     padding: "7px 10px"
   work-panel:
@@ -135,13 +135,13 @@ components:
 
 **Creative North Star: "Open Handoffs"**
 
-Confident and readable for every role: strong monochrome contrast and orderly records show the work, its owner and what independent evidence actually establishes. The signature pairs Claim and Proof without collapsing them into a single success signal. Familiar controls and aligned information carry the identity rather than decoration.
+Confident and readable for every role: black type, white surfaces, restrained red interaction accents and orderly records show the work, its owner and what independent evidence actually establishes. The signature pairs Claim and Proof without collapsing them into a single success signal. Familiar controls and aligned information carry the identity rather than decoration.
 
-Near-black navigation and authentication story contrast with white working surfaces and neutral-grey supporting regions. Stronger Source Sans 3 headings and deliberate rules establish hierarchy without ornament. Public explanations share this language while using a larger reading scale. This document records the current implementation, not a future feature list or an independent shipping verdict. Test, browser and finish-review evidence is maintained separately by the integration owner.
+White navigation and a light authentication story remove the previous heavy dark side-region effect. White working surfaces and neutral-grey supporting regions keep the workspace calm; deep red actions, selected navigation and the final auth headline establish hierarchy. The black public equipment example remains a deliberate contrast region. Stronger Source Sans 3 headings and deliberate rules establish hierarchy without ornament. Public explanations share this language while using a larger reading scale. This document records the current implementation, not a future feature list or an independent shipping verdict. Test, browser and finish-review evidence is maintained separately by the integration owner.
 
 **Key Characteristics:**
 
-- Black navigation, white work surfaces and neutral interaction states.
+- White navigation/work surfaces, black typography and red action/selection states.
 - Separate, adjacent Claim and Proof cells.
 - Thin rules and compact records instead of nested cards.
 - Native controls, visible focus and explicit state text.
@@ -153,13 +153,13 @@ Source authority: `src/styles.css`, `src/fonts.css`, `src/shared/ui.tsx`, `src/s
 
 ### Primary
 
-Near-black (`accent`) identifies primary actions, links, selected role explanations and focus on light surfaces. Neutral hover and selection shades provide feedback without another brand hue. Current sidebar navigation inverts to white with dark text; sidebar focus is white. Authentication form focus remains near-black on white; its static dark story contains no interactive controls.
+Deep red (`accent`) identifies primary actions, links, selected role explanations and focus on light surfaces. Hover darkens primary red; selected navigation/role explanations use pale red with deep red text and existing aria-current/aria-pressed semantics. Sidebar focus is red on white. Authentication inputs use the same red focus on white; its light story remains noninteractive.
 
-**The Monochrome Brand Rule.** Black, white and neutral greys carry the identity; green, amber and red communicate actual semantic states, not decorative categories.
+**The Three-Colour Brand Rule.** Black, white and red carry the identity; neutral greys support hierarchy. Existing green/amber/error-red communicate actual states with written labels and boundary styles. A red primary action or selected page is not an error; blocked evidence retains its explicit label and stronger border.
 
 ### Neutral
 
-Neutral canvas surrounds white work surfaces; pale secondary surfaces distinguish table headings and quiet hover feedback. Near-black navigation carries light text and muted grey group labels. Ink, secondary ink and muted ink establish reading order; light and stronger rules define records and controls. The auth story locally inverts text and rules for its fixed explanation and illustrative equipment example; the public example uses a dark ground with light copy.
+Neutral canvas surrounds white work surfaces; pale secondary surfaces distinguish table headings and quiet hover feedback. White navigation carries dark text and muted grey group labels. Ink, secondary ink and muted ink establish reading order; light and stronger rules define records and controls. The auth story uses the canvas ground, standard dark text/rules and a red final headline for its fixed explanation and illustrative equipment example; the public example uses a dark ground with light copy.
 
 ### Semantic states
 
@@ -210,7 +210,7 @@ Controls have modest 4px corners; standalone work surfaces use 6px and Claim/Pro
 
 ### Buttons and fields
 
-Primary buttons use near-black with white text; secondary buttons use white, ink and a stronger neutral outline. Both share compact padding and 14px/600 type. Hover is tonal; secondary active state becomes ink/white, while primary active stays neutral dark. Disabled buttons lower opacity and retain a not-allowed cursor. Small and icon variants preserve the same language. Global keyboard focus is a 2px accent outline with 2px offset; the sidebar uses a white outline. Authentication form controls retain standard near-black focus on white; the static story needs no local focus override.
+Primary buttons use deep red with white text; secondary buttons use white, ink and a stronger neutral outline. Both share compact padding and 14px/600 type. Hover is tonal; secondary active state becomes ink/white, while primary active stays darker red. Disabled buttons lower opacity and retain a not-allowed cursor. Small and icon variants preserve the same language. Global keyboard focus is a 2px accent outline with 2px offset; the sidebar uses the same red outline. Authentication form controls retain red focus on white; the static story needs no local focus override.
 
 Under no-preference only, shared buttons, authentication submit and role-picker buttons use 140ms ease-out background/border/text-color feedback and a 120ms ease-out one-pixel downward press. Disabled shared/submit buttons do not move. Reduced motion keeps immediate tone feedback without the press transform.
 
@@ -218,7 +218,7 @@ Fields have explicit native labels, white backgrounds, stronger neutral borders 
 
 ### Navigation and tabs
 
-Sidebar links sit on near-black, hover with a lighter charcoal tint and invert to white/dark with `aria-current="page"` for the current location. Tabs use a thin dark bottom rule and `aria-selected`, not filled pills. Existing arrow-key movement and roving tab focus remain part of the tab pattern. Preserve drawer controls and existing routes; examples do not create new destinations.
+Sidebar links sit on white, hover with a quiet neutral tint and select with pale red/deep red text plus `aria-current="page"` for the current location. Tabs use a thin accent bottom rule and `aria-selected`, not filled pills. Existing arrow-key movement and roving tab focus remain part of the tab pattern. Preserve drawer controls and existing routes; examples do not create new destinations.
 
 ### Authentication explanation
 
@@ -232,7 +232,7 @@ Public navigation provides How it works, Role guide and Sign in. Embedded pages 
 
 ### Decorative handoff illustration
 
-Original assistant/laptop/document line art accompanies the auth brand, How it works caption and Role guide introduction; it is not a live assistant, progress indicator or outcome. The inline SVG is noninteractive (`aria-hidden="true"`, `focusable="false"`, pointer events off), with no text, IDs, remote assets or dependency. Local scene variables reuse incumbent monochrome values and invert on dark auth/example grounds, without introducing a brand color. The complete scene is visible by default.
+Original assistant/laptop/document line art accompanies the auth brand, How it works caption and Role guide introduction; it is not a live assistant, progress indicator or outcome. The inline SVG is noninteractive (`aria-hidden="true"`, `focusable="false"`, pointer events off), with no text, IDs, remote assets or dependency. Local scene variables use black/white/neutral values with deep red on the helper visor and paper fold. Only the dark public example inverts the scene, using a light red accent for contrast. The light auth illustration uses the base scene values. The complete scene is visible by default.
 
 Only under no-preference, two SVG groups animate once over 1800ms: the paper uses `cubic-bezier(0.16, 1, 0.3, 1)`, moving from `translate(38px, -10px) rotate(12deg)` through `translate(-4px, 3px) rotate(-3deg)` at 65% to rest; the helper uses ease-out, rising/nodding at 25% and 55% before returning to rest. Neither animation has a delay, fill or loop. Global reduced-motion rules disable animation and transition with `!important`, leaving the complete static scene. Existing Claim / Proof rule, menu and control feedback remain separate and unchanged.
 
@@ -264,7 +264,7 @@ The companion ledger uses aligned Claimed and Proven rows on the same total, wit
 ### Do:
 
 - **Do** keep Claim and Proof separate and adjacent, with their written relationship.
-- **Do** use monochrome for the brand and semantic color only for a real state.
+- **Do** use red deliberately for action/selection and retain labelled semantic states; never imply an error from brand red alone.
 - **Do** retain native labels, keyboard focus, pending copy and existing retry/reload controls.
 - **Do** flatten details inside a working surface and let rules align records.
 - **Do** preserve every role's existing authorized actions and exact outcome wording.
