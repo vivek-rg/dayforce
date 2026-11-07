@@ -316,7 +316,7 @@ Commit/PR: actual reference when created, otherwise state not committed
 - **Added/changed:**
   - Implemented persistent Dark & Light theme system with automatic detection of OS preference (`prefers-color-scheme`) and persistence via `localStorage`.
   - Added `[data-theme="dark"]` CSS variables mapping elevated dark surfaces, crisp high-contrast typography, and tailored SVG illustration palettes.
-  - Added accessible `ThemeToggle` button component with interactive Sun/Moon icons in the main app navigation header (`topbar-right`), the public sign-in card, and public product guides.
+  - Added accessible `ThemeToggle` button component with interactive Sun/Moon icons in the main app navigation header (`topbar-right`), fixed at the top-right corner of the login screen, and in public product guides.
 - **Verification:**
   - `npm run test --workspace frontend`: 58 tests passed across 9 test files (100% pass rate).
   - `npm run lint` & `npm run format:check`: 0 errors, 0 warnings across all files.

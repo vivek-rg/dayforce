@@ -2550,10 +2550,21 @@ a,
 
 /* Sign-in ----------------------------------------------------------------- */
 .auth {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(380px, 1fr);
   min-height: 100vh;
   background: var(--surface);
+}
+
+.auth-top-actions {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .auth-story {

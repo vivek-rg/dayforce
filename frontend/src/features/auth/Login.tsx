@@ -373,6 +373,9 @@ export function LoginPage() {
 
   return (
     <main className="auth">
+      <div className="auth-top-actions">
+        <ThemeToggle />
+      </div>
       <section className="auth-story" aria-label="About OnboardIQ">
         <div className="auth-opening">
           <div className="auth-brand">
@@ -431,7 +434,6 @@ export function LoginPage() {
           <nav className="auth-guide-links" aria-label="Learn about OnboardIQ">
             <a href="#/how-it-works">How it works</a>
             <a href="#/role-guide">Find your role</a>
-            <ThemeToggle className="theme-toggle-link" />
           </nav>
           <p className="auth-note muted small">
             Demo environment. All data is synthetic.
