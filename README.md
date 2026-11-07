@@ -6,7 +6,7 @@
 | --- | --- |
 | **[Open the live application →](https://dayforce-4g6d.onrender.com/)** | **[View the final presentation — PPTX](ppt/OnBoardIQ_Final.pptx)** |
 
-[Demo recording](https://drive.google.com/file/d/1rx0jQ82l8pdMh8ZOtSjrmFHUyzfkKhlX/view?usp=sharing) · [Team resumes](#team-resumes)
+[Demo recording](#demo-video) · [Team resumes](#team-resumes)
 
 > **Start here:** Open the deployed prototype to explore OnboardIQ, or download the five-slide presentation for the problem, workflow, architecture and evaluation. Local setup instructions are below.
 
