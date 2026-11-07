@@ -64,6 +64,11 @@ export function PlanDiffView({
         describe={taskTitle}
       />
       <DiffGroup
+        title="Tasks to restore"
+        items={diff.restore ?? []}
+        describe={taskTitle}
+      />
+      <DiffGroup
         title="Tasks kept"
         items={diff.preserve}
         describe={taskTitle}

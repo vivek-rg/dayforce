@@ -576,9 +576,11 @@ def preview_location_change(
     rules = applicable_rules(policy, hire)
     wanted = {rule["id"]: rule for rule in rules}
     existing_keys = {task["logical_key"] for task in existing}
-    cancel, preserve = [], []
+    cancel, preserve, restore = [], [], []
     for task in existing:
-        if task["logical_key"] in wanted or task["work_state"] == WorkState.COMPLETED:
+        if task["logical_key"] in wanted and task["work_state"] == WorkState.CANCELLED:
+            restore.append(task["id"])
+        elif task["logical_key"] in wanted or task["work_state"] == WorkState.COMPLETED:
             preserve.append(task["id"])
         elif task["work_state"] != WorkState.CANCELLED:
             cancel.append(task["id"])
@@ -591,6 +593,7 @@ def preview_location_change(
         create=[rule["title"] for key, rule in wanted.items() if key not in existing_keys],
         cancel=cancel,
         preserve=preserve,
+        restore=restore,
         invalidate_checks=invalidated,
     )
 
@@ -609,7 +612,12 @@ def apply_location_change(
         "SELECT id, logical_key, work_state FROM tasks WHERE hire_id=?", (hire_id,)
     ).fetchall()
     for task in existing:
-        if task["logical_key"] not in wanted and task["work_state"] not in (
+        if task["logical_key"] in wanted and task["work_state"] == WorkState.CANCELLED:
+            connection.execute(
+                "UPDATE tasks SET work_state='PENDING', version=version+1 WHERE id=?",
+                (task["id"],),
+            )
+        elif task["logical_key"] not in wanted and task["work_state"] not in (
             WorkState.COMPLETED,
             WorkState.CANCELLED,
         ):

@@ -370,6 +370,7 @@ class PlanDiff(Contract):
     create: list[ShortText]
     cancel: list[Id]
     preserve: list[Id]
+    restore: list[Id] = Field(default_factory=list)
     invalidate_checks: list[Id]
 
 

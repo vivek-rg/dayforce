@@ -12,13 +12,11 @@ export const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function getInitialTheme(): Theme {
   if (typeof window === "undefined") return "light";
-  const saved = localStorage.getItem("onboardiq_theme");
-  if (saved === "light" || saved === "dark") return saved;
-  if (
-    window.matchMedia &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches
-  ) {
-    return "dark";
+  try {
+    const saved = localStorage.getItem("onboardiq_theme");
+    if (saved === "light" || saved === "dark") return saved;
+  } catch {
+    // Storage can be blocked; the site must still open.
   }
   return "light";
 }

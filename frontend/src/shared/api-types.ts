@@ -582,6 +582,7 @@ export type PlanDiff = {
   "create": Array<string>;
   "cancel": Array<string>;
   "preserve": Array<string>;
+  "restore"?: Array<string>;
   "invalidate_checks": Array<string>;
 };
 

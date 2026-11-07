@@ -1301,6 +1301,9 @@ List a hire's cases
             "preserve": [
               "sample_value"
             ],
+            "restore": [
+              "sample_value"
+            ],
             "invalidate_checks": [
               "sample_value"
             ]
@@ -1409,6 +1412,9 @@ Read scoped case and sanitized timeline
           "sample_value"
         ],
         "preserve": [
+          "sample_value"
+        ],
+        "restore": [
           "sample_value"
         ],
         "invalidate_checks": [
@@ -1582,6 +1588,9 @@ List exact proposals reviewer may see
         "preserve": [
           "sample_value"
         ],
+        "restore": [
+          "sample_value"
+        ],
         "invalidate_checks": [
           "sample_value"
         ]
@@ -1639,6 +1648,9 @@ Read one proposal
       "sample_value"
     ],
     "preserve": [
+      "sample_value"
+    ],
+    "restore": [
       "sample_value"
     ],
     "invalidate_checks": [
@@ -1706,6 +1718,9 @@ Create immutable reviewed-location proposal with plan diff
     "preserve": [
       "sample_value"
     ],
+    "restore": [
+      "sample_value"
+    ],
     "invalidate_checks": [
       "sample_value"
     ]
@@ -1767,6 +1782,9 @@ Request a device; creates a proposal for IT approval
       "sample_value"
     ],
     "preserve": [
+      "sample_value"
+    ],
+    "restore": [
       "sample_value"
     ],
     "invalidate_checks": [
@@ -6395,6 +6413,16 @@ Required keys, nullable fields, enums, bounds and discriminators below are norma
       },
       "type": "array",
       "title": "Preserve"
+    },
+    "restore": {
+      "items": {
+        "type": "string",
+        "maxLength": 80,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_-]+$"
+      },
+      "type": "array",
+      "title": "Restore"
     },
     "invalidate_checks": {
       "items": {

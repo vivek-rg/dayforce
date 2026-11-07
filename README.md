@@ -53,6 +53,50 @@ All eight uploaded resumes are in [resume/](resume/):
 
 Challenge rules: [AI Innovation Challenge brief](AI_Innovation_Challenge_University_Brief%201.pdf).
 
+## First time here? Start with this short guide
+
+### 1. Open the website and sign in
+
+1. Open **[OnboardIQ](https://dayforce-4g6d.onrender.com/)**. The free demo server may take a little while to wake up.
+2. Want a quick explanation first? Click **How it works** below the sign-in form. Click **Find your role** to see what each person does; the guide page calls this **Role guide**. Use **Sign in** to return. Reading a role guide does not sign you in or change your account.
+3. On the sign-in page, click **Demo accounts** to open the list.
+4. Click an account's **email address**. For a first look, choose **HR — `hema@northstar.example`**. This fills in the email and requests the demo password from the server; it does **not** sign you in yet.
+5. Wait for the password field to fill, then click **Sign In**. You can also type the email and password yourself, or replace the filled password with the account's current password. No password is published in this README.
+
+If automatic filling fails or the account password was changed, enter the current password yourself. **Forgot password?** asks HR for help; do not reset or reseed the database to fix sign-in.
+
+**Appearance:** your first visit starts in light mode, even if your device uses dark mode. Click **Dark** near the top to switch, or **Light** to switch back. The site remembers your choice when browser storage is available.
+
+### 2. Find your way around
+
+After signing in, use the menu on the **left**. On a phone or narrow window, use the **menu button at the top left**. Each account only sees the pages and records its role is allowed to use.
+
+| What you want to do | Where to click |
+| --- | --- |
+| See the overall picture as HR | **Overview** |
+| See an employee's onboarding | **Employees** → click a name → **Plan**. The other tabs show the timeline, evidence, documents, investigations and history. |
+| Find work assigned to you | **Tasks**. Only the responsible person can update their tasks. |
+| Review uploaded documents as HR | **Document verification** → choose a document → download/read it → use **Your review**. AI extraction is optional. |
+| Review a proposed change as HR or IT | **Review inbox** → read the change and its effect before approving or rejecting. Approval is not the same as successful execution. |
+| Use your team's page | **IT and equipment**, **Payroll**, **Benefits**, **Training** or **My team**, depending on your account. |
+| See your own onboarding as an employee | **My onboarding**. Try Arjun's account for an existing plan; Priya needs HR to create and link her hire first. |
+| Ask a policy question | **Knowledge assistant**. Read its source quotes; use **Send to HR** when it cannot help. |
+| Answer a question or see an update | **Notifications** |
+| Read the introduction again | Under **Help**, open **How it works** or **Role guide**. |
+
+To try another role, click **your name at the top right** → **Sign out**. Open **Demo accounts**, choose another email, and click **Sign In** again. For side-by-side role demonstrations, use separate browser profiles or sessions against the same backend.
+
+### 3. If AI cannot help, keep working
+
+AI is optional. A missing key, provider outage, rate limit, invalid response or investigation limit must not be presented as success or bypass a person's approval. The fallback is human work—not a hidden switch to another model or scripted answers.
+
+- **Policy question:** relevant approved sources may still be shown. Click **Send to HR** for a human answer. If no reliable source exists, the assistant says it could not find an answer instead of guessing.
+- **Document extraction:** open/read the file and use **Your review**. Failed extraction does not verify or reject the document. Sensitive documents and scans without readable text also go to manual review.
+- **Investigation:** **Escalated** means a person needs to take over, not that onboarding is complete. HR is notified. Use **open the onboarding plan** in the **Continue without AI** notice, or return to **Employees** and choose the employee. HR can use **Propose location change**; IT can use **IT and equipment**. The normal preview, review and approval steps still apply. Any changes already executed with approval stay recorded; the fallback does not undo them.
+- **AI insights:** if the written summary is unavailable, keep using **Computed metrics** on the same page.
+
+These fallbacks need the application and database to be reachable. A lost network connection or database/storage problem needs recovery first; the site must not claim an unsaved action succeeded. See [Troubleshooting](#troubleshooting) and [free-hosting/data limits](docs/DEMO_STORAGE.md).
+
 ## Project at a glance
 
 > **A checklist tells you what someone marked done. OnboardIQ also shows what the evidence supports.**
@@ -256,7 +300,26 @@ npm ci
 [ -f .env ] || cp .env.example .env
 ```
 
+### Existing setup: start and test without reinstalling
+
+Open a terminal in your existing project folder, such as `Desktop/dayforce hackthon`. Keep the same private `.env`, `.venv`, `node_modules` and database/upload paths; switching a Git branch does not require copying them into another folder. If the app is already running, stop your own old process with Ctrl+C before restarting the updated code.
+
+```powershell
+npm.cmd run dev
+```
+
+Open **http://127.0.0.1:5173**. In another terminal in the same folder:
+
+```powershell
+npm.cmd run check
+npm.cmd run smoke
+```
+
+`check` uses isolated test databases and mocked/offline models; it does not require a working API key or reset your demo data. `smoke` needs the app running. Do **not** reseed an existing database or overwrite `.env`. A local passing check does not verify the deployed service or live model.
+
 ### Configure, seed and start
+
+**For a new, empty installation only.** If your existing setup already has users, use the start commands above instead of seeding again.
 
 Edit the single private root `.env` file:
 
@@ -349,7 +412,7 @@ Uploaded files live in a private `documents/` directory beside the database. For
 
 To back up, stop the backend, worker and all writers. Copy the database, any SQLite journal/WAL/SHM companions and the sibling documents directory to a private location outside the repository. Copying only the database misses uploads; ordinary-copying a live SQLite database is unsafe. Test restoration on disposable copies, preserving the current data.
 
-The optional free Render configuration has no persistent disk. Replacement or redeployment can lose its database and uploads. It is intended only for disposable synthetic demonstrations, not durable employee storage. No general production migration or backup service is implemented.
+The Render configuration stays on the **Free** plan, with **no persistent disk or paid-storage configuration**. Redeploys, restarts and idle spin-down discard its local database and uploads; startup then seeds fresh demo data. For a no-cost recording with retained progress, run the existing local setup on one prepared machine. Local SQLite and uploads survive normal app restarts and branch switches when their paths stay unchanged. See [free hosting, local recording and backup guidance](docs/DEMO_STORAGE.md). An external free database is not a drop-in setting for this SQLite/FTS5 app; a database and upload-storage migration is not included.
 
 ## Verification
 
@@ -363,7 +426,9 @@ node scripts/python.mjs evals/run.py --provider stub --no-write
 - `smoke` needs a running application and checks served HTML plus database-backed readiness and bootstrap. It is not a complete browser acceptance test.
 - The evaluation command uses an isolated temporary database and scripted offline rules, without paid model calls or saved result files. It measures retrieval and harness behavior, not model quality. See [evaluation instructions](evals/README.md).
 
-[Historical evaluation results](docs/EVALUATION.md) include one live Groq investigation, quota failures and **5/11 retrieval recall on untuned questions**. The scenarios were not independently authored, and quote validation is not semantic answer scoring. Automated control tests must not be presented as a real-model accuracy rate or measured customer savings.
+[Historical evaluation results](docs/EVALUATION.md) include one live Groq investigation, quota failures and **5/11 retrieval recall on then-untuned questions**. The 7 November offline follow-up reaches 11/11 on those now-inspected regression questions; it is not a new held-out or live-model accuracy result. The scenarios were not independently authored, and quote validation is not semantic answer scoring. Automated control tests must not be presented as a real-model accuracy rate or measured customer savings.
+
+**Final Desktop live check (7 November):** hosted policy answers, document extraction and insight summaries worked, but full AI investigations still escalated intermittently. Increasing the agent response allowance from 500 to 1,500 tokens mitigates truncation; it does not guarantee completion. Keep manual workflows available and review the [current live-check results and remaining limitations](docs/EVALUATION.md#final-desktop-verification--7-november-2026) before recording.
 
 CI is configured in [.github/workflows/ci.yml](.github/workflows/ci.yml). A local passing check is not proof that a remote GitHub Actions run or deployed service is passing.
 

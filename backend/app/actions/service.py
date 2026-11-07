@@ -217,6 +217,11 @@ def _versions_current(connection, proposal: Proposal) -> bool:
     ):
         return False
 
+    if proposal.payload.action_type == "CHANGE_WORK_LOCATION":
+        diff = preview_location_change(connection, proposal.hire_id, proposal.payload.location_id)
+        if proposal.plan_diff is None or diff.restore != proposal.plan_diff.restore:
+            return False
+
     if expected.source_record_id:
         source = connection.execute(
             "SELECT version FROM source_records WHERE id=?", (expected.source_record_id,)

@@ -163,6 +163,21 @@ def test_render_blueprint_is_a_disposable_demo_with_private_hosted_ai():
     assert settings["DEMO_PASSWORD"]["sync"] is False
 
 
+def test_existing_database_and_upload_survive_startup_initialization(world):
+    from scripts.serve import has_users
+
+    hire = world.create_hire()
+    content = b"Synthetic document retained across restart.\n"
+    response = world.upload("U_PRIYA", hire["id"], "education", "education.txt", content)
+    assert response.status_code == 201
+    document = response.json()
+    assert has_users()
+    initialize()
+    assert has_users()
+    assert world.get("U_HR", f"/hires/{hire['id']}").status_code == 200
+    assert world.get("U_PRIYA", f"/documents/{document['id']}/content").content == content
+
+
 def test_demo_password_autofill_returns_the_configured_password(world, monkeypatch):
     monkeypatch.setenv("DEMO_PASSWORD", "Synthetic-Autofill-1")
     response = world.client.get("/api/demo-password")
