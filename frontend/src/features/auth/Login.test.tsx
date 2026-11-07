@@ -42,7 +42,8 @@ describe("purposeful sign-in", () => {
     const html = renderLogin();
     expect(html).toContain('for="login-email"');
     expect(html).toMatch(/autocomplete="current-password"/i);
-    expect(html).toContain("demo password shared by your team");
+    expect(html).toContain("fill in its email and the demo password");
+    expect(html).not.toContain("DemoPassword123!");
     expect(html).toContain('href="#/how-it-works"');
     expect(html).toContain('href="#/role-guide"');
     expect(html).toContain("Forgot password?");

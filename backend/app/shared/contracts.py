@@ -142,6 +142,12 @@ class TemporaryPassword(Contract):
     temporary_password: str
 
 
+class DemoPassword(Contract):
+    """The shared password of the seeded synthetic demo accounts, for sign-in page autofill."""
+
+    password: str
+
+
 class User(Contract):
     id: Id
     display_name: ShortText

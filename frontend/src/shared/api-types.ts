@@ -178,6 +178,10 @@ export type DecisionResult = {
   "work_item_id"?: string | null;
 };
 
+export type DemoPassword = {
+  "password": string;
+};
+
 export type Department = {
   "id": string;
   "name": string;

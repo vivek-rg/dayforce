@@ -6,7 +6,14 @@ import pytest
 from app.main import app
 from app.shared.db import connect, initialize
 
-PUBLIC = {"/api/health", "/api/bootstrap", "/api/sessions", "/api/accounts"}
+# /api/demo-password is public by design: the sign-in page reads it before anyone has a session.
+PUBLIC = {
+    "/api/health",
+    "/api/bootstrap",
+    "/api/sessions",
+    "/api/accounts",
+    "/api/demo-password",
+}
 PUBLIC_METHODS = {("POST", "/api/password-resets")}
 
 
@@ -150,3 +157,15 @@ def test_render_blueprint_is_a_disposable_demo_with_ai_off():
     assert "LLM_API_KEY" not in settings
     assert "value" not in settings["DEMO_PASSWORD"]
     assert settings["DEMO_PASSWORD"]["sync"] is False
+
+
+def test_demo_password_autofill_returns_the_configured_password(world, monkeypatch):
+    monkeypatch.setenv("DEMO_PASSWORD", "Synthetic-Autofill-1")
+    response = world.client.get("/api/demo-password")
+    assert response.status_code == 200
+    assert response.json() == {"password": "Synthetic-Autofill-1"}
+
+
+def test_demo_password_autofill_is_absent_without_a_configured_password(world, monkeypatch):
+    monkeypatch.setenv("DEMO_PASSWORD", "")
+    assert world.client.get("/api/demo-password").status_code == 404
