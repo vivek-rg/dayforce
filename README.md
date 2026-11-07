@@ -1,3 +1,5 @@
+[Video](video/VIDEO_LINK.md) | [PPT](ppt/README.md) | [Resume](resume/)
+
 # OnboardIQ
 
 **The next step. The right person. The proof behind it.**
