@@ -36,6 +36,13 @@ class Reply:
     input_tokens: int | None = None
     output_tokens: int | None = None
 
+    def __post_init__(self) -> None:
+        if not isinstance(self.text, str) or any(
+            value is not None and (type(value) is not int or value < 0)
+            for value in (self.input_tokens, self.output_tokens)
+        ):
+            raise ProviderError("MODEL_INVALID_RESPONSE")
+
 
 class Provider(Protocol):
     name: str
@@ -77,12 +84,15 @@ class OllamaProvider:
             raise ProviderError("MODEL_UNREACHABLE") from exc
         if response.status_code != 200:
             raise ProviderError(f"MODEL_HTTP_{response.status_code}")
-        body = response.json()
-        return Reply(
-            text=body.get("message", {}).get("content", ""),
-            input_tokens=body.get("prompt_eval_count"),
-            output_tokens=body.get("eval_count"),
-        )
+        try:
+            body = response.json()
+            return Reply(
+                text=body["message"]["content"],
+                input_tokens=body.get("prompt_eval_count"),
+                output_tokens=body.get("eval_count"),
+            )
+        except (ValueError, KeyError, TypeError, AttributeError):
+            raise ProviderError("MODEL_INVALID_RESPONSE") from None
 
 
 class HostedProvider:
@@ -138,19 +148,22 @@ class HostedProvider:
             # outage, so it goes through normal validation and the single repair attempt.
             try:
                 error = response.json().get("error", {})
-            except ValueError:
-                error = {}
-            if error.get("code") == "json_validate_failed":
-                return Reply(text=str(error.get("failed_generation") or ""))
+                if error.get("code") == "json_validate_failed":
+                    return Reply(text=error.get("failed_generation") or "")
+            except (ValueError, TypeError, AttributeError):
+                pass
         if response.status_code != 200:
             raise ProviderError(f"MODEL_HTTP_{response.status_code}")
-        body = response.json()
-        usage = body.get("usage", {})
-        return Reply(
-            text=body["choices"][0]["message"]["content"] or "",
-            input_tokens=usage.get("prompt_tokens"),
-            output_tokens=usage.get("completion_tokens"),
-        )
+        try:
+            body = response.json()
+            usage = body.get("usage", {})
+            return Reply(
+                text=body["choices"][0]["message"]["content"],
+                input_tokens=usage.get("prompt_tokens"),
+                output_tokens=usage.get("completion_tokens"),
+            )
+        except (ValueError, KeyError, IndexError, TypeError, AttributeError):
+            raise ProviderError("MODEL_INVALID_RESPONSE") from None
 
 
 class DisabledProvider:

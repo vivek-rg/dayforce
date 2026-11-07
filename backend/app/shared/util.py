@@ -46,5 +46,12 @@ def audit(
     )
 
 
+def audit_summary(row: sqlite3.Row, viewer_role: str) -> str:
+    """Case discussion can contain privileged text; retain it only in the HR projection."""
+    if row["case_id"] is not None and viewer_role != "HR":
+        return "Investigation update."
+    return row["summary"]
+
+
 def loads(value: str | None):
     return json.loads(value) if value else None

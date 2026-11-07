@@ -1,99 +1,68 @@
-# DayOne Proof — shared instructions for every human and AI agent
+# OnboardIQ — shared contributor and AI-agent rules
 
-## Mandatory rules
+## Start here
 
-1. **Always read AGENTS.md, PHASES.md, and CHANGES.md before starting any task.** Then read the phase, `docs/API_SPEC.md`, `docs/DATA_MODEL.md` and affected source. The long rationale is `Topic_3_Final_Guide.md`.
-2. **Agree a small task and its files before editing.** Stay in that boundary so eight people do not overwrite each other. If more files are needed, ask the integrator to record the expanded boundary in PHASES.md before editing them. Better designs are welcome through the change process below; this is not a ban on improvements.
-3. **Follow docs/API_SPEC.md and docs/DATA_MODEL.md exactly.** Contract changes need Track 1 review, updated canonical schemas/specification and an entry in CHANGES.md. Never hand-edit generated files or invent fields to unblock one UI.
-4. **After every task:** run its verification, append an entry to CHANGES.md, and update only that phase/task status in PHASES.md. Report failures honestly. Tests using model stubs do not validate a real model.
-5. **Never commit secrets or `.env`.** No model keys in frontend, logs, screenshots, prompts, resume examples, fixtures or recording. Use synthetic employee data only.
-6. **Use your own branch with any valid name you choose**, small commits with clear messages, and a small PR into main. There is no required branch-name pattern. Do not push feature work directly to main, force-push shared branches, reset or discard another person's changes.
+1. Read this file, [the active implementation plan](docs/decisions/2026-11-07-improvement-plan.md), [CHANGES.md](CHANGES.md), relevant [API](docs/API_SPEC.md)/[data](docs/DATA_MODEL.md) contracts and affected source/callers/tests before work. README.md owns the complete setup/architecture guide. The old PHASES.md board is retired by explicit user request; do not recreate it or duplicate its backlog.
+2. Agree a small task, owner and exact file boundary in the active plan before editing. One writer per file, including agents on one laptop. If scope expands, record the integrator/affected-owner decision there first. Historical audits/unchecked old phases are not automatically open defects.
+3. Preserve unrelated changes and working data. Use your own valid branch name, small clear commits and reviewed PRs; never push feature work directly to main, force-push shared branches, reset/discard other people’s work or buy/deploy services without authorization. Current user-requested work stays uncommitted/unpushed/undeployed unless separately approved.
+4. After a task run relevant verification and npm run check; append actual results/limitations to CHANGES.md and docs/VERIFICATION.md, and update only that task in the active plan. Preserve independent log entries on conflicts. Tests using stubs prove controls, not real-model quality.
 
-## Product and demo
+## Product truth
 
-We coordinate six onboarding categories by approved worker/location rules. Task completion is a claim; independent evidence establishes only the exact checked outcome. AI reads permitted evidence, asks a responsible person, and proposes narrow recovery. Trusted code validates, authorizes, records approval, executes a conditional local action and reads back the result. Never say a laptop was delivered because it was reserved.
+OnboardIQ coordinates documents, equipment, payroll, benefits, training and manager work using approved worker/location rules. Seven roles retain their existing scope. Task completion is a claim; independent evidence establishes only the exact checked outcome. Missing/stale/unavailable evidence is UNKNOWN; a real mismatch is BLOCKED; NOT_APPLICABLE needs an approved rule. Never call a laptop delivered because it was reserved. Preserve evidence/audit history.
 
-Demo: Priya's offer/profile location conflict + completed equipment task without handover evidence → HR clarification/persisted pause → reviewed location diff → IT-approved reservation → fresh receipt showing collection pending. All systems/policies are fictional. One company, one backend, one bounded investigation agent, one local worker; not eight agents.
+Demo: Priya’s Hyderabad profile/Bengaluru offer conflict -> responsible HR clarification and persisted wait -> reviewed location/plan diff -> separate IT-approved reservation -> fresh receipt showing collection pending. Fictional company/policies/data and simulated external systems. One company, one backend, one local worker and one bounded investigation loop—not eight agents or a real enterprise HR integration.
 
-## Build status
+The end-to-end build includes auth/plans/evidence/documents/knowledge/cases/actions/notifications/analytics and UI. Current dated proof lives in verification/evaluation, not generic completion claims. One Groq-hosted openai/gpt-oss-20b model has historical live evaluation; Ollama has mock transport tests, not live hardware acceptance. Gemini/Mistral hosted-compatible settings are unverified candidates, not live-tested native adapters. Integrator review and release/submission gates remain in the active plan.
 
-The OnboardIQ end-to-end build (revision R06 in PHASES.md) implements auth, plans, evidence, documents, knowledge, cases, actions, notifications, analytics and the UI. All are covered by automated tests using scripted replies or the labelled offline rules. One live model, `openai/gpt-oss-20b` on Groq, has been evaluated; see docs/EVALUATION.md. It still needs integrator review, because it changes shared contracts.
+## Architecture and ownership
 
-## Stack and structure
+- React + TypeScript + Vite; relative /api browser calls only. Backend FastAPI + Pydantic, standard-library SQLite, parameterized SQL and per-operation connections/short transactions. No write transaction across network/model/human waits.
+- Agent state/questions/counters/work live in application tables; no separate LangGraph checkpointer. Explicit none/stub/hosted/ollama modes through backend/app/ai/. Stub is labelled Offline rules, not AI. No silent provider/paid/cloud fallback.
+- Local demo remains the accepted database choice. Each teammate uses independent local files with matching code/schema/fixture revision. Do not share SQLite over Git/sync/network drives. Cloud PostgreSQL, general migrations, model catalogs/selector and simultaneous credential expansion are deferred, not completed features.
 
-- Frontend: React + TypeScript + Vite; browser calls relative `/api` only.
-- Backend: Python + FastAPI + Pydantic; standard-library SQLite, parameterized SQL, per-operation connections, short transactions. The user confirmed a local demo: keep the working database, give all eight teammates the same setup/fixture revision and use independent local files. Cloud PostgreSQL is conditional future work, not a completed migration; see docs/DATABASE_DECISION.md.
-- Agent: one bounded loop whose state lives in application tables, so LangGraph's checkpointer was not needed (R06). Explicitly selected Ollama or one OpenAI-compatible hosted API, through the shared harness in `backend/app/ai/`. Discovery and the selector (P16, P23, P24) are deferred; the hosted transport has been run live on Groq, and Ollama has not.
-- Tests: pytest/FastAPI TestClient, Vitest, manual browser acceptance, CI; no external keys needed for foundation checks.
+| Area                                                                                                           | Owner / boundary                                                            |
+| -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Shared contracts/schema, main.py, frontend root shell/styles/API helper, scripts, config/CI/dependencies/locks | Integrator (Track 1); coordinate all shared edits                           |
+| backend/app/auth/                                                                                              | Auth owner (Track 1)                                                        |
+| backend/app/planning/, evidence/, fixtures/                                                                    | Rules/data owner (Track 4)                                                  |
+| backend/app/cases/, agent/ and ai/                                                                             | Investigation/transport owner (Track 6)                                     |
+| backend/app/actions/                                                                                           | Approval/execution owner (Track 5)                                          |
+| frontend/src/features/overview/, workspace/                                                                    | Overview/workspace owner (Track 2)                                          |
+| frontend/src/features/my-work/, review/                                                                        | Task/review owner (Track 3)                                                 |
+| evals/, backend/tests/test_acceptance.py                                                                       | Independent evaluation owner (Track 7)                                      |
+| Submission prose/assets                                                                                        | Documentation/submission owner (Track 8); contracts remain integrator-owned |
 
-| Folder | Owner / role |
-|---|---|
-| `backend/app/auth/` | Track 1/P02; sessions, access checks |
-| `backend/app/planning/`, `backend/app/evidence/`, `fixtures/` | Track 4/P03; approved rules, tasks, source records, deterministic checks |
-| `backend/app/cases/`, `backend/app/agent/` | Track 6/P04; scoped cases, questions, graph, adapters, worker |
-| `backend/app/actions/` | Track 5/P05; proposals, reviews, executor, read-back |
-| `frontend/src/features/overview/`, `workspace/` | Track 2/P06 |
-| `frontend/src/features/my-work/`, `review/` | Track 3/P07 |
-| `frontend/src/features/model-settings/` (planned) | Track 2/P24; Track 1 wires root navigation |
-| `backend/app/agent/providers/` (planned) | P16 dispatcher/catalog, P17–P22 claimed adapters, P23 eligibility gate; one writer per shared file |
-| `evals/`, `backend/tests/test_acceptance.py` | Track 7/P08; independent evaluation/security/integration evidence |
-| `docs/`, `resume/`, `video/`, `ppt/` | Track 8 for submission prose/assets; contracts reserved to Track 1 |
-| `backend/app/shared/`, `frontend/src/shared/`, `scripts/`, root config, CI, locks, migrations | Track 1 integration ownership; no concurrent edits |
+Tracks describe ownership, not mandatory identities; claim actual people and remaining tasks in the plan. Feature owners use their module tests/co-located frontend tests; do not rewrite another owner’s helpers to hide failures. Cross-module service seams and shared boundaries require affected-owner review. Do not invent a new framework, dependency, repository layer or generic workflow designer without an actual requirement and approval.
 
-Each feature track owns its own `backend/tests/test_<module>.py` or co-located frontend `*.test.ts(x)`. Tests can read shared contracts; they do not rewrite another track's helpers.
+## Contracts and hard safety rules
 
-## Contracts and conventions
+- Canonical wire models: backend/app/shared/contracts.py. SQL authority: backend/app/shared/schema.sql. Generated docs/API_SPEC.md, docs/openapi.json and frontend/src/shared/api-types.ts come from npm run contracts after reviewed canonical changes—never hand-edit them. Health compatibility alias /health intentionally stays outside business OpenAPI; /api/health is canonical.
+- JSON uses snake_case, exact enums, opaque IDs, ISO dates/UTC timestamps; Pydantic forbids extra fields. TypeScript strict types, import type for generated types; never hide errors with any or type-check suppression. Python snake_case functions/modules, PascalCase models and typed new public functions. Ruff/ESLint/Prettier follow repository patterns.
+- Permissions are never model-owned. No arbitrary SQL/URLs, browser/model-supplied actor authority, unapproved source writes, public tool executor or privileged transcript in lower-role views. Revalidate current identity/scope on resume and execution.
+- Immutable proposal + input versions + correct reviewer + expiry + atomic conditional write + stable action/event identity + read-back form one safety path. Approval is not execution. Reconcile uncertain external outcomes before retry; do not claim exactly-once distributed effects.
+- Preserve loading/empty/denied/stale/error/unavailable states, manual fallbacks, native labels/buttons, keyboard focus, escaped text and non-colour status labels. Current black/white/red UI/public guides (white navigation, restrained red action/selection accents) and finite reduced-motion-safe illustration are approved; polish must not obstruct working features or invent outcomes.
+- No secret/private .env, model key, session, bank/identity/medical details, DB, upload, personal resume or private document in prompts/logs/screenshots/fixtures/external indexing. Synthetic evidence only. Model keys belong only in the backend’s private environment, never VITE variables. Do not inspect private configuration to answer setup questions.
 
-- Canonical wire types: `backend/app/shared/contracts.py`. SQL authority: `backend/app/shared/schema.sql`. Generated: `docs/API_SPEC.md`, `docs/openapi.json`, `frontend/src/shared/api-types.ts` via `npm run contracts`.
-- OpenAPI snapshot adds future bearer security and internal NextStep; runtime endpoints are still honest 501 stubs. Read success schemas as target contracts, not implemented capability.
-- Python: snake_case functions/modules, PascalCase models, Ruff format/check, type new public functions. TypeScript: PascalCase components, camelCase functions, strict types, ESLint + Prettier. Import generated types with `import type`.
-- JSON API: snake_case, ISO date strings, UTC timestamps, opaque string IDs. Enum spelling is exact. Pydantic forbids extra fields. Never cast away errors with `any` or suppress type checking to merge.
-- No model-owned permissions, arbitrary SQL/URLs, unapproved source writes or public tool executor. Revalidate current identity/scope on resume. Never leak a privileged transcript to lower-role views.
-- Input versions + immutable proposal + correct reviewer + expiry + atomic conditional write + stable action/event IDs + read-back are one safety path, not optional parts.
-- Preserve old evidence/audit history. Missing/stale/unavailable evidence is UNKNOWN. A real mismatch is BLOCKED. NOT_APPLICABLE needs an approved rule.
-- No write transaction held across network/model/human waits. On uncertain external outcomes reconcile before retry; don't claim exactly-once distributed effects.
-- Small files and direct functions; no new dependency/framework, repository abstraction or generic workflow designer without an actual requirement and Track 1 approval.
-- UI: native labels/buttons, keyboard focus, escaped text, non-color status labels, loading/empty/denied/stale/unavailable states. Do not implement decorative polish before the end-to-end path.
+## Run and verify
 
-## Run and verify (from root)
-
-Follow README for `.venv`, `npm ci`, pinned Python install and copying `.env.example`. Then:
+Follow root README for supported Python/Node, root .env, .venv/npm ci, safe seed and dev/built run. From root:
 
 ```sh
 npm run dev
-# In a second terminal:
+# Second terminal with the owned server running:
 npm run smoke
 npm run check
-# Integrator only after changing canonical contracts:
-npm run contracts
 ```
 
-`npm run check` = Ruff, ESLint, formatting check, backend/frontend tests, frontend typecheck/build, generated-contract drift check. `npm run format` is for the integration owner only; feature tracks format **only their allowed paths** with the same tools. `npm start` serves the built frontend/API on loopback port 8000 after `npm run build`. Foundation startup initializes an empty schema + one non-private app_info row without deleting existing data; it never seeds business hires.
+Check covers lockfile guard, lint/format, backend/frontend tests, strict build and generated-contract drift. Use npm.cmd on PowerShell when needed. Integrator only after canonical changes: npm run contracts. Format only allowed paths; global npm run format is integration-owner-only. Startup initializes schema/app_info without deleting data or seeding business hires. Seed refuses existing users. Never reseed/reset/delete a working DB as repair. Back up the stopped DB+companions+uploads before reviewed upgrades; no general migration command exists.
 
-## Parallel work and shared-file collision policy
+For architectural changes use the active plan’s change gate: concrete problem/smallest alternative, callers/owners/data risks, same-input before/after evidence and explicit latency/cost/quality trade-offs. Integrator+affected-owner review, migrations/restore/rollback when needed. Reject weaker safety/evidence/accessibility even if faster. Undo only the team’s reviewed change, never somebody else’s work.
 
-Track 1 owns root wiring (`main.py`, `App.tsx`, styles/API helper), dependencies/lockfiles, shared schema/types, and release gates. UI tracks export their module components; integrator wires navigation. Backend routers are already mounted, so route owners can implement inside their folder. A cross-module call uses the existing named service seam; changing that seam is a contract review, not a local shortcut.
+## Submission and handoff
 
-Claim the owner field/status for your phase in a tiny PR or ask the integrator to do it. Only edit your own PHASES block and append CHANGES entries; do not reflow either file. Those two files are deliberately shared coordination exceptions to each phase's code boundary. On a merge conflict, Track 1 preserves **both** log entries and all independent phase updates. Never resolve by taking one whole file.
-
-Other AI tools: tell Codex/Gemini/Antigravity explicitly to read this file. `CLAUDE.md` points here. Optional local plugins are not prerequisites and may not run on teammates' machines. Gortex is not tracked here; standard Git/search/test commands are sufficient. Do not index/upload personal resumes or private documents to external tools.
-
-## Simple team handoff
-
-1. Read the three root handoff files, your phase and affected contracts/source. Claim the phase with your name; one writer per file at a time, including multiple agents on one laptop.
-2. Use any branch name. Give your coding agent only that phase's prompt, not permission to rewrite the project.
-3. Use your own `.env`, `.venv` and local SQLite files. Share schema, reviewed migrations and synthetic fixture inputs in Git, **not database files or keys**. See [team setup](docs/TEAM_WORKFLOW.md).
-4. Test, attach sanitized proof to the PR, append CHANGES and update your phase checklist. A screenshot supplements tests; it does not prove authorization or restart safety.
-5. The integrator merges small reviewed changes. When blocked, record the missing seam/owner instead of making a fake success or permissive fallback.
-
-Submission policy: resume PDFs, recordings, PPTX and presentation PDFs are **not ignored**; they can be included in GitHub after the relevant owner's consent, secret review and file-size checks. This is permission to version approved assets, not permission to publish everyone's personal details automatically. Keep `.env`, keys, local DB/checkpoint files, dependencies, builds and caches ignored. Use a real accessible link/LFS/Release for video beyond ordinary Git limits; do not buy or publish services automatically.
-
-## Improving the architecture without moving backwards
-
-The architecture, phase plan and these instructions can change. A higher-capacity model or confident agent is not proof that a change is better. Use P27: state the problem, smallest alternative, affected files/contracts/owners, data/privacy risks, before/after measurements and rollback plan. Get integrator plus affected-owner review before changing shared boundaries. Regenerate contracts only from canonical source; use a reviewed migration for existing data.
-
-Run existing regression/security checks and the same held-out scenarios on the old and new versions; use real-model results for model-quality claims. Reject changes that weaken authorization, approval, evidence truth, durability, accessibility or secret protection. Discuss measured cost/latency/quality trade-offs rather than claiming “100% verified.” Record what was tested, failures, untested platforms and the accepted decision in CHANGES. Revert only the team's own reviewed change if it fails, never somebody else's work. See [change gate](docs/TEAM_WORKFLOW.md#accepting-a-better-design).
-
-## Stop line
-
-Use PHASES.md's dependency order. Stop adding features three hours before submission. A paid model, extra architecture boxes or fabricated metrics do not earn marks. Product usefulness + working, testable harness controls are the first 50% of the official rubric.
+- One remaining-work list lives in docs/decisions/2026-11-07-improvement-plan.md; root README is the human setup/architecture guide; video/script.md owns the under-ten-minute eight-person rehearsal. Do not add another temporary report unless needed; answer general opinion questions in chat/README. Original PDF is authoritative; historical rationale/reviews are not current runtime claims.
+- Resume PDFs, recordings, PPTX/presentation PDFs are Git-eligible only after each relevant owner’s consent, secret and size review. No fabricated assets/metrics. Large video needs an accessible approved LFS/Release/hosted link; do not buy/publish automatically. Keep .env/keys/DB/checkpoints/dependencies/builds/caches ignored.
+- Shared docs may be consolidated only after checking readers/links and moving unique guidance; runtime knowledge fixtures and canonical/generated contracts are not disposable documentation. Preserve append-only evidence.
+- Other coding tools read this same file; CLAUDE.md/GEMINI.md redirect here. Optional local plugins are not teammate prerequisites; do not index/upload private material.
+- Confirm actual deadline and organizer approval for eight members. Freeze new features three hours before submission. Prioritize working product + testable harness (50% of official rubric), genuine model evidence and actual deliverables—not extra architecture boxes or decoration. Report failures and untested platforms honestly, never “100% verified.”

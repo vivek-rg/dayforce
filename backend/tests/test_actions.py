@@ -1,6 +1,7 @@
 import json
 from datetime import UTC, datetime, timedelta
 
+import pytest
 from app.actions.service import execute_approved_action
 from app.shared.db import connect
 
@@ -268,3 +269,55 @@ def test_policy_change_after_proposal_blocks_approval(world):
 
     assert response.status_code == 409
     assert response.json()["error"]["code"] == "STALE_VERSION"
+
+
+@pytest.mark.parametrize("action_type", ["RESERVE_EQUIPMENT", "CHANGE_WORK_LOCATION"])
+@pytest.mark.parametrize("revocation", ["inactive", "role", "scope", "expired"])
+def test_queued_action_revalidates_approval_before_writing(world, action_type, revocation):
+    hire = world.create_hire()
+    reviewer = "U_IT" if action_type == "RESERVE_EQUIPMENT" else "U_HR"
+    if action_type == "RESERVE_EQUIPMENT":
+        proposal = reserve(world, hire).json()
+    else:
+        proposal = world.post(
+            "U_HR",
+            f"/hires/{hire['id']}/change-previews",
+            {"location_id": "BLR-DEMO", "expected_profile_version": 1},
+        ).json()
+    decision = world.post(
+        reviewer, f"/proposals/{proposal['id']}/decisions", {"decision": "APPROVE"}
+    )
+    assert decision.status_code == 200
+    action_id = decision.json()["action_id"]
+    with connect() as connection:
+        if revocation == "inactive":
+            connection.execute("UPDATE users SET active=0 WHERE id=?", (reviewer,))
+        elif revocation == "role":
+            connection.execute("UPDATE users SET role='EMPLOYEE' WHERE id=?", (reviewer,))
+        elif revocation == "scope":
+            connection.execute(
+                "DELETE FROM user_scopes WHERE user_id=? AND hire_id=?", (reviewer, hire["id"])
+            )
+        else:
+            connection.execute(
+                "UPDATE proposals SET expires_at='2000-01-01T00:00:00Z' WHERE id=?",
+                (proposal["id"],),
+            )
+    result = execute_approved_action(action_id)
+    assert result.state == "FAILED"
+    assert result.observed["reason"] == (
+        "APPROVAL_EXPIRED" if revocation == "expired" else "REVIEWER_NO_LONGER_AUTHORIZED"
+    )
+    assert execute_approved_action(action_id) == result
+    with connect() as connection:
+        device = connection.execute(
+            "SELECT payload_json, version FROM source_records WHERE id='EQ_HYD_07'"
+        ).fetchone()
+        profile = connection.execute("SELECT * FROM hires WHERE id=?", (hire["id"],)).fetchone()
+        events = connection.execute(
+            "SELECT COUNT(*) FROM audit_events WHERE action_id=?", (action_id,)
+        ).fetchone()[0]
+    assert json.loads(device["payload_json"])["state"] == "AVAILABLE"
+    assert device["version"] == 1
+    assert profile["location_id"] == "HYD-DEMO" and profile["profile_version"] == 1
+    assert events == 1

@@ -1,6 +1,7 @@
 import json
 from datetime import date, timedelta
 
+import pytest
 from app.agent.worker import process_pending_work, reconcile_after_restart
 from app.ai import providers
 from app.ai.providers import HostedProvider, OllamaProvider, ProviderError, set_provider_for_tests
@@ -359,13 +360,53 @@ def test_pasted_key_works_without_a_restart(tmp_path, monkeypatch):
 
 
 def test_status_tells_the_person_what_to_do_about_a_key(world):
-    assert "Paste a Groq key" in world.get("U_HR", "/health/ai").json()["detail"]
+    detail = world.get("U_HR", "/health/ai").json()["detail"]
+    assert "AI is off or its configuration is incomplete" in detail
+    assert "No API key is set" not in detail
     set_provider_for_tests(Scripted(ProviderError("MODEL_RATE_LIMITED")))
     world.post("U_PRIYA", "/assistant/questions", {"question": "How do I request a laptop?"})
-    assert "paste another key" in world.get("U_HR", "/health/ai").json()["detail"]
+    assert "retry later" in world.get("U_HR", "/health/ai").json()["detail"]
     set_provider_for_tests(Scripted(ProviderError("MODEL_HTTP_401")))
     world.post("U_PRIYA", "/assistant/questions", {"question": "How do I request a laptop?"})
     assert "key was rejected" in world.get("U_HR", "/health/ai").json()["detail"]
+
+
+@pytest.mark.parametrize("kind", ["none", "hosted", "ollama"])
+def test_config_status_does_not_infer_missing_key_or_contact_model(world, monkeypatch, kind):
+    set_provider_for_tests(None)
+    monkeypatch.setattr(config, "ENV_FILE", config.ROOT / "backend/tests/absent.env")
+    monkeypatch.setenv("LLM_PROVIDER", kind)
+    monkeypatch.setenv("LLM_MODEL", "")
+    monkeypatch.setenv("LLM_API_KEY", "SYNTHETIC_KEY_NOT_MISSING")
+    monkeypatch.setattr(
+        providers.httpx, "post", lambda *a, **k: pytest.fail("Status must not call a model")
+    )
+    response = world.get("U_HR", "/health/ai")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["available"] is False
+    assert "configuration is incomplete" in body["detail"]
+    assert "No API key is set" not in body["detail"]
+    assert "SYNTHETIC_KEY_NOT_MISSING" not in response.text
+
+
+def test_configured_status_is_not_a_live_model_check(world, monkeypatch):
+    set_provider_for_tests(HostedProvider("m", "https://example.invalid/v1", "SYNTHETIC_KEY"))
+    monkeypatch.setattr(
+        providers.httpx, "post", lambda *a, **k: pytest.fail("Status must not call a model")
+    )
+    response = world.get("U_HR", "/health/ai")
+    assert response.json()["available"] is True
+    assert "does not test connectivity" in response.json()["detail"]
+    assert "SYNTHETIC_KEY" not in response.text
+
+
+def test_model_404_status_points_to_routing_not_a_missing_key(world):
+    set_provider_for_tests(Scripted(ProviderError("MODEL_HTTP_404")))
+    world.post("U_PRIYA", "/assistant/questions", {"question": "How do I request a laptop?"})
+    detail = world.get("U_HR", "/health/ai").json()["detail"]
+    assert "endpoint and model ID" in detail
+    assert "not a model server" in detail
 
 
 def test_insecure_hosted_url_disables_ai(monkeypatch):
@@ -377,3 +418,130 @@ def test_insecure_hosted_url_disables_ai(monkeypatch):
     assert providers.current_provider().name == "none"
     monkeypatch.setenv("LLM_BASE_URL", "https://api.example.invalid/v1")
     assert providers.current_provider().name == "hosted"
+
+
+@pytest.mark.parametrize(
+    "viewer", ["U_PRIYA", "U_MANAGER", "U_IT", "U_PAYROLL", "U_BENEFITS", "U_TRAINING"]
+)
+def test_case_discussion_is_private_for_other_roles(world, viewer):
+    from app.shared.util import audit
+
+    hire = world.create_hire()
+    marker = "HR_ONLY_SYNTHETIC_DISCUSSION"
+    opened = world.post("U_HR", f"/hires/{hire['id']}/cases", {"message": marker})
+    case_id = opened.json()["case_id"]
+    with connect() as connection:
+        connection.execute(
+            "INSERT INTO questions (id, case_id, dedupe_key, recipient_user_id, text, state, "
+            "answer, answered_by) VALUES ('Q_PRIVATE',?,'private','U_HR',?,'ANSWERED',?,'U_HR')",
+            (case_id, marker, marker),
+        )
+        connection.execute(
+            "INSERT INTO questions (id, case_id, dedupe_key, recipient_user_id, text, state) "
+            "VALUES ('Q_OWN',?,'own',?,'Please confirm your part.','PENDING')",
+            (case_id, viewer),
+        )
+        audit(connection, hire["id"], "CASE_RESOLVED", marker, "U_HR", case_id)
+    hr_view = world.get("U_HR", f"/cases/{case_id}")
+    assert marker in hr_view.text and len(hr_view.json()["questions"]) == 2
+    response = world.get(viewer, f"/cases/{case_id}")
+    assert response.status_code == 200
+    assert marker not in response.text
+    assert [q["id"] for q in response.json()["questions"]] == ["Q_OWN"]
+    assert marker not in world.get(viewer, f"/hires/{hire['id']}/history").text
+    if viewer == "U_MANAGER":
+        assert marker not in world.get(viewer, f"/hires/{hire['id']}/cases").text
+    if viewer == "U_IT":
+        assert {e["check_type"] for e in response.json()["evidence"]} <= {
+            "device_handover_recorded",
+            "it_access_provisioned",
+        }
+    assert world.get(viewer, "/questions").json()["items"][0]["id"] == "Q_OWN"
+    assert (
+        world.post(viewer, "/questions/Q_OWN/responses", {"answer": "Confirmed."}).status_code
+        == 202
+    )
+    assert world.get("U_MANAGER2", f"/cases/{case_id}").status_code == 404
+
+
+def test_question_list_rechecks_hire_scope(world):
+    hire = world.create_hire()
+    case_id = open_case(world, hire["id"])
+    with connect() as connection:
+        connection.execute(
+            "INSERT INTO questions (id, case_id, dedupe_key, recipient_user_id, text, state) "
+            "VALUES ('Q_REVOKED',?,'revoked','U_HR','Private question.','PENDING')",
+            (case_id,),
+        )
+        connection.execute(
+            "DELETE FROM user_scopes WHERE user_id='U_HR' AND hire_id=?", (hire["id"],)
+        )
+    assert world.get("U_HR", "/questions").json()["items"] == []
+    assert world.post("U_HR", "/questions/Q_REVOKED/responses", {"answer": "x"}).status_code == 404
+
+
+@pytest.mark.parametrize("kind", ["hosted", "ollama"])
+@pytest.mark.parametrize(
+    "malformation",
+    [
+        "non_json",
+        "not_object",
+        "missing_content",
+        "non_text",
+        "bad_usage",
+        "negative_tokens",
+        "boolean_tokens",
+    ],
+)
+def test_provider_envelopes_are_validated(monkeypatch, kind, malformation):
+    provider = (
+        HostedProvider("m", "https://example.invalid/v1", "SYNTHETIC_KEY")
+        if kind == "hosted"
+        else OllamaProvider("m", "http://127.0.0.1:11434")
+    )
+    body = (
+        {"choices": [{"message": {"content": "{}"}}], "usage": {"prompt_tokens": 1}}
+        if kind == "hosted"
+        else {"message": {"content": "{}"}, "prompt_eval_count": 1}
+    )
+    if malformation == "not_object":
+        body = []
+    elif malformation == "missing_content":
+        body = {}
+    elif malformation == "non_text":
+        message = body["choices"][0]["message"] if kind == "hosted" else body["message"]
+        message["content"] = ["SECRET_PROVIDER_BODY"]
+    elif malformation in ("bad_usage", "negative_tokens", "boolean_tokens"):
+        value = {
+            "bad_usage": "SECRET_PROVIDER_BODY",
+            "negative_tokens": -1,
+            "boolean_tokens": True,
+        }[malformation]
+        if kind == "hosted":
+            body["usage"]["prompt_tokens"] = value
+        else:
+            body["prompt_eval_count"] = value
+    response = (
+        providers.httpx.Response(200, content=b"SECRET_PROVIDER_BODY")
+        if malformation == "non_json"
+        else providers.httpx.Response(200, json=body)
+    )
+    monkeypatch.setattr(providers.httpx, "post", lambda *a, **k: response)
+    with pytest.raises(ProviderError, match="^MODEL_INVALID_RESPONSE$"):
+        provider.generate("assistant.answer", [{"role": "system", "content": "s"}], {}, 1, 10)
+
+
+def test_bad_provider_envelope_keeps_sources_and_records_failure(world, monkeypatch):
+    set_provider_for_tests(HostedProvider("m", "https://example.invalid/v1", "SYNTHETIC_KEY"))
+    monkeypatch.setattr(
+        providers.httpx, "post", lambda *a, **k: providers.httpx.Response(200, json={"choices": []})
+    )
+    response = world.post(
+        "U_PRIYA", "/assistant/questions", {"question": "How do I request a laptop?"}
+    )
+    assert response.status_code == 200
+    assert response.json()["status"] == "UNAVAILABLE" and response.json()["sources"]
+    with connect() as connection:
+        run = connection.execute("SELECT * FROM ai_runs ORDER BY rowid DESC LIMIT 1").fetchone()
+    assert run["status"] == "UNAVAILABLE" and run["failure_reason"] == "MODEL_INVALID_RESPONSE"
+    assert "SYNTHETIC_KEY" not in response.text

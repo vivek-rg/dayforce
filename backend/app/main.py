@@ -120,6 +120,7 @@ async def unexpected_error(request: Request, exc: Exception):
     )
 
 
+@app.get("/health", response_model=Health, include_in_schema=False)
 @app.get(
     "/api/health",
     response_model=Health,

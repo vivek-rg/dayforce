@@ -1,14 +1,13 @@
-import { type FormEvent, type ReactNode, useEffect, useState } from "react";
+import { type FormEvent, type ReactNode, useState } from "react";
+import { HandoffIllustration } from "../../shared/HandoffIllustration";
 import { api } from "../../shared/api";
 import { useAction } from "../../shared/hooks";
 import { useSession } from "../../shared/session-context";
 import { ActionError, Notice } from "../../shared/ui";
-import { LoginArt } from "./LoginArt";
-
-declare const __DEMO_PASSWORD__: string;
+import { ThemeToggle } from "../../shared/theme";
 
 const MIN_PASSWORD = 12;
-const SLIDE_MS = 8000;
+const DEMO_PASSWORD = "DemoPassword123!";
 
 const DEMO_USERS: [string, string][] = [
   ["hema@northstar.example", "HR"],
@@ -21,24 +20,6 @@ const DEMO_USERS: [string, string][] = [
   ["arjun@northstar.example", "New employee"],
 ];
 
-const SLIDES = [
-  {
-    lines: ["Simplify", "Employee Onboarding"],
-    pill: "with AI",
-    lede: "A smart, end-to-end onboarding platform that automates workflows, checks documents, and helps new hires get productive faster.",
-  },
-  {
-    lines: ["Every Task", "Claimed, Then"],
-    pill: "Proven",
-    lede: "A completed task is a claim. Independent checks show what really happened, so a reserved laptop is never reported as delivered.",
-  },
-  {
-    lines: ["AI Assists,", "People"],
-    pill: "Decide",
-    lede: "AI reads approved sources, cites them and proposes next steps. HR and IT approve anything that matters.",
-  },
-];
-
 const stroke = {
   fill: "none",
   stroke: "currentColor",
@@ -46,49 +27,6 @@ const stroke = {
   strokeLinecap: "round",
   strokeLinejoin: "round",
 } as const;
-
-const FEATURES: [ReactNode, string, string][] = [
-  [
-    <path key="i" d="M13 3 5 14h6l-1 7 8-11h-6l1-7Z" />,
-    "Automated Workflows",
-    "From offer to day one",
-  ],
-  [
-    <>
-      <path d="M12 3 5 6v5c0 5 3 8 7 10 4-2 7-5 7-10V6l-7-3Z" />
-      <path d="m9 12 2 2 4-4" />
-    </>,
-    "Document Verification",
-    "AI-assisted, people approve",
-  ],
-  [
-    <>
-      <path d="M21 12a8 8 0 0 1-8 8H5l-2 2V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z" />
-      <path d="M8 12h.01M12 12h.01M16 12h.01" />
-    </>,
-    "AI HR Assistant",
-    "Cited answers, anytime",
-  ],
-  [
-    <>
-      <path d="M6 20v-5M12 20V10M18 20V4" strokeWidth="3.5" />
-    </>,
-    "Progress Tracking",
-    "Real-time onboarding status",
-  ],
-];
-
-function Sparkle() {
-  return (
-    <svg width="42" height="42" viewBox="0 0 42 42" aria-hidden="true">
-      <path
-        d="M16 10l3.5 11 11 3.5-11 3.5L16 39l-3.5-11-11-3.5 11-3.5z"
-        fill="#f9d9f5"
-      />
-      <path d="M31 3l2 7 7 2-7 2-2 7-2-7-7-2 7-2z" fill="#ffc6ea" />
-    </svg>
-  );
-}
 
 function Icon({ children }: { children: ReactNode }) {
   return (
@@ -210,8 +148,10 @@ function SignInForm({ onMode }: { onMode: (mode: Mode) => void }) {
 
   return (
     <>
-      <h2 id="login-title">Welcome Back 👋</h2>
-      <p className="auth-subtitle">Sign in to your OnboardIQ account</p>
+      <h2 id="login-title">Sign in to OnboardIQ</h2>
+      <p className="auth-subtitle">
+        Continue with your work email and password.
+      </p>
       <form
         className="auth-form"
         onSubmit={(event) => void submit(event)}
@@ -257,6 +197,9 @@ function SignInForm({ onMode }: { onMode: (mode: Mode) => void }) {
       </p>
       <details className="auth-demo">
         <summary>Demo accounts</summary>
+        <p className="muted small">
+          Choose an email, then enter the demo password shared by your team.
+        </p>
         <ul>
           {DEMO_USERS.map(([address, role]) => (
             <li key={address}>
@@ -265,7 +208,8 @@ function SignInForm({ onMode }: { onMode: (mode: Mode) => void }) {
                 className="auth-demo-user"
                 onClick={() => {
                   setEmail(address);
-                  if (__DEMO_PASSWORD__) setPassword(__DEMO_PASSWORD__);
+                  setPassword(DEMO_PASSWORD);
+                  setProblem(null);
                 }}
               >
                 {role}
@@ -426,115 +370,71 @@ function SignUpForm({ onMode }: { onMode: (mode: Mode) => void }) {
 
 export function LoginPage() {
   const [mode, setMode] = useState<Mode>("signin");
-  const [slide, setSlide] = useState(0);
-  const current = SLIDES[slide];
-
-  useEffect(() => {
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-    const timer = window.setTimeout(
-      () => setSlide((value) => (value + 1) % SLIDES.length),
-      SLIDE_MS,
-    );
-    return () => window.clearTimeout(timer);
-  }, [slide]);
 
   return (
     <main className="auth">
+      <div className="auth-top-actions">
+        <ThemeToggle />
+      </div>
       <section className="auth-story" aria-label="About OnboardIQ">
-        <svg
-          className="auth-waves"
-          viewBox="0 0 1000 940"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          <path
-            d="M700 0C640 150 560 230 660 330c120 120 220-160 340-230V0Z"
-            fill="#fff"
-            opacity="0.05"
-          />
-          <path
-            d="M0 860c220-40 400-110 560-250 150-130 290-230 440-260v590H0Z"
-            fill="#fff"
-            opacity="0.05"
-          />
-          <path
-            d="M0 930c300-10 560-70 1000-300v310H0Z"
-            fill="#8b5cf6"
-            opacity="0.35"
-          />
-        </svg>
-        <div className="auth-brand">
-          <svg
-            className="auth-brand-mark"
-            width="40"
-            height="40"
-            viewBox="0 0 40 40"
-            aria-hidden="true"
-          >
-            <rect width="40" height="40" rx="10" fill="#8450f0" />
-            <circle
-              cx="20"
-              cy="20"
-              r="9"
+        <div className="auth-opening">
+          <div className="auth-brand">
+            <svg
+              className="auth-brand-mark"
+              width="32"
+              height="32"
+              viewBox="0 0 32 32"
               fill="none"
-              stroke="#fff"
-              strokeWidth="4"
-            />
-            <circle cx="21" cy="20" r="3.5" fill="#1b1650" />
-          </svg>
-          <span className="auth-brand-name">OnboardIQ</span>
-          <span className="auth-brand-rule" />
-          <span className="auth-brand-tag">Employee Onboarding Platform</span>
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <rect x="3" y="5" width="10" height="22" rx="2" />
+              <rect x="19" y="5" width="10" height="22" rx="2" />
+              <path d="M13 16h6m3-1 2 2 3-4" />
+            </svg>
+            <span className="auth-brand-name">OnboardIQ</span>
+          </div>
+          <HandoffIllustration />
         </div>
         <h1 className="auth-headline">
-          {current.lines.map((line) => (
-            <span key={line}>{line}</span>
-          ))}
-          <span className="auth-pill">
-            {current.pill} <Sparkle />
-          </span>
+          <span>The next step.</span>
+          <span>The right person.</span>
+          <span>The proof behind it.</span>
         </h1>
-        <p className="auth-lede">{current.lede}</p>
-        <ul className="auth-features">
-          {FEATURES.map(([icon, title, detail]) => (
-            <li key={title} className="auth-feature">
-              <span className="auth-feature-icon">
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  {...stroke}
-                >
-                  {icon}
-                </svg>
-              </span>
-              <span>
-                <strong>{title}</strong>
-                <small>{detail}</small>
-              </span>
-            </li>
-          ))}
-        </ul>
-        <div className="auth-dots">
-          {SLIDES.map((item, index) => (
-            <button
-              key={item.pill}
-              type="button"
-              className="auth-dot"
-              aria-label={`Show message ${index + 1} of ${SLIDES.length}`}
-              aria-pressed={slide === index}
-              onClick={() => setSlide(index)}
-            />
-          ))}
-        </div>
-        <LoginArt />
+        <p className="auth-lede">
+          One place for your onboarding work. See what needs doing, who owns it,
+          and what the evidence actually shows.
+        </p>
+        <figure className="auth-proof">
+          <figcaption>A completion claim. A separate check.</figcaption>
+          <dl>
+            <div>
+              <dt>Claim</dt>
+              <dd>Equipment task completed</dd>
+            </div>
+            <div>
+              <dt>Proof</dt>
+              <dd>
+                Reservation recorded.
+                <br />
+                Handover unknown.
+              </dd>
+            </div>
+          </dl>
+          <p>Reserved ≠ handed over.</p>
+          <small>Illustrative demo. No live employee record.</small>
+        </figure>
       </section>
       <section className="auth-panel" aria-labelledby="login-title">
         <div className="auth-card">
           {mode === "signin" && <SignInForm onMode={setMode} />}
           {mode === "forgot" && <ForgotForm onMode={setMode} />}
           {mode === "signup" && <SignUpForm onMode={setMode} />}
+          <nav className="auth-guide-links" aria-label="Learn about OnboardIQ">
+            <a href="#/how-it-works">How it works</a>
+            <a href="#/role-guide">Find your role</a>
+          </nav>
           <p className="auth-note muted small">
             Demo environment. All data is synthetic.
           </p>

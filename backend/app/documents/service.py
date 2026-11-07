@@ -163,8 +163,9 @@ def save_upload(hire_id: str, category: str, name: str, data: bytes, user: User)
     folder.mkdir(parents=True, exist_ok=True)
     key = uuid.uuid4().hex
     temporary = folder / f"{key}.tmp"
-    temporary.write_bytes(data)
+    stored = folder / key
     try:
+        temporary.write_bytes(data)
         with connect() as connection:
             if connection.execute(
                 "SELECT 1 FROM documents WHERE hire_id=? AND category=? AND sha256=?",
@@ -219,10 +220,12 @@ def save_upload(hire_id: str, category: str, name: str, data: bytes, user: User)
                 "SELECT * FROM documents WHERE id=?", (document_id,)
             ).fetchone()
             document = to_document(connection, row)
+            # shortcut: pre-commit crashes may leave orphan files; reconcile before real-data use.
+            temporary.replace(stored)
     except BaseException:
         temporary.unlink(missing_ok=True)
+        stored.unlink(missing_ok=True)
         raise
-    temporary.replace(folder / key)
     return document
 
 

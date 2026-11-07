@@ -28,7 +28,9 @@ export type PageName =
   | "knowledge"
   | "notifications"
   | "audit"
-  | "settings";
+  | "settings"
+  | "how-it-works"
+  | "role-guide";
 
 export type Route =
   | { name: "home" }
@@ -55,6 +57,8 @@ const SIMPLE_PATHS: Record<string, PageName> = {
   notifications: "notifications",
   audit: "audit",
   settings: "settings",
+  "how-it-works": "how-it-works",
+  "role-guide": "role-guide",
 };
 
 export function parseHash(hash: string): Route {
@@ -111,6 +115,8 @@ const PAGE_ROLES: Record<PageName, Role[]> = {
   notifications: ALL,
   audit: ["HR"],
   settings: ["HR"],
+  "how-it-works": ALL,
+  "role-guide": ALL,
 };
 
 export function canOpen(role: Role, route: Route): boolean {
@@ -161,6 +167,18 @@ export type NavItem = {
 export type NavGroup = { label: string; items: NavItem[] };
 
 const ITEMS: Record<string, NavItem> = {
+  "how-it-works": {
+    href: "#/how-it-works",
+    label: "How it works",
+    icon: "book",
+    page: "how-it-works",
+  },
+  "role-guide": {
+    href: "#/role-guide",
+    label: "Role guide",
+    icon: "team",
+    page: "role-guide",
+  },
   dashboard: {
     href: "#/dashboard",
     label: "Overview",
@@ -260,7 +278,7 @@ const pick = (...keys: string[]) => keys.map((key) => ITEMS[key]);
 export function navFor(role: Role): NavGroup[] {
   const help: NavGroup = {
     label: "Help",
-    items: pick("assistant", "notifications"),
+    items: pick("assistant", "notifications", "how-it-works", "role-guide"),
   };
   switch (role) {
     case "HR":
@@ -276,6 +294,7 @@ export function navFor(role: Role): NavGroup[] {
           items: pick("assistant", "knowledge", "insights"),
         },
         { label: "Admin", items: pick("notifications", "audit", "settings") },
+        { label: "Help", items: pick("how-it-works", "role-guide") },
       ];
     case "IT":
       return [
