@@ -1,14 +1,26 @@
-[Video](#demo-video) | [PPT](#presentation) | [Resumes](#team-resumes)
-
 # OnboardIQ
 
 **The next step. The right person. The proof behind it.**
+
+| Try the product | Explore the presentation |
+| --- | --- |
+| **[Open the live application →](https://dayforce-4g6d.onrender.com/)** | **[View the final presentation — PPTX](ppt/OnBoardIQ_Final.pptx)** |
+
+[Demo recording](#demo-video) · [Team resumes](#team-resumes)
+
+> **Start here:** Open the deployed prototype to explore OnboardIQ, or download the five-slide presentation for the problem, workflow, architecture and evaluation. Local setup instructions are below.
 
 OnboardIQ is an employee onboarding prototype built for **Topic 3: Employee Onboarding** of the AI Innovation Challenge. It brings HR, IT, Payroll, Benefits, Training, Managers and Employees into one workflow, with clear responsibilities and evidence for each outcome.
 
 [Overview](#project-at-a-glance) · [The problem](#problem-and-solution) · [User journey](#user-journey-and-roles) · [Architecture](#architecture) · [Setup](#install-and-run) · [Quality checks](#verification)
 
 ## Submission materials
+
+### Live application
+
+**Visit OnboardIQ:** [https://dayforce-4g6d.onrender.com/](https://dayforce-4g6d.onrender.com/)
+
+Public **[How it works](https://dayforce-4g6d.onrender.com/#/how-it-works)** and **[Role guide](https://dayforce-4g6d.onrender.com/#/role-guide)** pages explain the product before sign-in. Onboarding records and actions require an authorized account.
 
 ### Demo video
 
@@ -18,11 +30,11 @@ Recording location: `video/`.
 
 ### Presentation
 
-**Open the five-slide presentation:** `PRESENTATION_FILE_LINK`
+**[Open the five-slide final presentation (PPTX)](ppt/OnBoardIQ_Final.pptx)**
 
-Presentation location: `ppt/`.
+File: `ppt/OnBoardIQ_Final.pptx`. Download it from GitHub to view the slides.
 
-<!-- Replace the two link placeholders above with the final accessible video and presentation links. The folder paths are upload locations, not links to files that already exist. -->
+<!-- Replace DEMO_VIDEO_LINK with the final accessible recording link. The live application and recorded walkthrough are separate submission materials. -->
 
 ### Team resumes
 
@@ -182,7 +194,8 @@ Canonical API types are defined in [contracts.py](backend/app/shared/contracts.p
 | `frontend/DESIGN.md`, `frontend/PRODUCT.md` | Interface design rules and product behavior notes |
 | `frontend/OFL-Source-Sans-3.txt` | Licence for the bundled Source Sans 3 font |
 | `resume/` | Uploaded team resumes |
-| `ppt/`, `video/` | Presentation and recording upload locations |
+| `ppt/` | Final five-slide presentation: `OnBoardIQ_Final.pptx` |
+| `video/` | Demo recording upload location |
 | `.env.example`, `Dockerfile`, `render.yaml` | Safe environment template and optional container hosting configuration |
 
 Local `.env`, `.runtime/`, `.venv/`, `node_modules/` and `frontend/dist/` are private or generated artifacts, not submission source.
