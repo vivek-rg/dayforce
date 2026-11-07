@@ -6,6 +6,7 @@ import { useSession } from "../../shared/session-context";
 import { ActionError, Notice } from "../../shared/ui";
 
 const MIN_PASSWORD = 12;
+const DEMO_PASSWORD = "DemoPassword123!";
 
 const DEMO_USERS: [string, string][] = [
   ["hema@northstar.example", "HR"],
@@ -204,7 +205,11 @@ function SignInForm({ onMode }: { onMode: (mode: Mode) => void }) {
               <button
                 type="button"
                 className="auth-demo-user"
-                onClick={() => setEmail(address)}
+                onClick={() => {
+                  setEmail(address);
+                  setPassword(DEMO_PASSWORD);
+                  setProblem(null);
+                }}
               >
                 {role}
                 <small>{address}</small>

@@ -94,7 +94,7 @@ Commit/PR: actual reference when created, otherwise state not committed
 
 - **Author:** kruhi7533 with Claude Code; branch feature/onboardiq-end-to-end.
 - **Needs integrator review:** this crosses every track boundary and changes shared contracts (schema v2, `contracts.py`, generated specs). It was requested as one piece by the user, against the normal small-PR rule. No teammate has reviewed it.
-- **Added:** auth and RBAC; rule-based plans, dependencies, computed statuses, overdue escalation; evidence checks; documents with private storage, upload checks and human-only verification; advisory AI extraction; knowledge base with SQLite FTS5, citations, abstention and HR escalation; AI harness (operation registry, prompt versions, validators, run records, budgets); bounded investigation agent; exact approvals with conditional execution and read-back; notifications; analytics, insights and reliability metrics; 18 frontend screens; evaluation runner; synthetic fixtures; 
+- **Added:** auth and RBAC; rule-based plans, dependencies, computed statuses, overdue escalation; evidence checks; documents with private storage, upload checks and human-only verification; advisory AI extraction; knowledge base with SQLite FTS5, citations, abstention and HR escalation; AI harness (operation registry, prompt versions, validators, run records, budgets); bounded investigation agent; exact approvals with conditional execution and read-back; notifications; analytics, insights and reliability metrics; 18 frontend screens; evaluation runner; synthetic fixtures;
 - **Changed from the plan:** LangGraph checkpointer replaced by application-table state (the dependency is still installed but unused). Provider discovery, selector and adapters beyond Ollama and one OpenAI-compatible API are deferred. New dependencies: pypdf and python-multipart.
 - **Verification:** see docs/VERIFICATION.md and docs/EVALUATION.md.
 - **Known limits:** search found the right policy for only 5 of 11 untuned reworded questions, and embeddings are not built. Evaluation questions share one author. Docker files were not built here. Known API gaps: `Case` lacks the model that ran it, and a stale proposal stays in the inbox until someone rejects it.
@@ -299,4 +299,12 @@ Commit/PR: actual reference when created, otherwise state not committed
   - `npm run build`: Production assets compiled cleanly in 1.04s.
   - `npm run smoke`: Frontend origin -> API proxy -> SQLite connection healthy.
   - Load benchmark: 0% error rate across 10, 25, 50 concurrency tiers.
-- **Commit/PR:** Staged on `main`.
+- **Commit/PR:** Pushed to `main`.
+
+## 2026-11-07 — Auto-fill demo password on demo profile selection (UX improvement)
+
+- **Author:** Senior QA Automation Engineer (Antigravity).
+- **Files changed:** `frontend/src/features/auth/Login.tsx`.
+- **Added/changed:** Clicking any demo profile under "Demo accounts" now auto-fills both the email and the default demo password (`DemoPassword123!`), allowing instant 1-click login without having to re-enter the password manually.
+- **Verification:** `npm run test --workspace frontend` passed (56 tests). `npm run lint` and `npm run format:check` passed.
+- **Commit/PR:** On `main`.
