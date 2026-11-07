@@ -197,11 +197,26 @@ def review_inbox(connection: sqlite3.Connection, user: User) -> list[Proposal]:
 def _versions_current(connection, proposal: Proposal) -> bool:
     hire = get_hire_row(connection, proposal.hire_id)
     expected = proposal.expected_versions
+
     if (
         hire["profile_version"] != expected.profile_version
         or hire["plan_version"] != expected.plan_version
     ):
         return False
+
+    # Revalidate the policy snapshot captured when the proposal was created.
+    policy = connection.execute(
+        "SELECT policy_id, policy_version FROM tasks WHERE hire_id=? LIMIT 1",
+        (proposal.hire_id,),
+    ).fetchone()
+
+    if (
+        policy is None
+        or policy["policy_id"] != expected.policy_id
+        or policy["policy_version"] != expected.policy_version
+    ):
+        return False
+
     if expected.source_record_id:
         source = connection.execute(
             "SELECT version FROM source_records WHERE id=?", (expected.source_record_id,)
@@ -416,7 +431,7 @@ def _apply(connection, proposal: Proposal, actor: str, action_id: str) -> dict:
     }
 
 
-def _action_result(connection, action_id: str) -> ActionResult:
+def _action_result(connection: sqlite3.Connection, action_id: str) -> ActionResult:
     action = connection.execute("SELECT * FROM actions WHERE id=?", (action_id,)).fetchone()
     proposal = get_proposal(connection, action["proposal_id"])
     return ActionResult(

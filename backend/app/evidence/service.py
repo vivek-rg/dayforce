@@ -226,6 +226,8 @@ def check_hire(connection: sqlite3.Connection, hire_id: str) -> list[Evidence]:
             and previous.reason_code == reason
             and previous.source_version == source_version
             and previous.profile_version == hire["profile_version"]
+            and previous.policy_id == policy_id
+            and previous.policy_version == policy_version
             and previous.observed == observed
         ):
             continue
