@@ -1,14 +1,16 @@
 # OnboardIQ
 
+**Team Night Force**
+
 **The next step. The right person. The proof behind it.**
 
-| Try the product | Explore the presentation |
-| --- | --- |
-| **[Open the live application →](https://dayforce-4g6d.onrender.com/)** | **[View the final presentation — PPTX](ppt/OnBoardIQ_Final.pptx)** |
+| Presentation (PPT) | Demo video | Team resumes | Try the product |
+| --- | --- | --- | --- |
+| **[View on Google Drive](https://docs.google.com/presentation/d/1xp54zjSS3U0sHVgV3a_fs6MCXVm-XUnU/edit?usp=sharing&ouid=115686004275871937781&rtpof=true&sd=true)** | **[Watch the demo](https://drive.google.com/file/d/1rx0jQ82l8pdMh8ZOtSjrmFHUyzfkKhlX/view?usp=sharing)** | **[View team resumes](#team-resumes)** | **[Open the live application →](https://dayforce-4g6d.onrender.com/)** |
 
-[Demo recording](#demo-video) · [Team resumes](#team-resumes)
+**[View the presentation PDF on GitHub](ppt/OnBoardIQ_Final.pdf)** · The original [PPTX](ppt/OnBoardIQ_Final.pptx) is also available in the [ppt/ folder](ppt/).
 
-> **Start here:** Open the deployed prototype to explore OnboardIQ, or download the five-slide presentation for the problem, workflow, architecture and evaluation. Local setup instructions are below.
+> **Start here:** View the five-slide presentation for the problem, workflow, architecture and evaluation, watch the demo, or open the deployed prototype to explore OnboardIQ. Local setup instructions are below.
 
 OnboardIQ is an employee onboarding prototype built for **Topic 3: Employee Onboarding** of the AI Innovation Challenge. It brings HR, IT, Payroll, Benefits, Training, Managers and Employees into one workflow, with clear responsibilities and evidence for each outcome.
 
@@ -28,11 +30,9 @@ Public **[How it works](https://dayforce-4g6d.onrender.com/#/how-it-works)** and
 
 ### Presentation
 
-**[Open the five-slide final presentation (PPTX)](ppt/OnBoardIQ_Final.pptx)**
+**[View the five-slide final presentation on Google Drive](https://docs.google.com/presentation/d/1xp54zjSS3U0sHVgV3a_fs6MCXVm-XUnU/edit?usp=sharing&ouid=115686004275871937781&rtpof=true&sd=true)**
 
-File: `ppt/OnBoardIQ_Final.pptx`. Download it from GitHub to view the slides.
-
-<!-- Replace DEMO_VIDEO_LINK with the final accessible recording link. The live application and recorded walkthrough are separate submission materials. -->
+For a GitHub preview, **[open the PDF](ppt/OnBoardIQ_Final.pdf)**. The original **[PPTX](ppt/OnBoardIQ_Final.pptx)** is also available in the [ppt/ folder](ppt/).
 
 ### Team resumes
 
@@ -236,7 +236,7 @@ Canonical API types are defined in [contracts.py](backend/app/shared/contracts.p
 | `frontend/DESIGN.md`, `frontend/PRODUCT.md` | Interface design rules and product behavior notes |
 | `frontend/OFL-Source-Sans-3.txt` | Licence for the bundled Source Sans 3 font |
 | `resume/` | Uploaded team resumes |
-| `ppt/` | Final five-slide presentation: `OnBoardIQ_Final.pptx` |
+| `ppt/` | Final five-slide presentation: `OnBoardIQ_Final.pdf` (GitHub preview) and `OnBoardIQ_Final.pptx` |
 | `video/` | Demo recording upload location |
 | `.env.example`, `Dockerfile`, `render.yaml` | Safe environment template and optional container hosting configuration |
 
